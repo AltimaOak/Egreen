@@ -39,7 +39,7 @@ const Footer = () => {
           <div>
             <h4 className="footer-heading">Contact</h4>
             <div className="footer-links">
-              <span style={{ color: '#9ca3af' }}>Goregaon East, Mumbai<br />Maharashtra - 400063, India</span>
+              <a href="https://maps.google.com/maps?q=19%C2%B010'22.5%22N+72%C2%B051'27.1%22E" target="_blank" rel="noreferrer" style={{ color: '#9ca3af', textDecoration: 'none' }}>Goregaon East, Mumbai<br />Maharashtra - 400063, India</a>
               <a href="mailto:egreentechnology24@gmail.com" style={{ color: '#9ca3af', textDecoration: 'none' }}>egreentechnology24@gmail.com</a>
               <a href="tel:+917942625065" style={{ color: '#9ca3af', textDecoration: 'none' }}>+91-7942625065</a>
             </div>

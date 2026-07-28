@@ -143,6 +143,12 @@
   margin-bottom: 1rem;
 }
 
+.mission-vision-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
 .company-facts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -326,7 +332,7 @@ textarea.form-control {
   .contact-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-  .features-grid, .company-facts, .gallery-grid { grid-template-columns: 1fr; }
+  .features-grid, .company-facts, .gallery-grid, .mission-vision-grid { grid-template-columns: 1fr; }
   .contact-form { grid-template-columns: 1fr; }
   .form-group.full { grid-column: span 1; }
   .trusted-logos { flex-wrap: wrap; gap: 2rem; }
