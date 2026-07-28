@@ -12,13 +12,13 @@ const About = () => {
       </div>
 
       <section className="container" style={{ padding: '2rem 0' }}>
-        <FadeUp className="mission-vision-grid">
+        <FadeUp style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           <div className="card" style={{ padding: '2.5rem', textAlign: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--accent-bg)', color: 'var(--accent)', marginBottom: '1.5rem' }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
             </div>
             <h2 className="h2" style={{ marginBottom: '1rem' }}>Our Mission</h2>
-            <p style={{ color: 'var(--text)' }}>Our mission is to offer topquality products at competitive prices, ensuring excellent value and performance for our customers. Whether you're looking for reliable brand-new equipment or high-quality refurbished products, Egreen Technology is your trusted partner in the IT industry.</p>
+            <p style={{ color: 'var(--text)' }}>To provide businesses with reliable, cost-effective, and high-performance IT hardware solutions that drive operational efficiency and sustainable growth. We believe in bridging the gap between premium enterprise technology and accessible pricing.</p>
           </div>
           
           <div className="card" style={{ padding: '2.5rem', textAlign: 'center' }}>
