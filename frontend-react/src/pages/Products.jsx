@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { products } from '../data/products';
+import { productService } from '../services/productService';
 import FadeUp from '../components/FadeUp';
 
 const Products = () => {
+  const [loading, setLoading] = useState(true);
+  const [productsList, setProductsList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentCategory, setCurrentCategory] = useState('all');
 
-  const filteredProducts = products.filter(p => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await productService.getProducts();
+        // Only display active products on customer facing side
+        const active = data.filter(p => p.status === 'Active');
+        setProductsList(active);
+      } catch (err) {
+        console.error('Error fetching products list', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = productsList.filter(p => {
     const matchCategory = currentCategory === 'all' || p.category === currentCategory;
     const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        p.specs.toLowerCase().includes(searchTerm.toLowerCase());
+                        p.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategory && matchSearch;
   });
 
@@ -48,32 +67,44 @@ const Products = () => {
         </aside>
 
         <div>
-          <div className="product-grid" style={{ marginTop: '0' }}>
-            {filteredProducts.length === 0 ? (
-              <p>No products found matching your criteria.</p>
-            ) : (
-              filteredProducts.map(p => (
-                <div key={p.id} className="card product-card fade-up visible">
-                  {p.image ? (
-                    <img src={p.image} alt={p.name} className="product-card-img" />
-                  ) : (
-                    <div style={{ height: '200px', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: '#9ca3af' }}>Image pending</span>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 0' }}>
+              <p>Loading products catalog...</p>
+            </div>
+          ) : (
+            <div className="product-grid" style={{ marginTop: '0' }}>
+              {filteredProducts.length === 0 ? (
+                <p>No products found matching your criteria.</p>
+              ) : (
+                filteredProducts.map(p => (
+                  <div key={p.id} className="card product-card fade-up visible">
+                    {p.image ? (
+                      <img src={p.image} alt={p.name} className="product-card-img" />
+                    ) : (
+                      <div style={{ height: '200px', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#9ca3af' }}>Image pending</span>
+                      </div>
+                    )}
+                    <div className="product-card-body">
+                      <div className="product-badges">
+                        <span className="badge badge-condition" style={{ textTransform: 'capitalize' }}>
+                          {p.specifications?.find(s => s.key.toLowerCase() === 'condition')?.value || 'Refurbished'}
+                        </span>
+                        <span className="badge badge-stock">
+                          {p.stock === 0 ? 'Out of stock' : (p.stock < 5 ? 'Low Stock' : 'In Stock')}
+                        </span>
+                      </div>
+                      <h3>{p.name}</h3>
+                      <p style={{ maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {p.description}
+                      </p>
+                      <Link to={`/contact?product=${encodeURIComponent(p.name)}`} className="btn btn-outline">Request Quote</Link>
                     </div>
-                  )}
-                  <div className="product-card-body">
-                    <div className="product-badges">
-                      <span className="badge badge-condition">{p.condition}</span>
-                      <span className="badge badge-stock">{p.stock}</span>
-                    </div>
-                    <h3>{p.name}</h3>
-                    <p>{p.specs}</p>
-                    <Link to={`/contact?product=${encodeURIComponent(p.name)}`} className="btn btn-outline">Request Quote</Link>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

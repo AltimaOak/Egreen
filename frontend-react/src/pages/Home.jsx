@@ -1,17 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import FadeUp from '../components/FadeUp';
+import { pageService } from '../services/pageService';
+import { productService } from '../services/productService';
 
 const Home = () => {
+  const [loading, setLoading] = useState(true);
+  const [homepageData, setHomepageData] = useState(null);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const pageData = await pageService.getHomepage();
+        const productsList = await productService.getProducts();
+        
+        setHomepageData(pageData);
+        // Get active products flagged as featured
+        const featured = productsList.filter(p => p.featured && p.status === 'Active').slice(0, 3);
+        setFeaturedProducts(featured);
+      } catch (err) {
+        console.error('Error loading homepage data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  if (loading || !homepageData) {
+    return (
+      <div style={{ padding: '120px 24px', textAlign: 'center' }}>
+        <h2>Loading website content...</h2>
+      </div>
+    );
+  }
+
+  // Helper to check and render button links
+  const renderLinkBtn = (text, path, primary = true) => {
+    if (!text) return null;
+    const className = primary ? 'btn btn-primary' : 'btn btn-outline';
+    
+    if (path.startsWith('http')) {
+      return (
+        <a href={path} target="_blank" rel="noreferrer" className={className}>
+          {text}
+        </a>
+      );
+    }
+    return (
+      <Link to={path} className={className}>
+        {text}
+      </Link>
+    );
+  };
+
   return (
     <>
       <section className="hero container" style={{ display: 'block', textAlign: 'center', maxWidth: '900px', margin: '0 auto', paddingTop: 'calc(var(--nav-height) + 6rem)' }}>
         <FadeUp className="hero-content visible">
-          <h1 className="h1">Reliable New & Refurbished IT Hardware Solutions</h1>
-          <p>Egreen Technology supplies premium Dell, HP and Lenovo business systems, thin clients and computer components with competitive pricing and dependable customer support.</p>
-          <div className="hero-btns" style={{ justifyContent: 'center', marginTop: '2rem' }}>
-            <Link to="/products" className="btn btn-primary">Explore Products</Link>
-            <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline">Request Quote</a>
+          <h1 className="h1">{homepageData.heroTitle}</h1>
+          <p>{homepageData.heroSubtitle}</p>
+          <div className="hero-btns" style={{ justifyContent: 'center', marginTop: '2rem', gap: '12px', display: 'flex' }}>
+            {renderLinkBtn(homepageData.heroBtnText, homepageData.heroBtnLink, true)}
+            {renderLinkBtn(homepageData.ctaBtnText, homepageData.ctaBtnLink, false)}
           </div>
         </FadeUp>
       </section>
@@ -35,87 +88,51 @@ const Home = () => {
             <p>We pride ourselves on providing the highest quality products and services.</p>
           </FadeUp>
           <FadeUp className="features-grid">
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            {homepageData.offers.map((offer, idx) => (
+              <div key={idx} className="card">
+                <div className="feature-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9 12l2 2 4-4"></path>
+                  </svg>
+                </div>
+                <h3>{offer.title}</h3>
+                <p>{offer.desc}</p>
               </div>
-              <h3>Genuine Products</h3>
-              <p>100% authentic hardware sourced from trusted manufacturers.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg>
-              </div>
-              <h3>Quality Tested</h3>
-              <p>Every refurbished unit undergoes rigorous testing before shipment.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              </div>
-              <h3>Wholesale Pricing</h3>
-              <p>Competitive rates that improve your bottom line.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-              </div>
-              <h3>Bulk Orders</h3>
-              <p>Capacity to fulfill massive IT requirements efficiently.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              </div>
-              <h3>Fast Delivery</h3>
-              <p>Optimized logistics for quick dispatch and arrival.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </div>
-              <h3>Customer Support</h3>
-              <p>Dedicated assistance for all your technical inquiries.</p>
-            </div>
+            ))}
           </FadeUp>
         </div>
       </section>
 
-      <FadeUp className="section-padding container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-          <div>
-            <h2 className="h2" style={{ marginBottom: '0' }}>Featured Categories</h2>
-          </div>
-          <Link to="/products" className="btn btn-outline">View All Products</Link>
-        </div>
-        
-        <div className="product-grid">
-          <div className="card product-card">
-            <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Client" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Dell Wyse Thin Client</h3>
-              <p>Secure, manageable and reliable endpoints for virtual desktop environments.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
+      {featuredProducts.length > 0 && (
+        <FadeUp className="section-padding container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+            <div>
+              <h2 className="h2" style={{ marginBottom: '0' }}>Featured Hardware</h2>
             </div>
+            <Link to="/products" className="btn btn-outline">View All Products</Link>
           </div>
-          <div className="card product-card">
-            <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PC" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Dell OptiPlex Mini PC</h3>
-              <p>Ultra-compact business desktops with versatile mounting options.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
-            </div>
+          
+          <div className="product-grid">
+            {featuredProducts.map((p) => (
+              <div key={p.id} className="card product-card">
+                {p.image ? (
+                  <img src={p.image} alt={p.name} className="product-card-img" />
+                ) : (
+                  <div style={{ height: '200px', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#9ca3af' }}>Image pending</span>
+                  </div>
+                )}
+                <div className="product-card-body">
+                  <h3>{p.name}</h3>
+                  <p>{p.description}</p>
+                  <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="card product-card">
-            <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre Mini PC" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Lenovo ThinkCentre Mini PC</h3>
-              <p>Space-saving desktops designed for extreme productivity.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
-            </div>
-          </div>
-        </div>
-      </FadeUp>
+        </FadeUp>
+      )}
 
       <section className="section-padding bg-muted">
         <FadeUp className="container split-section">
@@ -138,7 +155,7 @@ const Home = () => {
       <FadeUp className="container">
         <section className="cta-section">
           <h2 className="h2">Need Reliable IT Hardware?</h2>
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get a Free Quote</a>
+          <a href={`https://wa.me/${homepageData.ctaBtnLink ? homepageData.ctaBtnLink.replace(/[+\-\s]/g, '').replace('https://wa.me/', '') : '917942625065'}`} target="_blank" rel="noreferrer" className="btn btn-primary">Get a Free Quote</a>
         </section>
       </FadeUp>
     </>
