@@ -40,26 +40,27 @@ const Navbar = () => {
           <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>About Us</Link>
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
+          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
           {!isAuthenticated && !loading && (
-            <Link to="/login" className={location.pathname === '/login' ? 'active' : ''} onClick={closeMenu}>Sign In</Link>
+            <Link to="/login" className={`nav-mobile-link ${location.pathname === '/login' ? 'active' : ''}`} onClick={closeMenu}>Sign In</Link>
           )}
           {isAuthenticated && (
-            <button onClick={handleLogout} className="mobile-logout" style={{ background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--text-body)', cursor: 'pointer', textAlign: 'left', padding: '8px 0' }}>Logout</button>
+            <button onClick={handleLogout} className="mobile-logout nav-mobile-link" style={{ background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--text-body)', cursor: 'pointer', textAlign: 'left', padding: '8px 0' }}>Logout</button>
           )}
         </div>
         <div className="nav-actions">
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Get Quote</a>
+          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
           {loading ? null : isAuthenticated ? (
             <>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-body)', marginRight: '8px' }}>
+              <span className="user-greeting">
                 Hi, {user.name?.split(' ')[0]}
               </span>
-              <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Logout</button>
+              <button onClick={handleLogout} className="btn btn-outline">Logout</button>
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Sign In</Link>
-              <Link to="/register" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Register</Link>
+              <Link to="/login" className="btn btn-outline">Sign In</Link>
+              <Link to="/register" className="btn btn-dark">Register</Link>
             </>
           )}
         </div>
