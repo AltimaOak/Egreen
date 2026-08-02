@@ -5,142 +5,277 @@ import FadeUp from '../components/FadeUp';
 const Home = () => {
   return (
     <>
-      <section className="hero container" style={{ display: 'block', textAlign: 'center', maxWidth: '900px', margin: '0 auto', paddingTop: 'calc(var(--nav-height) + 6rem)' }}>
-        <FadeUp className="hero-content visible">
-          <h1 className="h1">Reliable New & Refurbished IT Hardware Solutions</h1>
-          <p>Egreen Technology supplies premium Dell, HP and Lenovo business systems, thin clients and computer components with competitive pricing and dependable customer support.</p>
-          <div className="hero-btns" style={{ justifyContent: 'center', marginTop: '2rem' }}>
-            <Link to="/products" className="btn btn-primary">Explore Products</Link>
-            <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline">Request Quote</a>
+      <section className="hero-landing">
+        <div className="container hero-landing-container">
+          <FadeUp className="hero-landing-content visible">
+            <div className="hero-badge-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Trusted by 500+ Businesses
+            </div>
+            <h1 className="hero-landing-title">
+              Reliable New &amp; Refurbished <br/>
+              <span className="text-primary">IT Hardware Solutions</span>
+            </h1>
+            <p className="hero-landing-desc">
+              Enterprise-grade IT hardware from leading brands.<br/>
+              Built for performance, backed by trust.
+            </p>
+            <div className="hero-landing-btns">
+              <Link to="/products" className="btn btn-primary hero-btn">
+                Explore Products 
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </Link>
+              <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline hero-btn">
+                Request Quote 
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+            </div>
+          </FadeUp>
+
+          <FadeUp className="hero-landing-image-wrapper visible">
+            <div className="hero-arch-frame">
+              <img src="/assets/office_modern_1785088069141.png" alt="Office Hardware Workspace" className="hero-arch-img" />
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      <div className="container">
+        <FadeUp className="hero-features-bar card visible">
+          <div className="hero-feature-item">
+            <div className="feature-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div className="feature-item-text">
+              <h4>Genuine Products</h4>
+              <p>100% authentic hardware from trusted brands</p>
+            </div>
+          </div>
+
+          <div className="hero-feature-item">
+            <div className="feature-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+            </div>
+            <div className="feature-item-text">
+              <h4>Expert Support</h4>
+              <p>Dedicated technical &amp; after sales support</p>
+            </div>
+          </div>
+
+          <div className="hero-feature-item">
+            <div className="feature-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div className="feature-item-text">
+              <h4>Fast &amp; Safe Delivery</h4>
+              <p>Quick and reliable delivery across India</p>
+            </div>
+          </div>
+
+          <div className="hero-feature-item">
+            <div className="feature-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            </div>
+            <div className="feature-item-text">
+              <h4>Best Prices</h4>
+              <p>Competitive pricing for maximum value</p>
+            </div>
           </div>
         </FadeUp>
-      </section>
+      </div>
 
-      <FadeUp className="trusted-by">
+      <section className="trusted-brands-section">
         <div className="container">
-          <h3 className="h3" style={{ fontSize: '1.125rem', color: 'var(--text-body)' }}>Trusted By Businesses</h3>
-          <div className="trusted-logos">
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">Enterprise</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">TechCorp</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">GlobalSys</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">DataNet</text></svg>
+          <FadeUp className="trusted-brands-header visible">
+            <h3 className="trusted-brands-title">Trusted Brands</h3>
+            <p className="trusted-brands-subtitle">Quality hardware from the world's leading technology brands.</p>
+          </FadeUp>
+        </div>
+
+        <div className="marquee-wrapper">
+          <div className="marquee-fade-left"></div>
+          <div className="marquee-fade-right"></div>
+          <div className="marquee-track">
+            {[...Array(4)].flatMap(() => [
+              {
+                name: 'Dell',
+                svg: (
+                  <svg viewBox="0 0 140 40" className="brand-logo-svg brand-dell">
+                    <text x="5" y="32" fill="#0076ce" fontFamily="Arial, Helvetica, sans-serif" fontSize="34" fontWeight="900" letterSpacing="1px">DELL</text>
+                  </svg>
+                )
+              },
+              {
+                name: 'HP',
+                svg: (
+                  <svg viewBox="0 0 80 80" className="brand-logo-svg brand-hp">
+                    <circle cx="40" cy="40" r="38" fill="#0096d6"/>
+                    <text x="40" y="52" fill="#ffffff" fontFamily="Arial, Helvetica, sans-serif" fontSize="36" fontWeight="900" fontStyle="italic" textAnchor="middle" letterSpacing="-1px">hp</text>
+                  </svg>
+                )
+              },
+              {
+                name: 'Acer',
+                svg: (
+                  <svg viewBox="0 0 140 40" className="brand-logo-svg brand-acer">
+                    <text x="0" y="33" fill="#74a613" fontFamily="Arial, Helvetica, sans-serif" fontSize="38" fontWeight="900" fontStyle="italic" letterSpacing="-2px">acer</text>
+                  </svg>
+                )
+              },
+              {
+                name: 'Lenovo',
+                svg: (
+                  <svg viewBox="0 0 160 50" className="brand-logo-svg brand-lenovo">
+                    <rect x="0" y="0" width="160" height="50" rx="3" fill="#e2231a" />
+                    <text x="10" y="34" fill="#ffffff" fontFamily="Arial, Helvetica, sans-serif" fontSize="28" fontWeight="bold" letterSpacing="0.5px">Lenovo</text>
+                    <text x="140" y="24" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="8" fontWeight="bold">TM</text>
+                  </svg>
+                )
+              },
+             {
+  name: 'Intel',
+  svg: (
+    <svg viewBox="0 0 160 50">
+      <rect width="160" height="50" rx="3" fill="#0068B5" />
+      <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
+        intel
+      </text>
+    </svg>
+  )
+}
+            ]).map((brand, idx) => (
+              <div key={idx} className="brand-card" title={brand.name}>
+                {brand.svg}
+              </div>
+            ))}
           </div>
         </div>
-      </FadeUp>
-
-      <section className="section-padding bg-muted">
-        <div className="container">
-          <FadeUp className="text-center" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-            <h2 className="h2">Features Section</h2>
-            <p>We pride ourselves on providing the highest quality products and services.</p>
-          </FadeUp>
-          <FadeUp className="features-grid">
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              </div>
-              <h3>Genuine Products</h3>
-              <p>100% authentic hardware sourced from trusted manufacturers.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg>
-              </div>
-              <h3>Quality Tested</h3>
-              <p>Every refurbished unit undergoes rigorous testing before shipment.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              </div>
-              <h3>Wholesale Pricing</h3>
-              <p>Competitive rates that improve your bottom line.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-              </div>
-              <h3>Bulk Orders</h3>
-              <p>Capacity to fulfill massive IT requirements efficiently.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              </div>
-              <h3>Fast Delivery</h3>
-              <p>Optimized logistics for quick dispatch and arrival.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </div>
-              <h3>Customer Support</h3>
-              <p>Dedicated assistance for all your technical inquiries.</p>
-            </div>
-          </FadeUp>
-        </div>
       </section>
 
-      <FadeUp className="section-padding container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+      <section className="section-padding container">
+        <FadeUp className="categories-header-row visible">
           <div>
-            <h2 className="h2" style={{ marginBottom: '0' }}>Featured Categories</h2>
+            <span className="section-category-badge">BROWSE BY CATEGORY</span>
+            <h2 className="section-main-title">Featured Categories</h2>
           </div>
-          <Link to="/products" className="btn btn-outline">View All Products</Link>
-        </div>
-        
-        <div className="product-grid">
-          <div className="card product-card">
-            <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Client" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Dell Wyse Thin Client</h3>
-              <p>Secure, manageable and reliable endpoints for virtual desktop environments.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
+          <Link to="/products" className="btn btn-outline category-view-all">
+            View All Products
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </Link>
+        </FadeUp>
+
+        <div className="home-category-grid">
+          <FadeUp className="card category-card visible">
+            <div className="category-card-img-wrapper">
+              <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Clients" className="category-card-img" />
+              <div className="category-card-icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              </div>
             </div>
-          </div>
-          <div className="card product-card">
-            <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PC" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Dell OptiPlex Mini PC</h3>
+            <div className="category-card-body">
+              <h3>Dell Wyse Thin Clients</h3>
+              <p>Secure, manageable and efficient solutions for virtual desktop environments.</p>
+              <Link to="/products" className="category-card-link">
+                View Details
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </Link>
+            </div>
+          </FadeUp>
+
+          <FadeUp className="card category-card visible">
+            <div className="category-card-img-wrapper">
+              <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PCs" className="category-card-img" />
+              <div className="category-card-icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              </div>
+            </div>
+            <div className="category-card-body">
+              <h3>Dell OptiPlex Mini PCs</h3>
               <p>Ultra-compact business desktops with versatile mounting options.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
+              <Link to="/products" className="category-card-link">
+                View Details
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </Link>
             </div>
-          </div>
-          <div className="card product-card">
-            <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre Mini PC" className="product-card-img" />
-            <div className="product-card-body">
-              <h3>Lenovo ThinkCentre Mini PC</h3>
-              <p>Space-saving desktops designed for extreme productivity.</p>
-              <Link to="/products" className="btn btn-outline" style={{ width: '100%', textAlign: 'center' }}>View Details</Link>
-            </div>
-          </div>
-        </div>
-      </FadeUp>
+          </FadeUp>
 
-      <section className="section-padding bg-muted">
-        <FadeUp className="container split-section">
-          <img src="/assets/warehouse_professional_1785088056986.png" alt="Warehouse" className="split-image" />
-          <div>
-            <h2 className="h2">Why Choose Us</h2>
-            <p>We are dedicated to providing the best value in enterprise hardware.</p>
-            <div className="reason-list">
-              {['Quality Products', 'Competitive Prices', 'Industry Experience', 'Transparent Business', 'Reliable Delivery', 'Long-term Customer Relationships'].map((reason, index) => (
-                <div key={index} className="reason-item">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  {reason}
+          <FadeUp className="card category-card visible">
+            <div className="category-card-img-wrapper">
+              <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre PCs" className="category-card-img" />
+              <div className="category-card-icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+              </div>
+            </div>
+            <div className="category-card-body">
+              <h3>Lenovo ThinkCentre PCs</h3>
+              <p>Space-saving desktops designed for diverse business productivity.</p>
+              <Link to="/products" className="category-card-link">
+                View Details
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </Link>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      <section className="why-choose-section">
+        <div className="container">
+          <FadeUp className="why-choose-container visible">
+            <div className="why-choose-header text-center">
+              <span className="section-category-badge">WHY CHOOSE US</span>
+              <h2 className="why-choose-title">
+                Why Choose <span className="text-primary">Egreen Technology?</span>
+              </h2>
+              <p className="why-choose-desc">
+                We supply reliable, enterprise-grade IT hardware to businesses with full quality assurance and dedicated technical support.
+              </p>
+            </div>
+
+            <div className="why-choose-grid-3col">
+              {[
+                { 
+                  title: 'Genuine Products', 
+                  desc: '100% authentic Dell, HP & Lenovo workstations, mini PCs, and thin clients.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                },
+                { 
+                  title: 'Wholesale Pricing', 
+                  desc: 'Direct B2B pricing with transparent rates and volume purchase discounts.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                },
+                { 
+                  title: 'Warranty Protected', 
+                  desc: 'Minimum 6 months warranty coverage on every product shipped.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                },
+                { 
+                  title: 'Pan-India Delivery', 
+                  desc: 'Fast, secure, and fully tracked delivery nationwide to your office.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                },
+                { 
+                  title: 'Expert Tech Support', 
+                  desc: 'Dedicated technical team ready to assist before and after your purchase.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                },
+                { 
+                  title: 'Transparent Business', 
+                  desc: 'No hidden fees, accurate grading, and straightforward customer service.',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                }
+              ].map((item, i) => (
+                <div key={i} className="why-choose-card-clean">
+                  <div className="why-choose-icon-badge">
+                    {item.icon}
+                  </div>
+                  <h4 className="why-choose-card-title">{item.title}</h4>
+                  <p className="why-choose-card-desc">{item.desc}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </FadeUp>
+          </FadeUp>
+        </div>
       </section>
-
-      <FadeUp className="container">
-        <section className="cta-section">
-          <h2 className="h2">Need Reliable IT Hardware?</h2>
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get a Free Quote</a>
-        </section>
-      </FadeUp>
     </>
   );
 };

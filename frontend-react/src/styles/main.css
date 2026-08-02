@@ -48,8 +48,8 @@ img {
 .h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; margin-bottom: 1.5rem; }
 .h3 { font-size: 1.5rem; font-weight: 600; }
 
-.section-padding { padding: 5rem 0; }
-.section-padding-lg { padding: 8rem 0; }
+.section-padding { padding: 2.25rem 0; }
+.section-padding-lg { padding: 4rem 0; }
 .bg-muted { background-color: var(--bg-muted); }
 .bg-white { background-color: var(--card-bg); }
 
@@ -193,14 +193,14 @@ img {
 .footer {
   background-color: var(--secondary);
   color: #f3f4f6;
-  padding: 5rem 0 2rem;
+  padding: 1.5rem 0 1rem;
 }
 
 .footer-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .footer-heading {
