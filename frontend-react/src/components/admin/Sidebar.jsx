@@ -1,24 +1,23 @@
-// Admin Redesigned Dark Navigation Sidebar Component
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
   ShoppingCart,
   FolderTree,
   Users,
-  Layers, 
-  BarChart3, 
-  Settings, 
+  Layers,
+  BarChart3,
+  Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
-  const { logout } = useAdmin();
+  const { logout, currentUser } = useAdmin();
   const { themeSettings } = useTheme();
   const navigate = useNavigate();
 
@@ -40,9 +39,11 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
+  const displayName = currentUser?.username || themeSettings.adminName || 'admin';
+  const displayInitial = displayName.charAt(0).toUpperCase();
+
   return (
     <aside className={`admin-sidebar ${collapsed ? 'collapsed' : ''}`}>
-      {/* Brand Logo Header with green leaf icon representation */}
       <div className="admin-sidebar-brand">
         <div className="admin-sidebar-logo-container">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -50,13 +51,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
             <path d="M9.5 9.4c0 3.2 2.6 5.8 5.8 5.8"></path>
           </svg>
         </div>
-        <div className="admin-sidebar-brand-name-group">
+        <div className="admin-sidebar-brand-name">
           <span className="admin-sidebar-title">{themeSettings.websiteName || 'Egreen'}</span>
           <span className="admin-sidebar-subtitle">Admin Panel</span>
         </div>
       </div>
 
-      {/* Navigation menu items */}
       <nav className="admin-sidebar-menu">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -65,7 +65,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               key={item.name}
               to={item.path}
               end={item.end}
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 `admin-sidebar-link ${isActive ? 'active' : ''}`
               }
             >
@@ -75,36 +75,30 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
           );
         })}
 
-        <button 
-          onClick={handleLogoutClick} 
-          className="admin-sidebar-link text-danger" 
-          style={{ marginTop: 'auto', color: '#F87171' }}
+        <button
+          onClick={handleLogoutClick}
+          className="admin-sidebar-link"
+          style={{ marginTop: 'auto', color: 'var(--color-danger)' }}
         >
           <LogOut size={18} />
           <span className="admin-sidebar-link-text">Logout</span>
         </button>
       </nav>
 
-      {/* Profile info block at bottom */}
       <div className="admin-sidebar-profile">
-        <div className="admin-sidebar-profile-avatar"></div>
+        <div className="admin-sidebar-profile-avatar">
+          {displayInitial}
+        </div>
         <div className="admin-sidebar-profile-info">
-          <span className="admin-sidebar-profile-name">Arjun Patel</span>
-          <span className="admin-sidebar-profile-role">Super Admin</span>
+          <span className="admin-sidebar-profile-name">{displayName}</span>
+          <span className="admin-sidebar-profile-role">Administrator</span>
         </div>
       </div>
 
-      <button 
-        className="admin-sidebar-link" 
-        style={{ 
-          borderTop: '1px solid var(--sidebar-border)',
-          borderRadius: 0,
-          padding: '12px 24px',
-          justifyContent: collapsed ? 'center' : 'flex-end',
-          alignSelf: 'stretch',
-          color: '#64748B'
-        }}
+      <button
+        className="admin-sidebar-collpase-btn"
         onClick={() => setCollapsed(!collapsed)}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>

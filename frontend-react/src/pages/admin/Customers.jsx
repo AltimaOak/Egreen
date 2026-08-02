@@ -48,6 +48,13 @@ const Customers = () => {
 
   return (
     <div style={{ textAlign: 'left' }}>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Customers</h1>
+          <p className="admin-page-subtitle">View client history, transactions, and account details.</p>
+        </div>
+      </div>
       
       {/* Statistics Cards */}
       <div className="admin-stats-grid">

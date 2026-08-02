@@ -1,28 +1,35 @@
-// Redesigned Admin Product CRUD Page - Shopify & Stripe Styled
+// Admin Product CRUD Page — Redesigned
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { imageService } from '../../services/imageService';
 import { useAdmin } from '../../contexts/AdminContext';
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Eye, 
-  X, 
-  Upload, 
-  ArrowUpDown,
-  Filter,
+import {
+  Card,
+  Button,
+  Badge,
+  Drawer,
+  ConfirmDialog,
+  SkeletonTable,
+  EmptyState,
+  Input,
+  Select,
+  Textarea,
+} from '../../components/admin/UI';
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Eye,
+  X,
+  Upload,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  Check
+  Star,
 } from 'lucide-react';
 import { formatPrice, generateSlug } from '../../utils/helpers';
 import { validateProduct } from '../../utils/validators';
-import ConfirmDialog from '../../components/admin/ConfirmDialog';
-import { TableSkeleton } from '../../components/admin/Skeleton';
 
 const CATEGORIES = [
   { value: 'mini-pc', label: 'Mini PCs' },
@@ -31,7 +38,7 @@ const CATEGORIES = [
   { value: 'laptop', label: 'Laptops' },
   { value: 'processors', label: 'Processors' },
   { value: 'components', label: 'Components & SSDs' },
-  { value: 'other', label: 'Other Accessories' }
+  { value: 'other', label: 'Other Accessories' },
 ];
 
 const BRANDS = ['Dell', 'HP', 'Lenovo', 'Intel', 'Asus', 'Apacer', 'Other'];
@@ -54,7 +61,7 @@ const INITIAL_FORM_STATE = {
   seoTitle: '',
   seoDescription: '',
   image: '',
-  gallery: []
+  gallery: [],
 };
 
 const Products = () => {
@@ -62,8 +69,8 @@ const Products = () => {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Table view controls
+
+  // Table controls
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrandFilter, setSelectedBrandFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
@@ -71,12 +78,13 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // CRUD overlay state
-  const [viewState, setViewState] = useState('list'); // list, create, edit, details
+  // Drawer state (replaces viewState list/create/edit/details)
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState('create'); // create | edit | view
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [imageUploading, setImageUploading] = useState(false);
-  const [wizardStep, setWizardStep] = useState(0); // 0: Basic Info, 1: Specs, 2: Media, 3: Pricing, 4: Publish
+  const [wizardStep, setWizardStep] = useState(0);
 
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -98,11 +106,11 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Listen for navigation shortcuts (e.g. from topnav button)
+  // Listen for ?action=add and ?q= search params
   useEffect(() => {
     const action = searchParams.get('action');
     if (action === 'add') {
-      handleCreateClick();
+      openCreateDrawer();
     }
     const query = searchParams.get('q');
     if (query) {
@@ -110,32 +118,33 @@ const Products = () => {
     }
   }, [searchParams]);
 
-  // Sync SKU and SEO details automatically
+  // Auto-generate slug, SKU, SEO fields
   useEffect(() => {
-    if (viewState === 'create' && formData.name) {
-      setFormData(prev => ({
+    if (drawerMode === 'create' && formData.name) {
+      setFormData((prev) => ({
         ...prev,
         slug: generateSlug(prev.name),
         SKU: prev.SKU || `EG-${prev.brand.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
         seoTitle: `${prev.name} - Egreen Technology`,
-        seoDescription: `Buy ${prev.name} online at wholesale rates. 100% genuine guaranteed.`
+        seoDescription: `Buy ${prev.name} online at wholesale rates. 100% genuine guaranteed.`,
       }));
     }
-  }, [formData.name, formData.brand, viewState]);
+  }, [formData.name, formData.brand, drawerMode]);
 
-  // Filters & calculations
+  // Brand filter counts
   const brandCounts = {
     all: products.length,
-    Dell: products.filter(p => p.brand === 'Dell').length,
-    Lenovo: products.filter(p => p.brand === 'Lenovo').length,
-    HP: products.filter(p => p.brand === 'HP').length,
-    Acer: products.filter(p => p.brand === 'Acer' || p.brand === 'Asus').length || 22
+    Dell: products.filter((p) => p.brand === 'Dell').length,
+    Lenovo: products.filter((p) => p.brand === 'Lenovo').length,
+    HP: products.filter((p) => p.brand === 'HP').length,
+    Acer: products.filter((p) => p.brand === 'Acer' || p.brand === 'Asus').length,
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.SKU.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.SKU || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBrand = selectedBrandFilter === 'all' || p.brand.toLowerCase() === selectedBrandFilter.toLowerCase();
     return matchesSearch && matchesBrand;
   });
@@ -143,7 +152,7 @@ const Products = () => {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     let valA = a[sortBy];
     let valB = b[sortBy];
-    
+
     if (sortBy === 'price') {
       valA = parseFloat(valA || 0);
       valB = parseFloat(valB || 0);
@@ -163,7 +172,7 @@ const Products = () => {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
   const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const handleSort = (field) => {
@@ -175,17 +184,48 @@ const Products = () => {
     }
   };
 
-  // Image Upload base64 helper
+  const openCreateDrawer = () => {
+    setFormData(INITIAL_FORM_STATE);
+    setWizardStep(0);
+    setDrawerMode('create');
+    setDrawerOpen(true);
+    setCurrentId(null);
+  };
+
+  const openEditDrawer = (product) => {
+    setFormData({
+      ...INITIAL_FORM_STATE,
+      ...product,
+      features: product.features && product.features.length > 0 ? product.features : [''],
+      specifications: product.specifications && product.specifications.length > 0 ? product.specifications : [{ key: '', value: '' }],
+    });
+    setCurrentId(product.id);
+    setWizardStep(0);
+    setDrawerMode('edit');
+    setDrawerOpen(true);
+  };
+
+  const openViewDrawer = (product) => {
+    setFormData(product);
+    setDrawerMode('view');
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setWizardStep(0);
+  };
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     setImageUploading(true);
     showToast('Uploading image...', 'loading');
-    
+
     try {
       const base64 = await imageService.uploadImage(file);
-      setFormData(prev => ({ ...prev, image: base64 }));
+      setFormData((prev) => ({ ...prev, image: base64 }));
       showToast('Image uploaded successfully', 'success');
     } catch (err) {
       showToast(err.message || 'Image upload failed', 'error');
@@ -194,62 +234,37 @@ const Products = () => {
     }
   };
 
-  // Specs array helpers
   const handleSpecChange = (index, field, value) => {
     const updatedSpecs = [...formData.specifications];
     updatedSpecs[index][field] = value;
-    setFormData(prev => ({ ...prev, specifications: updatedSpecs }));
+    setFormData((prev) => ({ ...prev, specifications: updatedSpecs }));
   };
 
   const addSpecField = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specifications: [...prev.specifications, { key: '', value: '' }]
+      specifications: [...prev.specifications, { key: '', value: '' }],
     }));
   };
 
   const removeSpecField = (index) => {
     const updatedSpecs = formData.specifications.filter((_, idx) => idx !== index);
-    setFormData(prev => ({ ...prev, specifications: updatedSpecs }));
+    setFormData((prev) => ({ ...prev, specifications: updatedSpecs }));
   };
 
-  // Features array helpers
   const handleFeatureChange = (index, value) => {
     const updatedFeatures = [...formData.features];
     updatedFeatures[index] = value;
-    setFormData(prev => ({ ...prev, features: updatedFeatures }));
+    setFormData((prev) => ({ ...prev, features: updatedFeatures }));
   };
 
   const addFeatureField = () => {
-    setFormData(prev => ({ ...prev, features: [...prev.features, ''] }));
+    setFormData((prev) => ({ ...prev, features: [...prev.features, ''] }));
   };
 
   const removeFeatureField = (index) => {
     const updatedFeatures = formData.features.filter((_, idx) => idx !== index);
-    setFormData(prev => ({ ...prev, features: updatedFeatures }));
-  };
-
-  const handleCreateClick = () => {
-    setFormData(INITIAL_FORM_STATE);
-    setWizardStep(0);
-    setViewState('create');
-  };
-
-  const handleEditClick = (product) => {
-    setFormData({
-      ...INITIAL_FORM_STATE,
-      ...product,
-      features: product.features && product.features.length > 0 ? product.features : [''],
-      specifications: product.specifications && product.specifications.length > 0 ? product.specifications : [{ key: '', value: '' }]
-    });
-    setCurrentId(product.id);
-    setWizardStep(0);
-    setViewState('edit');
-  };
-
-  const handleViewClick = (product) => {
-    setFormData(product);
-    setViewState('details');
+    setFormData((prev) => ({ ...prev, features: updatedFeatures }));
   };
 
   const handleDeleteClick = (product) => {
@@ -272,10 +287,9 @@ const Products = () => {
 
   const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
-    
-    // Filter out blank specs/features
-    const cleanedSpecs = formData.specifications.filter(s => s.key.trim() !== '' && s.value.trim() !== '');
-    const cleanedFeatures = formData.features.filter(f => f.trim() !== '');
+
+    const cleanedSpecs = formData.specifications.filter((s) => s.key.trim() !== '' && s.value.trim() !== '');
+    const cleanedFeatures = formData.features.filter((f) => f.trim() !== '');
 
     const finalData = {
       ...formData,
@@ -283,7 +297,7 @@ const Products = () => {
       offerPrice: formData.offerPrice ? parseFloat(formData.offerPrice) : null,
       stock: parseInt(formData.stock),
       specifications: cleanedSpecs.length > 0 ? cleanedSpecs : [{ key: 'Specs', value: formData.description }],
-      features: cleanedFeatures.length > 0 ? cleanedFeatures : ['Tested Quality']
+      features: cleanedFeatures.length > 0 ? cleanedFeatures : ['Tested Quality'],
     };
 
     const errors = validateProduct(finalData);
@@ -294,661 +308,559 @@ const Products = () => {
 
     showToast('Saving Changes...', 'loading');
     try {
-      if (viewState === 'create') {
+      if (drawerMode === 'create') {
         await productService.createProduct(finalData);
       } else {
         await productService.updateProduct(currentId, finalData);
       }
-      
       showToast('Changes Published Successfully', 'success');
-      setViewState('list');
+      setDrawerOpen(false);
       fetchProducts();
     } catch (e) {
       showToast('Failed to save product details.', 'error');
     }
   };
 
-  // Steps headers details
   const wizardStepsLabels = [
     { title: 'Basic Info', num: 1 },
     { title: 'Specifications', num: 2 },
     { title: 'Media', num: 3 },
     { title: 'Pricing', num: 4 },
-    { title: 'Publish', num: 5 }
+    { title: 'Publish', num: 5 },
   ];
 
+  const sortOptions = [
+    { value: 'name-asc', label: 'Name (A-Z)' },
+    { value: 'name-desc', label: 'Name (Z-A)' },
+    { value: 'price-asc', label: 'Price (Low-High)' },
+    { value: 'price-desc', label: 'Price (High-Low)' },
+    { value: 'stock-asc', label: 'Stock (Low-High)' },
+    { value: 'stock-desc', label: 'Stock (High-Low)' },
+  ];
+
+  const drawerTitle = drawerMode === 'create' ? 'Add New Product' : drawerMode === 'edit' ? `Edit: ${formData.name}` : `Product: ${formData.name}`;
+
   return (
-    <div style={{ textAlign: 'left' }}>
-      
-      {/* 1. PRODUCT LISTING TABLE VIEW */}
-      {viewState === 'list' && (
+    <div>
+      {/* Page header */}
+      <div className="admin-page-header">
         <div>
-          {/* Top Brand Filter Chips */}
-          <div className="admin-filter-chips">
-            {['all', 'Dell', 'Lenovo', 'HP', 'Acer'].map(brand => (
-              <button 
-                key={brand}
-                className={`admin-filter-chip ${selectedBrandFilter === brand ? 'active' : ''}`}
-                onClick={() => { setSelectedBrandFilter(brand); setCurrentPage(1); }}
-              >
-                {brand === 'all' ? 'All' : brand} ({brandCounts[brand] || 0})
-              </button>
-            ))}
+          <h1 className="admin-page-title">Products</h1>
+          <p className="admin-page-subtitle">Manage product catalog, pricing, and inventory.</p>
+        </div>
+        <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openCreateDrawer}>
+          Add Product
+        </Button>
+      </div>
+
+      {/* Brand filter chips */}
+      <div className="admin-filter-chips">
+        {['all', 'Dell', 'Lenovo', 'HP', 'Acer'].map((brand) => (
+          <button
+            key={brand}
+            className={`admin-filter-chip ${selectedBrandFilter === brand ? 'active' : ''}`}
+            onClick={() => {
+              setSelectedBrandFilter(brand);
+              setCurrentPage(1);
+            }}
+          >
+            {brand === 'all' ? 'All' : brand} ({brandCounts[brand] || 0})
+          </button>
+        ))}
+      </div>
+
+      <Card noShadow>
+        {/* Search + Sort toolbar */}
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <div className="relative w-full max-w-sm">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              className="admin-input"
+              style={{ paddingLeft: '36px' }}
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
 
-          <div className="admin-card">
-            {/* Search and Sort toolbar */}
-            <div className="flex justify-between items-center mb-4" style={{ flexWrap: 'wrap', gap: '16px' }}>
-              <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
-                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-body)' }} />
-                <input 
-                  type="text" 
-                  className="admin-input" 
-                  style={{ paddingLeft: '36px' }}
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                />
-              </div>
+          <Select
+            options={sortOptions}
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [field, order] = e.target.value.split('-');
+              setSortBy(field);
+              setSortOrder(order);
+            }}
+          />
+        </div>
 
-              <div className="flex gap-2">
-                <select 
-                  className="admin-select"
-                  style={{ width: '140px' }}
-                  value={`${sortBy}-${sortOrder}`}
-                  onChange={(e) => {
-                    const [field, order] = e.target.value.split('-');
-                    setSortBy(field);
-                    setSortOrder(order);
-                  }}
+        {loading ? (
+          <SkeletonTable rows={itemsPerPage} cols={7} />
+        ) : (
+          <>
+            {paginatedProducts.length === 0 ? (
+              <EmptyState
+                title="No products found"
+                description="No products match your current filters."
+                action={<Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={openCreateDrawer}>Add Product</Button>}
+              />
+            ) : (
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '40px' }}>
+                        <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
+                      </th>
+                      <th>Product</th>
+                      <th>Brand</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedProducts.map((p) => (
+                      <tr key={p.id}>
+                        <td>
+                          <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            {p.image ? (
+                              <img src={p.image} alt={p.name} className="admin-table-img" />
+                            ) : (
+                              <div className="admin-table-img flex items-center justify-center bg-muted/10 text-muted text-xs">
+                                No Image
+                              </div>
+                            )}
+                            <div>
+                              <strong className="text-sm text-text">{p.name}</strong>
+                              <span className="block text-xs text-muted">SKU: {p.SKU || '-'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-sm">{p.brand}</td>
+                        <td className="text-sm capitalize">
+                          {CATEGORIES.find((c) => c.value === p.category)?.label || p.category}
+                        </td>
+                        <td>
+                          <span className="font-medium text-text">{formatPrice(p.price)}</span>
+                          {p.offerPrice && (
+                            <span className="block text-xs text-danger line-through">{formatPrice(p.offerPrice)}</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={p.stock === 0 ? 'text-danger' : (p.stock < 5 ? 'text-warning' : 'text-text')}>
+                            {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
+                          </span>
+                        </td>
+                        <td>
+                          <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>{p.status}</Badge>
+                          {p.featured && <Badge variant="primary" className="ml-1">Featured</Badge>}
+                        </td>
+                        <td className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <button
+                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                              style={{ padding: '4px 8px' }}
+                              title="View details"
+                              onClick={() => openViewDrawer(p)}
+                            >
+                              <Eye size={13} />
+                            </button>
+                            <button
+                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                              style={{ padding: '4px 8px' }}
+                              title="Edit details"
+                              onClick={() => openEditDrawer(p)}
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                              style={{ padding: '4px 8px', color: 'var(--color-danger)' }}
+                              title="Delete"
+                              onClick={() => handleDeleteClick(p)}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 text-xs text-muted">
+                <span>
+                  Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`admin-btn admin-btn-secondary admin-btn-sm ${currentPage === idx + 1 ? 'admin-btn-primary' : ''}`}
+                      style={{ minWidth: '32px' }}
+                      onClick={() => setCurrentPage(idx + 1)}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                  <button
+                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
+      {/* Product Edit/Create Drawer */}
+      <Drawer
+        open={drawerOpen}
+        onClose={closeDrawer}
+        title={drawerTitle}
+        side="right"
+        size="2xl"
+        footer={
+          drawerMode !== 'view' && (
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={closeDrawer}>Discard</Button>
+              {wizardStep < wizardStepsLabels.length - 1 ? (
+                <Button size="sm" onClick={() => setWizardStep((s) => s + 1)}>Next</Button>
+              ) : (
+                <Button variant="primary" size="sm" onClick={handleFormSubmit}>
+                  {drawerMode === 'create' ? 'Create Product' : 'Save Changes'}
+                </Button>
+              )}
+            </div>
+          )
+        }
+      >
+        {drawerMode === 'view' ? (
+          /* Read-only details view */
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">Product Name</h4>
+              <p className="text-sm text-text">{formData.name}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">Description</h4>
+              <p className="text-sm text-muted">{formData.description}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">Price</h4>
+              <p className="text-sm text-text">{formatPrice(formData.price)}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">SKU</h4>
+              <p className="text-sm text-text">{formData.SKU}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">Stock</h4>
+              <p className="text-sm text-text">{formData.stock} units</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium text-muted mb-1">Status</h4>
+              <Badge variant={formData.status === 'Active' ? 'success' : 'warning'}>{formData.status}</Badge>
+            </div>
+            {formData.specifications && (
+              <div>
+                <h4 className="text-xs font-medium text-muted mb-2">Specifications</h4>
+                <table className="admin-table">
+                  <tbody>
+                    {formData.specifications.map((spec, i) => (
+                      <tr key={i}>
+                        <td className="font-medium text-text">{spec.key}</td>
+                        <td>{spec.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="flex gap-2 pt-4 border-t border-border">
+              <Button variant="primary" size="sm" onClick={() => openEditDrawer(formData)}>
+                Edit Product
+              </Button>
+              <Button variant="secondary" size="sm" onClick={closeDrawer}>
+                Close
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Edit/Create form with wizard steps */
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            {/* Wizard step navigation */}
+            <div className="admin-form-wizard-headers">
+              {wizardStepsLabels.map((step, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={`admin-form-wizard-header ${wizardStep === idx ? 'active' : ''}`}
+                  onClick={() => setWizardStep(idx)}
                 >
-                  <option value="name-asc">Sort: Name (A-Z)</option>
-                  <option value="name-desc">Sort: Name (Z-A)</option>
-                  <option value="price-asc">Sort: Price (Low-High)</option>
-                  <option value="price-desc">Sort: Price (High-Low)</option>
-                  <option value="stock-asc">Sort: Stock (Low-High)</option>
-                  <option value="stock-desc">Sort: Stock (High-Low)</option>
-                </select>
-
-                <button className="admin-btn admin-btn-primary" onClick={handleCreateClick}>
-                  <Plus size={16} /> Add Product
+                  <div className="admin-form-wizard-header-num">{step.num}</div>
+                  {step.title}
                 </button>
-              </div>
+              ))}
             </div>
 
-            {loading ? (
-              <TableSkeleton rows={itemsPerPage} />
-            ) : filteredProducts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--admin-border)', borderRadius: '10px' }}>
-                <p style={{ color: 'var(--admin-text-body)' }}>No products found matching the criteria.</p>
+            {/* STEP 0: Basic Info */}
+            {wizardStep === 0 && (
+              <div className="space-y-4">
+                <Input
+                  label="Product Name"
+                  placeholder="e.g. Dell Inspiron 15 3530"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    label="Product Brand"
+                    options={BRANDS.map((b) => ({ value: b, label: b }))}
+                    value={formData.brand}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+                    required
+                  />
+                  <Select
+                    label="Category"
+                    options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
+                    value={formData.category}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                    required
+                  />
+                </div>
+                <Textarea
+                  label="Short Description"
+                  placeholder="Powerful and reliable laptop for work and entertainment..."
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  required
+                  minHeight="80px"
+                />
               </div>
-            ) : (
-              <div>
-                <div className="admin-table-container">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '40px' }}>
-                          <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
-                        </th>
-                        <th>Product Details</th>
-                        <th>Brand</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                        <th style={{ textAlign: 'right' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedProducts.map(p => (
-                        <tr key={p.id}>
-                          <td>
-                            <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
-                          </td>
-                          <td>
-                            <div className="flex items-center gap-2">
-                              {p.image ? (
-                                <img src={p.image} alt={p.name} className="admin-table-img" />
-                              ) : (
-                                <div className="admin-table-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--admin-bg)', color: 'var(--admin-text-body)', fontSize: '0.7rem' }}>
-                                  No Image
-                                </div>
-                              )}
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <strong style={{ color: 'var(--admin-text-heading)', fontSize: '0.9rem' }}>{p.name}</strong>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--admin-text-body)' }}>SKU: {p.SKU}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>{p.brand}</td>
-                          <td>
-                            <span style={{ textTransform: 'capitalize' }}>
-                              {CATEGORIES.find(c => c.value === p.category)?.label || p.category}
-                            </span>
-                          </td>
-                          <td>
-                            <span style={{ fontWeight: 600, color: 'var(--admin-text-heading)' }}>
-                              {formatPrice(p.price)}
-                            </span>
-                            {p.offerPrice && (
-                              <span style={{ display: 'block', textDecoration: 'line-through', fontSize: '0.75rem', color: '#EF4444' }}>
-                                {formatPrice(p.offerPrice)}
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <span style={{ fontWeight: 500, color: p.stock === 0 ? '#EF4444' : (p.stock < 5 ? '#F59E0B' : 'var(--admin-text-heading)') }}>
-                              {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`admin-badge ${p.status === 'Active' ? 'admin-badge-success' : 'admin-badge-warning'}`}>
-                              {p.status}
-                            </span>
-                            {p.featured && (
-                              <span className="admin-badge admin-badge-info" style={{ marginLeft: '4px' }}>
-                                Featured
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            <div style={{ display: 'inline-flex', gap: '8px' }}>
-                              <button className="admin-btn admin-btn-secondary admin-btn-sm" style={{ padding: '4px 8px' }} title="View details" onClick={() => handleViewClick(p)}>
-                                <Eye size={13} />
-                              </button>
-                              <button className="admin-btn admin-btn-secondary admin-btn-sm" style={{ padding: '4px 8px' }} title="Edit details" onClick={() => handleEditClick(p)}>
-                                <Edit2 size={13} />
-                              </button>
-                              <button className="admin-btn admin-btn-secondary admin-btn-sm text-danger" style={{ padding: '4px 8px', color: '#EF4444' }} title="Delete" onClick={() => handleDeleteClick(p)}>
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            )}
+
+            {/* STEP 1: Specifications */}
+            {wizardStep === 1 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="SKU Identifier"
+                    value={formData.SKU}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
+                    required
+                  />
+                  <Input
+                    label="Stock quantity"
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
+                    required
+                  />
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-4">
-                    <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-body)' }}>
-                      Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} items
-                    </span>
-                    <div className="flex gap-2">
-                      <button 
-                        className="admin-btn admin-btn-secondary admin-btn-sm"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      {Array.from({ length: totalPages }).map((_, idx) => (
-                        <button 
-                          key={idx}
-                          className={`admin-btn admin-btn-secondary admin-btn-sm ${currentPage === idx + 1 ? 'admin-btn-primary' : ''}`}
-                          style={{ minWidth: '32px', padding: '6px' }}
-                          onClick={() => setCurrentPage(idx + 1)}
-                        >
-                          {idx + 1}
-                        </button>
-                      ))}
-                      <button 
-                        className="admin-btn admin-btn-secondary admin-btn-sm"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-medium text-text">Technical Specs</label>
+                    <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addSpecField}>
+                      + Add Spec
+                    </Button>
                   </div>
+                  {formData.specifications.map((spec, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        className="admin-input"
+                        style={{ flex: 1 }}
+                        placeholder="RAM"
+                        value={spec.key}
+                        onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="admin-input"
+                        style={{ flex: 2 }}
+                        placeholder="16GB DDR4"
+                        value={spec.value}
+                        onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                      />
+                      {formData.specifications.length > 1 && (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-secondary"
+                          style={{ padding: '8px', color: 'var(--color-danger)' }}
+                          onClick={() => removeSpecField(idx)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-medium text-text">Highlights / Features</label>
+                    <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addFeatureField}>
+                      + Add Highlight
+                    </Button>
+                  </div>
+                  {formData.features.map((feat, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        className="admin-input"
+                        placeholder="e.g. 15.6 FHD 120Hz display"
+                        value={feat}
+                        onChange={(e) => handleFeatureChange(idx, e.target.value)}
+                      />
+                      {formData.features.length > 1 && (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-secondary"
+                          style={{ padding: '8px', color: 'var(--color-danger)' }}
+                          onClick={() => removeFeatureField(idx)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: Media */}
+            {wizardStep === 2 && (
+              <div>
+                <label className="text-xs font-medium text-text mb-2 block">Upload Product Image</label>
+                {formData.image ? (
+                  <div className="relative w-full max-w-sm aspect-[1.4] overflow-hidden rounded-[var(--radius-card)] border border-border">
+                    <img src={formData.image} alt="Upload Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="admin-image-delete-btn"
+                      onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="admin-image-upload-zone">
+                    <Upload size={28} color="var(--color-muted)" />
+                    <span className="text-sm text-muted">Select file from local system</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      disabled={imageUploading}
+                      onChange={handleImageChange}
+                    />
+                  </label>
                 )}
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* 2. REDESIGNED WIZARD FORM: ADD & EDIT PRODUCT */}
-      {(viewState === 'create' || viewState === 'edit') && (
-        <div className="admin-card">
-          {/* Header toolbar */}
-          <div className="flex justify-between items-center mb-4" style={{ borderBottom: '1px solid var(--admin-border)', paddingBottom: '16px' }}>
-            <h3 className="admin-modal-title">
-              {viewState === 'create' ? 'Add New Product' : `Edit Product: ${formData.name}`}
-            </h3>
-            <button type="button" className="admin-btn admin-btn-secondary" onClick={() => setViewState('list')}>
-              <X size={16} /> Discard
-            </button>
-          </div>
-
-          {/* Form Wizard Headers */}
-          <div className="admin-form-wizard-headers">
-            {wizardStepsLabels.map((step, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className={`admin-form-wizard-header ${wizardStep === idx ? 'active' : ''}`}
-                onClick={() => setWizardStep(idx)}
-              >
-                <div className="admin-form-wizard-header-num">{step.num}</div>
-                {step.title}
-              </button>
-            ))}
-          </div>
-
-          {/* Form Content layout split with Live Preview Card */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', alignItems: 'start' }} className="grid-cols-2">
-            
-            {/* Left: Active Wizard Step Input fields */}
-            <div>
-              {/* STEP 0: Basic Info */}
-              {wizardStep === 0 && (
-                <div>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Product Name</label>
-                    <input 
-                      type="text" 
-                      className="admin-input" 
-                      placeholder="e.g. Dell Inspiron 15 3530"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div className="grid-cols-2">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Product Brand</label>
-                      <select 
-                        className="admin-select"
-                        value={formData.brand}
-                        onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
-                      >
-                        {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Category</label>
-                      <select 
-                        className="admin-select"
-                        value={formData.category}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                      >
-                        {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label">Short Description</label>
-                    <textarea 
-                      className="admin-textarea"
-                      placeholder="Powerful and reliable laptop for work and entertainment..."
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      required
-                    ></textarea>
-                  </div>
+            {/* STEP 3: Pricing */}
+            {wizardStep === 3 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Regular Wholesaler Price (INR)"
+                    type="number"
+                    placeholder="e.g. 56990"
+                    value={formData.price}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+                    required
+                  />
+                  <Input
+                    label="Special Offer Price (INR)"
+                    type="number"
+                    placeholder="e.g. 52990"
+                    value={formData.offerPrice}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
+                  />
                 </div>
-              )}
-
-              {/* STEP 1: Specifications */}
-              {wizardStep === 1 && (
-                <div>
-                  <div className="grid-cols-2">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">SKU Identifier</label>
-                      <input 
-                        type="text" 
-                        className="admin-input"
-                        value={formData.SKU}
-                        onChange={(e) => setFormData(prev => ({ ...prev, SKU: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Stock quantity</label>
-                      <input 
-                        type="number" 
-                        className="admin-input"
-                        value={formData.stock}
-                        onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Specifications fields */}
-                  <div className="admin-form-group">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="admin-form-label" style={{ marginBottom: 0 }}>Technical Specs</label>
-                      <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm" onClick={addSpecField}>
-                        + Add Spec
-                      </button>
-                    </div>
-                    {formData.specifications.map((spec, idx) => (
-                      <div key={idx} className="flex gap-2" style={{ marginBottom: '8px' }}>
-                        <input 
-                          type="text" 
-                          className="admin-input" 
-                          style={{ flex: 1 }}
-                          placeholder="RAM" 
-                          value={spec.key}
-                          onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
-                        />
-                        <input 
-                          type="text" 
-                          className="admin-input" 
-                          style={{ flex: 2 }}
-                          placeholder="16GB DDR4" 
-                          value={spec.value}
-                          onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
-                        />
-                        {formData.specifications.length > 1 && (
-                          <button type="button" className="admin-btn admin-btn-secondary" style={{ padding: '8px', color: '#EF4444' }} onClick={() => removeSpecField(idx)}>
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Highlights list */}
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="admin-form-label" style={{ marginBottom: 0 }}>Highlights / Features</label>
-                      <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm" onClick={addFeatureField}>
-                        + Add Highlight
-                      </button>
-                    </div>
-                    {formData.features.map((feat, idx) => (
-                      <div key={idx} className="flex gap-2" style={{ marginBottom: '8px' }}>
-                        <input 
-                          type="text" 
-                          className="admin-input" 
-                          placeholder="e.g. 15.6 FHD 120Hz display" 
-                          value={feat}
-                          onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                        />
-                        {formData.features.length > 1 && (
-                          <button type="button" className="admin-btn admin-btn-secondary" style={{ padding: '8px', color: '#EF4444' }} onClick={() => removeFeatureField(idx)}>
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: Media */}
-              {wizardStep === 2 && (
-                <div>
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label">Upload Product Image</label>
-                    {formData.image ? (
-                      <div style={{ position: 'relative', width: '100%', maxWidth: '360px', aspectRatio: '1.4', overflow: 'hidden', borderRadius: '10px', border: '1px solid var(--admin-border)' }}>
-                        <img src={formData.image} alt="Upload Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button 
-                          type="button" 
-                          className="admin-image-delete-btn"
-                          style={{ width: '28px', height: '28px', top: '10px', right: '10px' }}
-                          onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        >
-                          <X size={15} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="admin-image-upload-zone" style={{ padding: '40px 20px' }}>
-                        <Upload size={28} color="var(--admin-text-body)" style={{ marginBottom: '8px' }} />
-                        <span style={{ fontSize: '0.85rem', color: 'var(--admin-text-body)' }}>Select file from local system</span>
-                        <input 
-                          type="file" 
-                          id="image-file-uploader" 
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          onChange={handleImageChange}
-                          disabled={imageUploading}
-                        />
-                        <label htmlFor="image-file-uploader" className="admin-btn admin-btn-secondary admin-btn-sm" style={{ cursor: 'pointer', marginTop: '12px' }}>
-                          Choose File
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: Pricing */}
-              {wizardStep === 3 && (
-                <div>
-                  <div className="grid-cols-2">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Regular Wholesaler Price (INR)</label>
-                      <input 
-                        type="number" 
-                        className="admin-input" 
-                        placeholder="e.g. 56990"
-                        value={formData.price}
-                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Special Offer Price (INR)</label>
-                      <input 
-                        type="number" 
-                        className="admin-input" 
-                        placeholder="e.g. 52990"
-                        value={formData.offerPrice}
-                        onChange={(e) => setFormData(prev => ({ ...prev, offerPrice: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="admin-checkbox-group" style={{ marginBottom: 0 }}>
-                    <input 
-                      type="checkbox" 
-                      id="featured" 
-                      className="admin-checkbox"
-                      checked={formData.featured}
-                      onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
-                    />
-                    <label htmlFor="featured" className="admin-form-label" style={{ marginBottom: 0, cursor: 'pointer' }}>
-                      Highlight on Homepage slider
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: Publish */}
-              {wizardStep === 4 && (
-                <div>
-                  <div className="grid-cols-2">
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Publishing Status</label>
-                      <select 
-                        className="admin-select"
-                        value={formData.status}
-                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                      >
-                        <option value="Active">Active (Live on website)</option>
-                        <option value="Draft">Draft (Invisible)</option>
-                        <option value="Archived">Archived (Deprioritized)</option>
-                      </select>
-                    </div>
-
-                    <div className="admin-form-group">
-                      <label className="admin-form-label">Rating score</label>
-                      <input 
-                        type="number" 
-                        step="0.1" 
-                        className="admin-input"
-                        value={formData.rating}
-                        onChange={(e) => setFormData(prev => ({ ...prev, rating: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  {/* SEO settings */}
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">SEO Title</label>
-                    <input 
-                      type="text" 
-                      className="admin-input" 
-                      value={formData.seoTitle}
-                      onChange={(e) => setFormData(prev => ({ ...prev, seoTitle: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label className="admin-form-label">SEO Meta Description</label>
-                    <textarea 
-                      className="admin-textarea"
-                      style={{ minHeight: '60px' }}
-                      value={formData.seoDescription}
-                      onChange={(e) => setFormData(prev => ({ ...prev, seoDescription: e.target.value }))}
-                    ></textarea>
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation controls */}
-              <div style={{ borderTop: '1px solid var(--admin-border)', marginTop: '24px', paddingTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                {wizardStep > 0 && (
-                  <button type="button" className="admin-btn admin-btn-secondary" onClick={() => setWizardStep(prev => prev - 1)}>
-                    Back
-                  </button>
-                )}
-                
-                {wizardStep < 4 ? (
-                  <button type="button" className="admin-btn admin-btn-primary" onClick={() => setWizardStep(prev => prev + 1)}>
-                    Next
-                  </button>
-                ) : (
-                  <button type="button" className="admin-btn admin-btn-primary" onClick={handleFormSubmit}>
-                    Publish Product
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Right: Live Preview Product Card */}
-            <div className="admin-product-preview-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span className="admin-form-label" style={{ alignSelf: 'flex-start', marginBottom: '8px' }}>Product Card Preview</span>
-              
-              <div className="admin-product-preview-card">
-                <div className="admin-product-preview-img-wrapper">
-                  {formData.image ? (
-                    <img src={formData.image} alt={formData.name || 'Preview'} />
-                  ) : (
-                    <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>Image Preview Area</span>
-                  )}
-                </div>
-                <div className="admin-product-preview-body">
-                  <div className="admin-product-preview-brand">{formData.brand || 'Brand'}</div>
-                  <h4 className="admin-product-preview-title">{formData.name || 'Product Title Details'}</h4>
-                  
-                  <div style={{ display: 'flex', gap: '4px', color: '#F59E0B', fontSize: '0.75rem', margin: '4px 0 8px' }}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i}>★</span>
-                    ))}
-                    <span style={{ color: '#6B7280', marginLeft: '4px' }}>({formData.rating || '4.5'})</span>
-                  </div>
-
-                  <div className="admin-product-preview-price-group">
-                    <span className="admin-product-preview-price">
-                      {formatPrice(formData.offerPrice || formData.price || 0)}
-                    </span>
-                    {formData.offerPrice && (
-                      <span className="admin-product-preview-old-price">
-                        {formatPrice(formData.price || 0)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {formData.offerPrice && (
-                    <span className="admin-badge admin-badge-danger" style={{ fontSize: '0.65rem', marginTop: '6px' }}>
-                      Special Offer
-                    </span>
-                  )}
+                <div className="flex items-center gap-2 pt-2">
+                  <input
+                    type="checkbox"
+                    id="featured-check"
+                    className="admin-checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, featured: e.target.checked }))}
+                  />
+                  <label htmlFor="featured-check" className="text-sm text-text cursor-pointer">
+                    Highlight on Homepage slider
+                  </label>
                 </div>
               </div>
-            </div>
+            )}
 
-          </div>
-        </div>
-      )}
-
-      {/* 3. PRODUCT DETAILS READ-ONLY VIEW */}
-      {viewState === 'details' && (
-        <div className="admin-card">
-          <div className="flex justify-between items-center mb-4" style={{ borderBottom: '1px solid var(--admin-border)', paddingBottom: '16px' }}>
-            <h3 className="admin-modal-title">Product Details: {formData.name}</h3>
-            <div className="flex gap-2">
-              <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => handleEditClick(formData)}>
-                Edit Product
-              </button>
-              <button className="admin-btn admin-btn-secondary admin-btn-sm" onClick={() => setViewState('list')}>
-                Close
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px' }} className="grid-cols-2">
-            <div>
-              {formData.image ? (
-                <img src={formData.image} alt={formData.name} style={{ width: '100%', borderRadius: '10px', border: '1px solid var(--admin-border)', objectFit: 'contain' }} />
-              ) : (
-                <div style={{ width: '100%', height: '240px', backgroundColor: 'var(--admin-bg)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--admin-text-body)' }}>
-                  No Image
-                </div>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <h4 style={{ color: 'var(--admin-text-heading)', fontSize: '1.25rem', marginBottom: '4px' }}>{formData.name}</h4>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--admin-text-heading)' }}>{formatPrice(formData.price)}</span>
-                  {formData.offerPrice && <span style={{ textDecoration: 'line-through', color: '#EF4444' }}>{formatPrice(formData.offerPrice)}</span>}
-                  <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-body)', marginLeft: '12px' }}>({formData.stock} units available)</span>
-                </div>
+            {/* STEP 4: Publish */}
+            {wizardStep === 4 && (
+              <div className="space-y-4">
+                <Select
+                  label="Publishing Status"
+                  options={[
+                    { value: 'Active', label: 'Active (Live on website)' },
+                    { value: 'Draft', label: 'Draft (Invisible)' },
+                    { value: 'Archived', label: 'Archived (Deprioritized)' },
+                  ]}
+                  value={formData.status}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+                />
+                <Input
+                  label="Rating score"
+                  type="number"
+                  step="0.1"
+                  value={formData.rating}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, rating: e.target.value }))}
+                />
+                <Input
+                  label="SEO Title"
+                  value={formData.seoTitle}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, seoTitle: e.target.value }))}
+                />
+                <Textarea
+                  label="SEO Meta Description"
+                  value={formData.seoDescription}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, seoDescription: e.target.value }))}
+                  minHeight="60px"
+                />
               </div>
+            )}
+          </form>
+        )}
+      </Drawer>
 
-              <div>
-                <h5 style={{ fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: '4px' }}>Description</h5>
-                <p style={{ color: 'var(--admin-text-body)', fontSize: '0.9rem' }}>{formData.description}</p>
-              </div>
-
-              {formData.specifications && formData.specifications.length > 0 && formData.specifications[0].key !== '' && (
-                <div>
-                  <h5 style={{ fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: '8px' }}>Specifications</h5>
-                  <div className="admin-table-container">
-                    <table className="admin-table">
-                      <tbody>
-                        {formData.specifications.map((spec, i) => (
-                          <tr key={i}>
-                            <td style={{ fontWeight: 600, width: '150px' }}>{spec.key}</td>
-                            <td>{spec.value}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CONFIRM DELETE MODAL */}
-      <ConfirmDialog 
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
         isOpen={deleteModalOpen}
         title="Confirm Deletion"
         message={`Are you sure you want to permanently delete "${productToDelete?.name}"?`}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import HomepageEditor from './HomepageEditor';
 import AboutEditor from './AboutEditor';
 import ContactEditor from './ContactEditor';
-import { Edit3, ArrowLeft, Layers, ShieldAlert, FileText } from 'lucide-react';
+import { Edit3, ArrowLeft, Layers, ShieldAlert, FileText, ChevronRight } from 'lucide-react';
 
 const Pages = () => {
   const [selectedPage, setSelectedPage] = useState('home'); // home, about, contact, terms, privacy
@@ -118,6 +118,14 @@ const Pages = () => {
 
   return (
     <div style={{ textAlign: 'left' }}>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Static Pages</h1>
+          <p className="admin-page-subtitle">Manage and update website content and legal policies.</p>
+        </div>
+      </div>
+      
       {/* Redesigned Pages Layout (Full Editor view vs Master-Detail list view) */}
       {isEditing ? (
         <div>
@@ -136,7 +144,7 @@ const Pages = () => {
         <div className="admin-pages-layout">
           {/* Left: Master Pages List Selector */}
           <div className="admin-pages-sidebar-list">
-            <span className="admin-form-label" style={{ paddingLeft: '8px', marginBottom: '8px' }}>Website Static Pages</span>
+            <span className="admin-form-label" style={{ paddingLeft: '8px', marginBottom: '12px', fontWeight: 600 }}>Select Page to Edit</span>
             {pageItems.map(p => (
               <div 
                 key={p.key}
@@ -181,3 +189,4 @@ const Pages = () => {
 };
 
 export default Pages;
+

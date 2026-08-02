@@ -54,6 +54,13 @@ const Orders = () => {
 
   return (
     <div style={{ textAlign: 'left' }}>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Orders</h1>
+          <p className="admin-page-subtitle">Monitor, filter, and process client wholesale orders.</p>
+        </div>
+      </div>
       
       {/* Top Filter Tabs (with mock counts offset to fit screenshot design) */}
       <div className="admin-filter-chips">

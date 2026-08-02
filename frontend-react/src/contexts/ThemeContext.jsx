@@ -9,7 +9,8 @@ export const ThemeProvider = ({ children }) => {
     theme: 'light', // light or dark
     primaryColor: '#10B981',
     secondaryColor: '#111827',
-    websiteName: 'Egreen Technology'
+    websiteName: 'Egreen Technology',
+    adminName: 'Administrator'
   });
 
   const loadTheme = async () => {
@@ -19,7 +20,8 @@ export const ThemeProvider = ({ children }) => {
         theme: settings.theme || 'light',
         primaryColor: settings.primaryColor || '#10B981',
         secondaryColor: settings.secondaryColor || '#111827',
-        websiteName: settings.websiteName || 'Egreen Technology'
+        websiteName: settings.websiteName || 'Egreen Technology',
+        adminName: settings.adminName || 'Administrator'
       });
     } catch (e) {
       console.error('Failed to load theme settings', e);
@@ -65,16 +67,21 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     
-    // Apply primary/secondary colors
+    // Apply primary/secondary colors via design tokens
     if (themeSettings.primaryColor) {
+      root.style.setProperty('--color-primary', themeSettings.primaryColor);
+      root.style.setProperty('--color-primary-hover', adjustColorBrightness(themeSettings.primaryColor, -15));
+      
+      // Backward-compatible aliases
       root.style.setProperty('--primary', themeSettings.primaryColor);
       root.style.setProperty('--primary-hover', adjustColorBrightness(themeSettings.primaryColor, -15));
       root.style.setProperty('--accent', themeSettings.primaryColor);
-      root.style.setProperty('--accent-bg', `${themeSettings.primaryColor}1a`); // 10% opacity
-      root.style.setProperty('--accent-border', `${themeSettings.primaryColor}80`); // 50% opacity
+      root.style.setProperty('--accent-bg', `${themeSettings.primaryColor}1a`);
+      root.style.setProperty('--accent-border', `${themeSettings.primaryColor}80`);
     }
     
     if (themeSettings.secondaryColor) {
+      root.style.setProperty('--color-text', themeSettings.secondaryColor);
       root.style.setProperty('--secondary', themeSettings.secondaryColor);
     }
 

@@ -86,10 +86,10 @@ const Categories = () => {
     <div style={{ textAlign: 'left' }}>
       
       {/* Categories Toolbar */}
-      <div className="flex justify-between items-center mb-6" style={{ borderBottom: '1px solid var(--admin-border)', paddingBottom: '16px' }}>
+      <div className="admin-page-header">
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--admin-text-heading)' }}>Brand Categories</h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--admin-text-body)' }}>Organize your products with categories and brands.</p>
+          <h1 className="admin-page-title">Brand Categories</h1>
+          <p className="admin-page-subtitle">Organize your products with categories and brands.</p>
         </div>
         <button className="admin-btn admin-btn-primary" onClick={() => setAddModalOpen(true)}>
           <Plus size={16} /> Add Category

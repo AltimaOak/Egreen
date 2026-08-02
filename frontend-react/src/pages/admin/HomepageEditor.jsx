@@ -1,22 +1,26 @@
-// Admin Homepage Content Editor Component
+// Admin Homepage Content Editor Component â€” Redesigned
 import React, { useState, useEffect } from 'react';
 import { pageService } from '../../services/pageService';
 import { useAdmin } from '../../contexts/AdminContext';
 import { FormSkeleton } from '../../components/admin/Skeleton';
-import { 
-  Save, 
-  Eye, 
-  Edit3, 
-  Plus, 
-  Trash2, 
-  HelpCircle,
-  Link as LinkIcon 
+import {
+  Card,  Button,
+  Tabs,
+  Collapsible,
+  Input,
+  Textarea,
+} from '../../components/admin/UI';
+import {
+  Save,  Edit3,
+  Plus,
+  Trash2,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 const HomepageEditor = () => {
   const { showToast } = useAdmin();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('edit'); // edit, preview
+  const [activeTab, setActiveTab] = useState('edit');
   const [homepageData, setHomepageData] = useState(null);
 
   const fetchHomepageData = async () => {
@@ -36,17 +40,13 @@ const HomepageEditor = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
-    setHomepageData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setHomepageData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Offers helpers
   const handleOfferChange = (index, field, value) => {
     const updated = [...homepageData.offers];
     updated[index][field] = value;
-    setHomepageData(prev => ({ ...prev, offers: updated }));
+    setHomepageData((prev) => ({ ...prev, offers: updated }));
   };
 
   const addOffer = () => {
@@ -54,40 +54,38 @@ const HomepageEditor = () => {
       showToast('Maximum 8 features/offers allowed.', 'warning');
       return;
     }
-    setHomepageData(prev => ({
+    setHomepageData((prev) => ({
       ...prev,
-      offers: [...prev.offers, { title: '', desc: '' }]
+      offers: [...prev.offers, { title: '', desc: '' }],
     }));
   };
 
   const removeOffer = (index) => {
     const updated = homepageData.offers.filter((_, idx) => idx !== index);
-    setHomepageData(prev => ({ ...prev, offers: updated }));
+    setHomepageData((prev) => ({ ...prev, offers: updated }));
   };
 
-  // Testimonials helpers
   const handleTestimonialChange = (index, field, value) => {
     const updated = [...homepageData.testimonials];
     updated[index][field] = value;
-    setHomepageData(prev => ({ ...prev, testimonials: updated }));
+    setHomepageData((prev) => ({ ...prev, testimonials: updated }));
   };
 
   const addTestimonial = () => {
-    setHomepageData(prev => ({
+    setHomepageData((prev) => ({
       ...prev,
-      testimonials: [...prev.testimonials, { id: Date.now(), name: '', role: '', content: '' }]
+      testimonials: [...prev.testimonials, { id: Date.now(), name: '', role: '', content: '' }],
     }));
   };
 
   const removeTestimonial = (index) => {
     const updated = homepageData.testimonials.filter((_, idx) => idx !== index);
-    setHomepageData(prev => ({ ...prev, testimonials: updated }));
+    setHomepageData((prev) => ({ ...prev, testimonials: updated }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     showToast('Saving Changes...', 'loading');
-    
     try {
       await pageService.updateHomepage(homepageData);
       showToast('Changes Published Successfully', 'success');
@@ -100,300 +98,252 @@ const HomepageEditor = () => {
   if (loading) return <FormSkeleton />;
 
   return (
-    <div style={{ textAlign: 'left' }}>
-      {/* Editor Headers and Toggles */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="admin-editor-tabs" style={{ marginBottom: 0 }}>
-          <button 
-            className={`admin-editor-tab ${activeTab === 'edit' ? 'active' : ''}`}
-            onClick={() => setActiveTab('edit')}
-          >
-            <span className="flex items-center gap-2"><Edit3 size={16} /> Edit Elements</span>
-          </button>
-          <button 
-            className={`admin-editor-tab ${activeTab === 'preview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('preview')}
-          >
-            <span className="flex items-center gap-2"><Eye size={16} /> Live Preview</span>
-          </button>
+    <div>
+      {/* Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Homepage Editor</h1>
+          <p className="admin-page-subtitle">Edit hero headlines, features, and footer content.</p>
         </div>
-
         {activeTab === 'edit' && (
-          <button className="admin-btn admin-btn-primary" onClick={handleSave}>
-            <Save size={16} /> Save Changes (2s delay)
-          </button>
+          <Button variant="primary" size="md" icon={<Save size={16} />} onClick={handleSave}>
+            Save Changes
+          </Button>
         )}
       </div>
 
-      {/* EDITING FORM PANEL */}
+      {/* Tab selector */}
+      <div className="mb-6">
+        <Tabs
+          tabs={['Edit Elements', 'Live Preview']}
+          activeTab={activeTab === 'edit' ? 'Edit Elements' : 'Live Preview'}
+          onChange={(tab) => setActiveTab(tab === 'Edit Elements' ? 'edit' : 'preview')}
+        />
+      </div>
+
+      {/* Edit form */}
       {activeTab === 'edit' && (
-        <form onSubmit={handleSave} className="grid-cols-2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', alignItems: 'start' }}>
-          <div className="flex flex-col gap-4">
-            
-            {/* Hero Card */}
-            <div className="admin-card" style={{ marginBottom: 0 }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: '16px' }}>Hero Section Headlines</h3>
-              
-              <div className="admin-form-group">
-                <label className="admin-form-label">Hero Title Headline</label>
-                <input 
-                  type="text" 
-                  className="admin-input" 
-                  value={homepageData.heroTitle}
-                  onChange={(e) => handleInputChange('heroTitle', e.target.value)}
-                  required
+        <form onSubmit={handleSave}>
+          <div className="space-y-4">
+            <Collapsible title="Hero Section" icon={<Edit3 size={16} />} defaultOpen>
+              <Input
+                label="Hero Title Headline"
+                placeholder="Reliable New & Refurbished IT Hardware Solutions"
+                value={homepageData.heroTitle || ''}
+                onChange={(e) => handleInputChange('heroTitle', e.target.value)}
+                required
+              />
+              <Textarea
+                label="Hero Subtitle Paragraph"
+                value={homepageData.heroSubtitle || ''}
+                onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
+                required
+                minHeight="80px"
+              />
+            </Collapsible>
+
+            <Collapsible title="Call to Action Buttons" icon={<LinkIcon size={16} />} defaultOpen={false}>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Hero Button Title"
+                  value={homepageData.heroBtnText || ''}
+                  onChange={(e) => handleInputChange('heroBtnText', e.target.value)}
                 />
-              </div>
-
-              <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                <label className="admin-form-label">Hero Subtitle Paragraph</label>
-                <textarea 
-                  className="admin-textarea" 
-                  value={homepageData.heroSubtitle}
-                  onChange={(e) => handleInputChange('heroSubtitle', e.target.value)}
-                  required
-                ></textarea>
-              </div>
-            </div>
-
-            {/* CTAs / Buttons Card */}
-            <div className="admin-card" style={{ marginBottom: 0 }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: '16px' }}>Buttons & Call To Actions</h3>
-              
-              <div className="grid-cols-2">
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Hero Button Title</label>
-                  <input 
-                    type="text" 
-                    className="admin-input" 
-                    value={homepageData.heroBtnText}
-                    onChange={(e) => handleInputChange('heroBtnText', e.target.value)}
-                  />
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Hero Button Link</label>
-                  <div style={{ position: 'relative' }}>
-                    <LinkIcon size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-body)' }} />
-                    <input 
-                      type="text" 
-                      className="admin-input" 
+                <div>
+                  <label className="block text-xs font-medium text-text mb-1.5">Hero Button Link</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                    <input
+                      type="text"
+                      className="admin-input"
                       style={{ paddingLeft: '32px' }}
-                      value={homepageData.heroBtnLink}
+                      value={homepageData.heroBtnLink || ''}
                       onChange={(e) => handleInputChange('heroBtnLink', e.target.value)}
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="grid-cols-2" style={{ marginBottom: 0 }}>
-                <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                  <label className="admin-form-label">CTA Offer Button Title</label>
-                  <input 
-                    type="text" 
-                    className="admin-input" 
-                    value={homepageData.ctaBtnText}
-                    onChange={(e) => handleInputChange('ctaBtnText', e.target.value)}
-                  />
-                </div>
-                <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                  <label className="admin-form-label">CTA Offer Button Link</label>
-                  <div style={{ position: 'relative' }}>
-                    <LinkIcon size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-body)' }} />
-                    <input 
-                      type="text" 
-                      className="admin-input" 
+                <Input
+                  label="CTA Offer Button Title"
+                  value={homepageData.ctaBtnText || ''}
+                  onChange={(e) => handleInputChange('ctaBtnText', e.target.value)}
+                />
+                <div>
+                  <label className="block text-xs font-medium text-text mb-1.5">CTA Offer Button Link</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                    <input
+                      type="text"
+                      className="admin-input"
                       style={{ paddingLeft: '32px' }}
-                      value={homepageData.ctaBtnLink}
+                      value={homepageData.ctaBtnLink || ''}
                       onChange={(e) => handleInputChange('ctaBtnLink', e.target.value)}
                     />
                   </div>
                 </div>
               </div>
-            </div>
+            </Collapsible>
 
-            {/* Testimonials Card */}
-            <div className="admin-card" style={{ marginBottom: 0 }}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: 0 }}>Customer Testimonials</h3>
-                <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm" onClick={addTestimonial}>
-                  <Plus size={14} /> Add Testimonial
-                </button>
+            <Collapsible title="Features / Grid Cards" icon={<Plus size={14} />} defaultOpen={false}>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-muted">{homepageData.offers.length} / 8 cards</span>
+                <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={addOffer}>
+                  Add Card
+                </Button>
               </div>
-
-              {homepageData.testimonials.map((t, idx) => (
-                <div key={t.id} style={{ borderBottom: idx !== homepageData.testimonials.length - 1 ? '1px solid var(--admin-border)' : 'none', paddingBottom: '16px', marginBottom: '16px' }}>
-                  <div className="grid-cols-2" style={{ marginBottom: '8px' }}>
-                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                      <label className="admin-form-label">Client Name</label>
-                      <input 
-                        type="text" 
-                        className="admin-input" 
-                        value={t.name}
-                        onChange={(e) => handleTestimonialChange(idx, 'name', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                      <label className="admin-form-label">Client Position/Role</label>
-                      <input 
-                        type="text" 
-                        className="admin-input" 
-                        value={t.role}
-                        placeholder="e.g. Director at ABC Corp"
-                        onChange={(e) => handleTestimonialChange(idx, 'role', e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="admin-form-group" style={{ marginBottom: '8px' }}>
-                    <label className="admin-form-label">Review Quotation</label>
-                    <textarea 
-                      className="admin-textarea" 
-                      style={{ minHeight: '60px' }}
-                      value={t.content}
-                      onChange={(e) => handleTestimonialChange(idx, 'content', e.target.value)}
-                      required
-                    ></textarea>
-                  </div>
-                  {homepageData.testimonials.length > 1 && (
-                    <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm text-danger" style={{ color: '#EF4444' }} onClick={() => removeTestimonial(idx)}>
-                      <Trash2 size={12} /> Remove Review
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-          </div>
-
-          {/* Right Column: Features and footer */}
-          <div className="flex flex-col gap-4">
-            
-            {/* Features / Banners */}
-            <div className="admin-card" style={{ marginBottom: 0 }}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: 0 }}>Features / Grid List</h3>
-                <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm" onClick={addOffer}>
-                  <Plus size={14} /> Add Card
-                </button>
-              </div>
-
               {homepageData.offers.map((offer, idx) => (
-                <div key={idx} style={{ padding: '12px', border: '1px solid var(--admin-border)', borderRadius: '8px', marginBottom: '12px' }}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Card Header Title</label>
-                    <input 
-                      type="text" 
-                      className="admin-input" 
-                      value={offer.title}
-                      onChange={(e) => handleOfferChange(idx, 'title', e.target.value)}
+                <Card key={idx} padding="sm" className="mb-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-medium text-text">Card #{idx + 1}</span>
+                    {homepageData.offers.length > 1 && (
+                      <button
+                        type="button"
+                        className="text-danger text-xs hover:text-danger/80"
+                        onClick={() => removeOffer(idx)}
+                      >
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    label="Card Header Title"
+                    value={offer.title || ''}
+                    onChange={(e) => handleOfferChange(idx, 'title', e.target.value)}
+                    required
+                  />
+                  <Textarea
+                    label="Card Sub-Description"
+                    value={offer.desc || ''}
+                    onChange={(e) => handleOfferChange(idx, 'desc', e.target.value)}
+                    required
+                    minHeight="50px"
+                  />
+                </Card>
+              ))}
+            </Collapsible>
+
+            <Collapsible title="Customer Testimonials" icon={<Edit3 size={16} />} defaultOpen={false}>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-muted">{homepageData.testimonials.length} testimonials</span>
+                <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={addTestimonial}>
+                  Add Testimonial
+                </Button>
+              </div>
+              {homepageData.testimonials.map((t, idx) => (
+                <Card key={t.id} padding="sm" className="mb-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Client Name"
+                      value={t.name || ''}
+                      onChange={(e) => handleTestimonialChange(idx, 'name', e.target.value)}
+                      required
+                    />
+                    <Input
+                      label="Client Position/Role"
+                      placeholder="e.g. Director at ABC Corp"
+                      value={t.role || ''}
+                      onChange={(e) => handleTestimonialChange(idx, 'role', e.target.value)}
                       required
                     />
                   </div>
-                  <div className="admin-form-group" style={{ marginBottom: '8px' }}>
-                    <label className="admin-form-label">Card Sub-Description</label>
-                    <textarea 
-                      className="admin-textarea"
-                      style={{ minHeight: '50px' }}
-                      value={offer.desc}
-                      onChange={(e) => handleOfferChange(idx, 'desc', e.target.value)}
-                      required
-                    ></textarea>
-                  </div>
-                  {homepageData.offers.length > 1 && (
-                    <button type="button" className="admin-btn admin-btn-secondary admin-btn-sm text-danger" style={{ color: '#EF4444', padding: '4px 8px' }} onClick={() => removeOffer(idx)}>
-                      <Trash2 size={12} /> Remove Card
+                  <Textarea
+                    label="Review Quotation"
+                    value={t.content || ''}
+                    onChange={(e) => handleTestimonialChange(idx, 'content', e.target.value)}
+                    required
+                    minHeight="60px"
+                  />
+                  {homepageData.testimonials.length > 1 && (
+                    <button
+                      type="button"
+                      className="text-danger text-xs hover:text-danger/80 mt-2"
+                      onClick={() => removeTestimonial(idx)}
+                    >
+                      <Trash2 size={12} /> Remove Review
                     </button>
                   )}
-                </div>
+                </Card>
               ))}
-            </div>
+            </Collapsible>
 
-            {/* Footer Text Box */}
-            <div className="admin-card" style={{ marginBottom: 0 }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--admin-text-heading)', marginBottom: '16px' }}>Footer Text</h3>
-              <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                <label className="admin-form-label">Footer Copyright text</label>
-                <input 
-                  type="text" 
-                  className="admin-input" 
-                  value={homepageData.footerText}
-                  onChange={(e) => handleInputChange('footerText', e.target.value)}
-                />
-              </div>
-            </div>
-
+            <Collapsible title="Footer Text" icon={<Edit3 size={16} />} defaultOpen={false}>
+              <Input
+                label="Footer Copyright text"
+                value={homepageData.footerText || ''}
+                onChange={(e) => handleInputChange('footerText', e.target.value)}
+              />
+            </Collapsible>
           </div>
         </form>
       )}
 
-      {/* RENDERED PREVIEW DRAWER PANEL */}
+      {/* Live preview */}
       {activeTab === 'preview' && (
-        <div style={{ border: '1px solid var(--admin-border)', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#FFF', color: '#6B7280' }}>
-          
-          {/* Public Navbar Preview Header */}
-          <div style={{ backgroundColor: '#FFF', borderBottom: '1px solid #E5E7EB', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#111827', fontWeight: 'bold' }}>
-              <div style={{ width: '24px', height: '24px', backgroundColor: '#10B981', borderRadius: '4px' }}></div>
-              <span>Egreen Technology</span>
+        <div className="border border-border rounded-[var(--radius-card)] overflow-hidden bg-white text-muted">
+          {/* Preview header (site nav) */}
+          <div className="bg-white border-b border-border px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-2 font-bold text-text">
+              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center text-white text-xs">E</div>
+              Egreen Technology
             </div>
-            <div style={{ display: 'flex', gap: '20px', fontSize: '0.85rem', fontWeight: 500 }}>
-              <span style={{ color: '#10B981', borderBottom: '2px solid #10B981', paddingBottom: '4px' }}>Home</span>
-              <span>About Us</span>
-              <span>Products</span>
-              <span>Contact</span>
+            <div className="flex gap-5 text-sm font-medium">
+              <span className="text-primary border-b-2 border-primary pb-1">Home</span>
+              <span className="text-muted">About Us</span>
+              <span className="text-muted">Products</span>
+              <span className="text-muted">Contact</span>
             </div>
-            <button className="admin-btn admin-btn-primary admin-btn-sm" type="button" style={{ borderRadius: '8px', backgroundColor: '#10B981' }}>Get Quote</button>
           </div>
 
-          {/* Hero Section Preview */}
-          <div style={{ padding: '80px 24px', textAlign: 'center', background: '#FAFAFA' }}>
-            <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#111827', maxWidth: '700px', margin: '0 auto 16px', fontFamily: "'Poppins', sans-serif" }}>
-              {homepageData.heroTitle}
+          {/* Hero section preview */}
+          <div className="px-8 py-16 text-center bg-muted/5">
+            <h1 className="text-3xl font-bold text-text mb-4" style={{ fontFamily: 'var(--font-heading)' }}>
+              {homepageData.heroTitle || 'Hero Title'}
             </h1>
-            <p style={{ fontSize: '1rem', color: '#6B7280', maxWidth: '650px', margin: '0 auto 32px', lineHeight: 1.5 }}>
-              {homepageData.heroSubtitle}
+            <p className="text-base text-muted max-w-2xl mx-auto mb-8">
+              {homepageData.heroSubtitle || 'Hero subtitle'}
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button className="admin-btn admin-btn-primary" style={{ backgroundColor: '#10B981' }} type="button">{homepageData.heroBtnText}</button>
-              <button className="admin-btn admin-btn-secondary" type="button" style={{ border: '1px solid #E5E7EB', color: '#111827' }}>{homepageData.ctaBtnText}</button>
+            <div className="flex gap-3 justify-center">
+              <button type="button" className="admin-btn admin-btn-primary">
+                {homepageData.heroBtnText || 'Explore Products'}
+              </button>
+              <button type="button" className="admin-btn admin-btn-secondary">
+                {homepageData.ctaBtnText || 'Request Quote'}
+              </button>
             </div>
           </div>
 
-          {/* Grid Offers Preview */}
-          <div style={{ padding: '60px 24px', background: '#FFFFFF' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827', textAlign: 'center', marginBottom: '40px' }}>Features & Assurances</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+          {/* Features grid preview */}
+          <div className="px-8 py-12 bg-white">
+            <h2 className="text-xl font-semibold text-text text-center mb-8">Features & Assurances</h2>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6 max-w-3xl mx-auto">
               {homepageData.offers.map((offer, idx) => (
-                <div key={idx} style={{ padding: '24px', border: '1px solid #F3F4F6', borderRadius: '12px', background: '#FAFAFA', textAlign: 'left' }}>
-                  <h3 style={{ color: '#111827', fontSize: '1rem', fontWeight: 600, marginBottom: '8px' }}>{offer.title || 'Feature Title'}</h3>
-                  <p style={{ fontSize: '0.85rem', color: '#6B7280', lineHeight: 1.5 }}>{offer.desc || 'Feature description.'}</p>
+                <div key={idx} className="p-5 border border-border rounded-[var(--radius-card)] bg-muted/3">
+                  <h3 className="font-semibold text-text mb-1">{offer.title || 'Feature Title'}</h3>
+                  <p className="text-xs text-muted">{offer.desc || 'Feature description.'}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Testimonial Section Preview */}
-          <div style={{ padding: '60px 24px', background: '#FAFAFA' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827', textAlign: 'center', marginBottom: '40px' }}>Client Reviews</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
+          {/* Testimonials preview */}
+          <div className="px-8 py-12 bg-muted/5">
+            <h2 className="text-xl font-semibold text-text text-center mb-8">Client Reviews</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {homepageData.testimonials.map((t) => (
-                <div key={t.id} style={{ padding: '24px', border: '1px solid #E5E7EB', borderRadius: '12px', background: '#FFFFFF', textAlign: 'left' }}>
-                  <p style={{ fontStyle: 'italic', fontSize: '0.9rem', color: '#4B5563', marginBottom: '16px' }}>"{t.content || 'Great review text.'}"</p>
+                <div key={t.id} className="p-5 border border-border rounded-[var(--radius-card)] bg-white">
+                  <p className="italic text-sm text-muted mb-3">"{t.content || 'Great review text.'}"</p>
                   <div>
-                    <strong style={{ display: 'block', color: '#111827', fontSize: '0.88rem' }}>{t.name || 'Client Name'}</strong>
-                    <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{t.role}</span>
+                    <strong className="text-sm text-text block">{t.name || 'Client Name'}</strong>
+                    <span className="text-xs text-muted">{t.role || 'Position'}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer Preview */}
-          <div style={{ backgroundColor: '#111827', color: '#9CA3AF', padding: '32px 24px', textAlign: 'center', fontSize: '0.8rem' }}>
-            <p>{homepageData.footerText}</p>
+          {/* Footer preview */}
+          <div className="bg-text text-muted py-4 text-center text-xs">
+            {homepageData.footerText || 'Â© 2026 Egreen Technology. All rights reserved.'}
           </div>
-
         </div>
       )}
     </div>
@@ -401,3 +351,5 @@ const HomepageEditor = () => {
 };
 
 export default HomepageEditor;
+
+

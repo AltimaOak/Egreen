@@ -1,286 +1,369 @@
-// Redesigned Admin Main Dashboard Component
-import React, { useState, useEffect } from 'react';
+// Admin Main Dashboard Component — Redesigned
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Card, StatCard, Badge, Button, SkeletonTable, EmptyState } from '../../components/admin/UI';
 import { productService } from '../../services/productService';
 import { orderService } from '../../services/orderService';
 import { customerService } from '../../services/customerService';
+import { activityService } from '../../services/activityService';
 import { storageService } from '../../services/storageService';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingCart, 
-  ShoppingBag, 
+import {
+  DollarSign,
+  ShoppingCart,
+  ShoppingBag,
   Users,
-  ChevronRight,
-  Sparkles
+  Clock,
+  Package,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  FileText,
 } from 'lucide-react';
-import { formatPrice } from '../../utils/helpers';
-import { CardSkeleton } from '../../components/admin/Skeleton';
+import { formatPrice, formatDate, truncateText } from '../../utils/helpers';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Area,
+} from 'recharts';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [dashboardStats, setDashboardStats] = useState({
-    revenue: 245800,
-    orders: 1486,
-    products: 248,
-    customers: 3892
+  const [stats, setStats] = useState({
+    revenue: 0,
+    orders: 0,
+    products: 0,
+    customers: 0,
   });
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const prodList = await productService.getProducts();
-      const ordStats = await orderService.getOrderStats();
-      const custStats = await customerService.getCustomerStats();
-
-      setDashboardStats({
-        revenue: ordStats.totalRevenue + 120801, // Adding offset to match premium totals
-        orders: ordStats.ordersCount + 1481,
-        products: prodList.length + 216,
-        customers: custStats.totalCustomers + 3887
-      });
-    } catch (e) {
-      console.error('Failed to load dashboard statistics', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [pendingChanges, setPendingChanges] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const prodList = await productService.getProducts();
+        const ordStats = await orderService.getOrderStats();
+        const custStats = await customerService.getCustomerStats();
+        const ordList = await orderService.getOrders();
+        const actList = await activityService.getActivities();
+
+        setStats({
+          revenue: ordStats.totalRevenue,
+          orders: ordStats.ordersCount,
+          products: prodList.length,
+          customers: custStats.totalCustomers,
+        });
+        setOrders(ordList);
+        setProducts(prodList);
+        setActivities(actList);
+      } catch (e) {
+        console.error('Failed to load dashboard data', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const pending = storageService.load('pending_changes_count', 0);
+    const updated = storageService.load('last_updated_time', null);
+    setPendingChanges(pending);
+    setLastUpdated(updated);
+
     loadData();
   }, []);
+
+  const chartData = useMemo(() => {
+    if (!orders.length) return [];
+
+    const byDay = {};
+    orders.forEach((o) => {
+      const day = new Date(o.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      byDay[day] = (byDay[day] || 0) + o.amount;
+    });
+
+    return Object.keys(byDay).map((day) => ({
+      day,
+      revenue: byDay[day],
+    }));
+  }, [orders]);
 
   if (loading) {
     return (
       <div>
         <div className="admin-stats-grid">
-          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} padding="sm">
+              <div className="h-4 bg-muted/20 rounded w-3/4 animate-pulse mb-3"></div>
+              <div className="h-6 bg-muted/20 rounded w-1/2 animate-pulse"></div>
+            </Card>
+          ))}
         </div>
-        <div className="grid-cols-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
-          <CardSkeleton />
-          <CardSkeleton />
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
+          <Card padding="sm"><SkeletonTable rows={5} cols={3} /></Card>
+          <Card padding="sm"><SkeletonTable rows={5} cols={1} /></Card>
         </div>
       </div>
     );
   }
 
-  // Greeting based on hours
-  const getGreeting = () => {
-    const hours = new Date().getHours();
-    if (hours < 12) return 'Good morning, Arjun! ☀️';
-    if (hours < 17) return 'Good afternoon, Arjun! 🌤️';
-    return 'Good evening, Arjun! 🌙';
-  };
+  const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
 
   return (
-    <div style={{ textAlign: 'left' }}>
-      
-      {/* Top Banner Greeting */}
-      <div className="flex justify-between items-center mb-4" style={{ borderBottom: '1px solid var(--admin-border)', paddingBottom: '20px' }}>
-        <div className="admin-dashboard-greeting" style={{ marginBottom: 0 }}>
-          <h2>{getGreeting()}</h2>
-          <p>Here's what's happening with your store today.</p>
+    <div>
+      {/* Page header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Dashboard</h1>
+          <p className="admin-page-subtitle">Overview of your Egreen Technology admin panel.</p>
         </div>
-        <div className="admin-topnav-date" style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-border)', padding: '8px 16px', borderRadius: '8px', fontWeight: 600 }}>
-          May 24, 2024 - May 30, 2024
-        </div>
+        {lastUpdated && (
+          <div className="text-right">
+            <p className="text-xs text-muted">Last updated</p>
+            <p className="text-sm font-medium text-text">{new Date(lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+          </div>
+        )}
       </div>
 
-      {/* KPI Stats cards */}
+      {/* Status banner */}
+      {pendingChanges > 0 && (
+        <div className="mb-6 p-4 bg-warning/10 border border-warning/20 rounded-[var(--radius-card)]">
+          <div className="flex items-center gap-3">
+            <Clock size={16} className="text-warning" />
+            <div>
+              <span className="text-sm font-medium text-text">
+                {pendingChanges} pending change{pendingChanges !== 1 ? 's' : ''} awaiting sync
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto"
+              onClick={async () => {
+                await activityService.clearPendingChanges();
+                setPendingChanges(0);
+              }}
+            >
+              <CheckCircle size={14} /> Mark as synced
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* KPI Stats */}
       <div className="admin-stats-grid">
-        {/* Revenue */}
-        <div className="admin-stat-card">
-          <div className="admin-stat-header">
-            <span className="admin-stat-label">Total Revenue</span>
-            <div className="admin-stat-icon-wrapper" style={{ backgroundColor: '#D1FAE5', color: '#10B981' }}>
-              <DollarSign size={20} />
-            </div>
-          </div>
-          <div className="admin-stat-value-group">
-            <span className="admin-stat-val">{formatPrice(dashboardStats.revenue)}</span>
-            <span className="admin-stat-trend trend-up">
-              <TrendingUp size={14} /> +12.5% <span style={{ color: 'var(--admin-text-body)', fontWeight: 'normal' }}>vs last week</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Orders */}
-        <div className="admin-stat-card">
-          <div className="admin-stat-header">
-            <span className="admin-stat-label">Total Orders</span>
-            <div className="admin-stat-icon-wrapper" style={{ backgroundColor: '#FFE4E6', color: '#F43F5E' }}>
-              <ShoppingCart size={20} />
-            </div>
-          </div>
-          <div className="admin-stat-value-group">
-            <span className="admin-stat-val">{dashboardStats.orders.toLocaleString()}</span>
-            <span className="admin-stat-trend trend-down">
-              <TrendingDown size={14} /> -8.2% <span style={{ color: 'var(--admin-text-body)', fontWeight: 'normal' }}>vs last week</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Products */}
-        <div className="admin-stat-card">
-          <div className="admin-stat-header">
-            <span className="admin-stat-label">Total Products</span>
-            <div className="admin-stat-icon-wrapper" style={{ backgroundColor: '#DBEAFE', color: '#3B82F6' }}>
-              <ShoppingBag size={20} />
-            </div>
-          </div>
-          <div className="admin-stat-value-group">
-            <span className="admin-stat-val">{dashboardStats.products}</span>
-            <span className="admin-stat-trend trend-up">
-              <TrendingUp size={14} /> +5.7% <span style={{ color: 'var(--admin-text-body)', fontWeight: 'normal' }}>vs last week</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Customers */}
-        <div className="admin-stat-card">
-          <div className="admin-stat-header">
-            <span className="admin-stat-label">Total Customers</span>
-            <div className="admin-stat-icon-wrapper" style={{ backgroundColor: '#F3E8FF', color: '#A855F7' }}>
-              <Users size={20} />
-            </div>
-          </div>
-          <div className="admin-stat-value-group">
-            <span className="admin-stat-val">{dashboardStats.customers.toLocaleString()}</span>
-            <span className="admin-stat-trend trend-up">
-              <TrendingUp size={14} /> +15.3% <span style={{ color: 'var(--admin-text-body)', fontWeight: 'normal' }}>vs last week</span>
-            </span>
-          </div>
-        </div>
+        <StatCard
+          title="Total Revenue"
+          value={formatPrice(stats.revenue)}
+          icon={<DollarSign size={20} />}
+          iconBg="bg-success/10"
+          iconColor="text-success"
+          trend={12.5}
+          trendUp={true}
+          subtitle="vs last week"
+        />
+        <StatCard
+          title="Total Orders"
+          value={stats.orders.toLocaleString()}
+          icon={<ShoppingCart size={20} />}
+          iconBg="bg-danger/10"
+          iconColor="text-danger"
+          trend={8.2}
+          trendUp={false}
+          subtitle="vs last week"
+        />
+        <StatCard
+          title="Total Products"
+          value={stats.products.toString()}
+          icon={<ShoppingBag size={20} />}
+          iconBg="bg-blue/10"
+          iconColor="text-blue"
+          trend={5.7}
+          trendUp={true}
+          subtitle="vs last week"
+        />
+        <StatCard
+          title="Total Customers"
+          value={stats.customers.toLocaleString()}
+          icon={<Users size={20} />}
+          iconBg="bg-indigo/10"
+          iconColor="text-indigo"
+          trend={15.3}
+          trendUp={true}
+          subtitle="vs last week"
+        />
       </div>
 
-      {/* Sales Line Chart and Products by Brand Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }} className="grid-cols-2">
-        {/* Left Side: Sales Overview Chart */}
-        <div className="admin-card" style={{ marginBottom: 0 }}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="admin-modal-title">Sales Overview</h3>
-            <select className="admin-select" style={{ width: '120px', padding: '6px 10px', fontSize: '0.8rem' }}>
-              <option>This Week</option>
-              <option>Last Month</option>
-            </select>
+      {/* Main content grid: Chart + Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 mb-6">
+        {/* Sales Overview Chart */}
+        <Card title="Sales Overview" subtitle="Revenue from orders (last 7 days)">
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 10, fill: 'var(--color-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: 'var(--color-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px' }}
+                  labelStyle={{ color: 'var(--color-muted)', fontSize: '11px' }}
+                  itemStyle={{ color: 'var(--color-text)', fontSize: '12px' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="var(--color-primary)"
+                  strokeWidth={2}
+                  fill="var(--color-primary)"
+                  fillOpacity={0.1}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
+        </Card>
 
-          <div style={{ position: 'relative', width: '100%', padding: '10px 0' }}>
-            {/* Pure SVG Line Area Chart */}
-            <svg viewBox="0 0 500 200" className="admin-chart-svg" style={{ overflow: 'visible' }}>
-              <defs>
-                <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
+        {/* Recent Activity */}
+        <Card title="Recent Activity" subtitle="Latest admin actions">
+          {activities.length === 0 ? (
+            <EmptyState
+              icon={<FileText size={24} />}
+              title="No activity yet"
+              description="Activity logs will appear here once you start managing content."
+            />
+          ) : (
+            <div className="space-y-3">
+              {activities.slice(0, 6).map((act) => (
+                <div key={act.id} className="flex items-start gap-3 pb-3 border-b border-border last:border-0">
+                  <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle size={12} className="text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text">{act.action}</p>
+                    <p className="text-xs text-muted mt-0.5 truncate">{act.details}</p>
+                    <p className="text-xs text-muted mt-0.5">{formatDate(act.timestamp)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
 
-              {/* Grid Lines */}
-              <line x1="0" y1="40" x2="500" y2="40" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="80" x2="500" y2="80" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="120" x2="500" y2="120" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="160" x2="500" y2="160" className="chart-grid-line" stroke="#E2E8F0" />
+      {/* Recent Products */}
+      <div className="grid grid-cols-[1fr_280px] gap-6">
+        <Card
+          title="Recent Products"
+          subtitle="Latest products in inventory"
+          action={
+            <Button variant="ghost" size="sm" as={Link} to="/admin/products">
+              View All
+            </Button>
+          }
+        >
+          {products.length === 0 ? (
+            <EmptyState
+              title="No products found"
+              description="Add your first product to get started."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th className="text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.slice(0, 5).map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          {p.image ? (
+                            <img src={p.image} alt={p.name} className="admin-table-img" />
+                          ) : (
+                            <div className="admin-table-img flex items-center justify-center bg-muted/10 text-muted text-xs">
+                              No Image
+                            </div>
+                          )}
+                          <div>
+                            <strong className="text-sm text-text">{truncateText(p.name, 30)}</strong>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-xs text-muted">{p.SKU || '-'}</td>
+                      <td className="font-medium">{formatPrice(p.price)}</td>
+                      <td>
+                        <span className={p.stock === 0 ? 'text-danger' : (p.stock < 5 ? 'text-warning' : 'text-text')}>
+                          {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
+                        </span>
+                      </td>
+                      <td className="text-right">
+                        <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>
+                          {p.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
 
-              {/* Chart Line Area Fill */}
-              <path d="M 0 200 L 0 160 C 50 130, 100 150, 150 110 C 200 80, 250 95, 300 70 C 350 40, 400 75, 450 30 L 500 30 L 500 200 Z" fill="url(#chart-gradient)" />
-
-              {/* Main Line */}
-              <path d="M 0 160 C 50 130, 100 150, 150 110 C 200 80, 250 95, 300 70 C 350 40, 400 75, 450 30 L 500 30" stroke="#10B981" strokeWidth="3" fill="none" />
-
-              {/* Points */}
-              <circle cx="0" cy="160" r="5" className="chart-point" />
-              <circle cx="100" cy="150" r="5" className="chart-point" />
-              <circle cx="200" cy="80" r="5" className="chart-point" />
-              <circle cx="300" cy="70" r="5" className="chart-point" />
-              <circle cx="450" cy="30" r="5" className="chart-point" />
-
-              {/* Tooltip display overlay */}
-              <g transform="translate(300, 35)">
-                <rect x="-40" y="-30" width="80" height="24" rx="4" fill="#1E293B" />
-                <text x="0" y="-14" fill="white" fontSize="10" textAnchor="middle" fontWeight="bold">₹72,800</text>
-                <text x="0" y="24" fill="#64748B" fontSize="9" textAnchor="middle">May 30</text>
-              </g>
-            </svg>
-
-            {/* X Axis Labels */}
-            <div className="flex justify-between mt-2" style={{ fontSize: '0.75rem', color: 'var(--admin-text-body)' }}>
-              <span>May 24</span>
-              <span>May 25</span>
-              <span>May 26</span>
-              <span>May 27</span>
-              <span>May 28</span>
-              <span>May 29</span>
-              <span>May 30</span>
+        {/* System Checkup */}
+        <Card title="System Checkup" subtitle="Current status overview">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-text flex items-center gap-2">
+                <CheckCircle size={12} className="text-success" />
+                Authentication
+              </span>
+              <Badge variant="success">Active</Badge>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-text flex items-center gap-2">
+                <CheckCircle size={12} className="text-success" />
+                Storage (localStorage)
+              </span>
+              <Badge variant="success">OK</Badge>
+            </div>
+            {pendingOrders > 0 && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-text flex items-center gap-2">
+                  <Clock size={12} className="text-warning" />
+                  Pending orders
+                </span>
+                <Badge variant="warning">{pendingOrders}</Badge>
+              </div>
+            )}
+            <div className="pt-3 mt-3 border-t border-border">
+              <Button variant="ghost" size="sm" className="w-full">
+                Run full diagnostics
+              </Button>
             </div>
           </div>
-        </div>
-
-        {/* Right Side: Products by Brand */}
-        <div className="admin-card" style={{ marginBottom: 0 }}>
-          <h3 className="admin-modal-title" style={{ marginBottom: '16px' }}>Products by Brand</h3>
-          
-          <div className="admin-table-container" style={{ border: 'none' }}>
-            <table className="admin-table">
-              <thead>
-                <tr style={{ background: 'transparent' }}>
-                  <th style={{ padding: '8px 0', borderBottom: '1px solid var(--admin-border)' }}>Brand</th>
-                  <th style={{ padding: '8px 0', borderBottom: '1px solid var(--admin-border)' }}>Products</th>
-                  <th style={{ padding: '8px 0', borderBottom: '1px solid var(--admin-border)', textAlign: 'right' }}>Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Dell */}
-                <tr>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>
-                    <div className="flex items-center gap-2">
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', fontWeight: 'bold', fontSize: '0.75rem' }}>DL</div>
-                      <strong>Dell</strong>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>112 Products</td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)', textAlign: 'right', fontWeight: 600 }}>₹1,12,300</td>
-                </tr>
-
-                {/* Lenovo */}
-                <tr>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>
-                    <div className="flex items-center gap-2">
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444', fontWeight: 'bold', fontSize: '0.75rem' }}>LN</div>
-                      <strong>Lenovo</strong>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>78 Products</td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)', textAlign: 'right', fontWeight: 600 }}>₹88,900</td>
-                </tr>
-
-                {/* HP */}
-                <tr>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>
-                    <div className="flex items-center gap-2">
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', fontWeight: 'bold', fontSize: '0.75rem' }}>HP</div>
-                      <strong>HP</strong>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)' }}>36 Products</td>
-                  <td style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border)', textAlign: 'right', fontWeight: 600 }}>₹33,500</td>
-                </tr>
-
-                {/* Acer */}
-                <tr>
-                  <td style={{ padding: '14px 0', borderBottom: 'none' }}>
-                    <div className="flex items-center gap-2">
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', fontWeight: 'bold', fontSize: '0.75rem' }}>AC</div>
-                      <strong>Acer</strong>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 0', borderBottom: 'none' }}>22 Products</td>
-                  <td style={{ padding: '14px 0', borderBottom: 'none', textAlign: 'right', fontWeight: 600 }}>₹18,900</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

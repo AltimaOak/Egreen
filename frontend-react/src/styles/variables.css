@@ -1,39 +1,79 @@
-/* Custom properties for theme */
+@import "tailwindcss";
+
+/* ============================================================
+   Egreen Admin Design System — Semantic Token Layer
+   Tailwind CSS v4 @theme directive
+   ============================================================ */
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Core palette */
+  --color-background: #F7F8FA;
+  --color-surface: #FFFFFF;
+  --color-primary: #10B981;
+  --color-blue: #2563EB;
+  --color-indigo: #4F46E5;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-text: #111827;
+  --color-muted: #6B7280;
+  --color-border: rgba(15, 23, 42, 0.06);
+
+  /* Radii */
+  --radius-card: 14px;
+  --radius-button: 10px;
+  --radius-input: 10px;
+
+  /* Shadows — restrained, enterprise */
+  --shadow-soft: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+  --shadow-elevated: 0 10px 15px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+}
+
+/* ============================================================
+   Backward-compatibility aliases (public site + legacy refs)
+   ============================================================ */
+
 :root {
-  /* Brand Colors */
-  --primary: #10B981;
+  --primary: var(--color-primary);
   --primary-hover: #059669;
-  --secondary: #111827;
-  --accent: #34D399;
-  
-  /* Neutral Colors */
-  --bg-color: #FAFAFA;
+  --secondary: var(--color-text);
+  --bg-color: var(--color-background);
   --bg-muted: #F3F4F6;
-  --card-bg: #FFFFFF;
-  --border: #E5E7EB;
-  
-  /* Text Colors */
-  --text-heading: #111827;
-  --text-body: #6B7280;
-  
-  /* Status */
-  --success: #22C55E;
-  
-  /* Typography */
-  --font-heading: 'Poppins', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  
-  /* Sizes & Spacing */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --nav-height: 80px;
-  
-  /* Transitions */
-  --transition: all 0.3s ease;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --card-bg: var(--color-surface);
+  --border: var(--color-border);
+  --text-heading: var(--color-text);
+  --text-body: var(--color-muted);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --info: var(--color-blue);
+  --font-body: var(--font-sans);
+  --font-heading: var(--font-sans);
+  --radius: var(--radius-card);
+  --radius-sm: var(--radius-button);
+  --transition: all 0.2s ease;
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: var(--shadow-elevated);
+  --shadow-lg: var(--shadow-elevated);
+}
+
+/* ============================================================
+   Dark-mode token overrides
+   The ThemeContext toggles a `dark` class on <html>.
+   ============================================================ */
+
+.dark {
+  --color-background: #0B0F17;
+  --color-surface: #151C2C;
+  --color-text: #F8FAFC;
+  --color-muted: #94A3B8;
+  --color-border: rgba(15, 23, 42, 0.12);
+  --bg-color: #0B0F17;
+  --bg-muted: #1E293B;
+  --card-bg: #151C2C;
+  --border: rgba(15, 23, 42, 0.12);
+  --text-heading: #F8FAFC;
+  --text-body: #94A3B8;
 }

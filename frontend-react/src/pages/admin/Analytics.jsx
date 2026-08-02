@@ -8,6 +8,13 @@ const Analytics = () => {
 
   return (
     <div style={{ textAlign: 'left' }}>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Analytics</h1>
+          <p className="admin-page-subtitle">Track revenue trends, product insights, and customer activity.</p>
+        </div>
+      </div>
       
       {/* Analytics Tabs */}
       <div className="admin-editor-tabs" style={{ marginBottom: '24px' }}>
@@ -23,7 +30,7 @@ const Analytics = () => {
       </div>
 
       {/* Main performance trend and share grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }} className="grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 mb-6">
         
         {/* Line Chart */}
         <div className="admin-card" style={{ marginBottom: 0 }}>
