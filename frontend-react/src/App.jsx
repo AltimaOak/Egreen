@@ -16,7 +16,7 @@ import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
 
 // Admin Pages
-import Login from './pages/admin/Login';
+import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
 import Settings from './pages/admin/Settings';
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
   },
 
   // Admin login (public)
-  { path: "/admin/login", element: <Login /> },
+  { path: "/admin/login", element: <AdminLogin /> },
 
   // Protected Admin routes
   {
