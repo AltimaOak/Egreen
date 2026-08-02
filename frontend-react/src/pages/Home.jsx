@@ -100,27 +100,17 @@ const Home = () => {
               {
                 name: 'Dell',
                 svg: (
-                  <svg viewBox="0 0 170 50" className="brand-logo-svg brand-dell" fill="#0076ce">
-                    <path d="M 10 5 H 32 C 46 5 54 15 54 25 C 54 35 46 45 32 45 H 10 Z M 22 14 V 36 H 31 C 38 36 42 32 42 25 C 42 18 38 14 31 14 Z"/>
-                    <g transform="translate(68, 25) rotate(-45)">
-                      <path d="M -13 -13 H 13 V -5 H -4 V -1 H 9 V 5 H -4 V 9 H 13 V 17 H -13 Z"/>
-                    </g>
-                    <path d="M 100 5 H 112 V 36 H 130 V 45 H 100 Z"/>
-                    <path d="M 136 5 H 148 V 36 H 166 V 45 H 136 Z"/>
+                  <svg viewBox="0 0 140 40" className="brand-logo-svg brand-dell">
+                    <text x="5" y="32" fill="#0076ce" fontFamily="Arial, Helvetica, sans-serif" fontSize="34" fontWeight="900" letterSpacing="1px">DELL</text>
                   </svg>
                 )
               },
               {
                 name: 'HP',
                 svg: (
-                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-hp">
-                    <circle cx="50" cy="50" r="48" fill="#0096d6"/>
-                    <g fill="#ffffff" transform="skewX(-16) translate(6, 0)">
-                      <rect x="28" y="12" width="8.5" height="76" />
-                      <path d="M 36.5 45 C 41 40 48 40 52 44 C 55 47 55 52 55 58 V 76 H 46.5 V 58 C 46.5 53 45 50 42 50 C 38.5 50 36.5 53 36.5 58 V 76 H 28 V 45 Z" />
-                      <rect x="58" y="32" width="8.5" height="56" />
-                      <path d="M 66.5 36 C 75 36 81 42 81 52 C 81 62 75 68 66.5 68 H 58 V 36 Z M 66.5 60 C 70.5 60 72.5 56.5 72.5 52 C 72.5 47.5 70.5 44 66.5 44 V 60 Z" />
-                    </g>
+                  <svg viewBox="0 0 80 80" className="brand-logo-svg brand-hp">
+                    <circle cx="40" cy="40" r="38" fill="#0096d6"/>
+                    <text x="40" y="52" fill="#ffffff" fontFamily="Arial, Helvetica, sans-serif" fontSize="36" fontWeight="900" fontStyle="italic" textAnchor="middle" letterSpacing="-1px">hp</text>
                   </svg>
                 )
               },

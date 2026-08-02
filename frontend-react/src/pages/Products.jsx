@@ -1,13 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 import FadeUp from '../components/FadeUp';
+
+const categories = [
+  { id: 'all', label: 'All Categories' },
+  { id: 'mini-pc', label: 'Mini PCs' },
+  { id: 'thin-client', label: 'Thin Clients' },
+  { id: 'desktop', label: 'Desktops' },
+  { id: 'laptop', label: 'Laptops' },
+  { id: 'processors', label: 'Processors' },
+  { id: 'components', label: 'Components & SSDs' }
+];
 
 const Products = () => {
   const [loading, setLoading] = useState(true);
   const [productsList, setProductsList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentCategory, setCurrentCategory] = useState('all');
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoryRef.current && !categoryRef.current.contains(event.target)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -54,20 +76,32 @@ const Products = () => {
             />
           </div>
           <div className="search-divider"></div>
-          <div className="category-select-wrapper">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            <select 
-              value={currentCategory} 
-              onChange={(e) => setCurrentCategory(e.target.value)}
+          <div className="custom-category-select" ref={categoryRef}>
+            <div 
+              className="custom-select-trigger" 
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             >
-              <option value="all">All Categories</option>
-              <option value="mini-pc">Mini PCs</option>
-              <option value="thin-client">Thin Clients</option>
-              <option value="desktop">Desktops</option>
-              <option value="laptop">Laptops</option>
-              <option value="processors">Processors</option>
-              <option value="components">Components & SSDs</option>
-            </select>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              <span>{categories.find(c => c.id === currentCategory)?.label}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`chevron ${isCategoryOpen ? 'open' : ''}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            
+            {isCategoryOpen && (
+              <div className="custom-select-dropdown">
+                {categories.map(category => (
+                  <div 
+                    key={category.id}
+                    className={`custom-select-option ${currentCategory === category.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setCurrentCategory(category.id);
+                      setIsCategoryOpen(false);
+                    }}
+                  >
+                    {category.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
