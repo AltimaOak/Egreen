@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -21,6 +23,11 @@ const Navbar = () => {
 
   const closeMenu = () => setIsMenuOpen(false);
 
+  const handleLogout = () => {
+    logout();
+    closeMenu();
+  };
+
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container">
@@ -33,9 +40,28 @@ const Navbar = () => {
           <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>About Us</Link>
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
+          {!isAuthenticated && !loading && (
+            <Link to="/login" className={location.pathname === '/login' ? 'active' : ''} onClick={closeMenu}>Sign In</Link>
+          )}
+          {isAuthenticated && (
+            <button onClick={handleLogout} className="mobile-logout" style={{ background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--text-body)', cursor: 'pointer', textAlign: 'left', padding: '8px 0' }}>Logout</button>
+          )}
         </div>
         <div className="nav-actions">
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
+          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Get Quote</a>
+          {loading ? null : isAuthenticated ? (
+            <>
+              <span style={{ fontSize: '0.875rem', color: 'var(--text-body)', marginRight: '8px' }}>
+                Hi, {user.name?.split(' ')[0]}
+              </span>
+              <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Sign In</Link>
+              <Link to="/register" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.875rem' }}>Register</Link>
+            </>
+          )}
         </div>
         <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
