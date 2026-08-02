@@ -1,85 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FadeUp from '../components/FadeUp';
+import { ShieldCheck, Award, HeadphonesIcon, Truck, Tags, CheckCircle } from 'lucide-react';
 
 const Home = () => {
   return (
     <>
-      <section className="hero container" style={{ display: 'block', textAlign: 'center', maxWidth: '900px', margin: '0 auto', paddingTop: 'calc(var(--nav-height) + 6rem)' }}>
-        <FadeUp className="hero-content visible">
-          <h1 className="h1">Reliable New & Refurbished IT Hardware Solutions</h1>
-          <p>Egreen Technology supplies premium Dell, HP and Lenovo business systems, thin clients and computer components with competitive pricing and dependable customer support.</p>
-          <div className="hero-btns" style={{ justifyContent: 'center', marginTop: '2rem' }}>
-            <Link to="/products" className="btn btn-primary">Explore Products</Link>
-            <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline">Request Quote</a>
+      <section className="hero container">
+        <FadeUp className="hero-content">
+          <div className="hero-badge">
+            <CheckCircle size={20} />
+            Trusted by 500+ Businesses
           </div>
+          <h1 className="h1">Reliable New &amp; Refurbished IT Hardware Solutions</h1>
+          <p>Enterprise Dell, HP &amp; Lenovo systems with warranty and expert support.</p>
+          <div className="hero-btns">
+            <Link to="/products" className="btn btn-primary">
+              Explore Products <span style={{ marginLeft: '4px' }}>&rsaquo;</span>
+            </Link>
+            <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline">
+              Request Quote <span style={{ marginLeft: '4px' }}>&rsaquo;</span>
+            </a>
+          </div>
+        </FadeUp>
+        <FadeUp className="hero-image-wrapper">
+          <img src="/assets/hero_mini_pcs_1785088044717.png" alt="IT Hardware Solutions" style={{ width: '100%', maxWidth: '700px', position: 'relative', zIndex: 2 }} />
         </FadeUp>
       </section>
 
-      <FadeUp className="trusted-by">
-        <div className="container">
-          <h3 className="h3" style={{ fontSize: '1.125rem', color: 'var(--text-body)' }}>Trusted By Businesses</h3>
-          <div className="trusted-logos">
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">Enterprise</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">TechCorp</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">GlobalSys</text></svg>
-            <svg width="120" height="40" viewBox="0 0 120 40"><text x="0" y="30" fontFamily="Arial" fontSize="24" fontWeight="bold">DataNet</text></svg>
+      <div className="container">
+        <FadeUp className="hero-features-bar">
+          <div className="hero-feature">
+            <ShieldCheck size={24} className="hero-feature-icon" />
+            <div className="hero-feature-content">
+              <h4>Genuine Products</h4>
+              <p>100% Genuine Dell, HP &amp; Lenovo Hardware</p>
+            </div>
           </div>
-        </div>
-      </FadeUp>
-
-      <section className="section-padding bg-muted">
-        <div className="container">
-          <FadeUp className="text-center" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-            <h2 className="h2">Features Section</h2>
-            <p>We pride ourselves on providing the highest quality products and services.</p>
-          </FadeUp>
-          <FadeUp className="features-grid">
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              </div>
-              <h3>Genuine Products</h3>
-              <p>100% authentic hardware sourced from trusted manufacturers.</p>
+          <div className="hero-feature">
+            <Award size={24} className="hero-feature-icon" />
+            <div className="hero-feature-content">
+              <h4>Warranty Assurance</h4>
+              <p>Minimum 6 Months Warranty on All Products</p>
             </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg>
-              </div>
-              <h3>Quality Tested</h3>
-              <p>Every refurbished unit undergoes rigorous testing before shipment.</p>
+          </div>
+          <div className="hero-feature">
+            <HeadphonesIcon size={24} className="hero-feature-icon" />
+            <div className="hero-feature-content">
+              <h4>Expert Support</h4>
+              <p>Dedicated Technical Support Before &amp; After Purchase</p>
             </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              </div>
-              <h3>Wholesale Pricing</h3>
-              <p>Competitive rates that improve your bottom line.</p>
+          </div>
+          <div className="hero-feature">
+            <Truck size={24} className="hero-feature-icon" />
+            <div className="hero-feature-content">
+              <h4>Pan India Delivery</h4>
+              <p>Safe &amp; Fast Delivery Across India</p>
             </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-              </div>
-              <h3>Bulk Orders</h3>
-              <p>Capacity to fulfill massive IT requirements efficiently.</p>
+          </div>
+          <div className="hero-feature">
+            <Tags size={24} className="hero-feature-icon" />
+            <div className="hero-feature-content">
+              <h4>Best Prices</h4>
+              <p>Competitive Pricing for Every Business</p>
             </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              </div>
-              <h3>Fast Delivery</h3>
-              <p>Optimized logistics for quick dispatch and arrival.</p>
-            </div>
-            <div className="card">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </div>
-              <h3>Customer Support</h3>
-              <p>Dedicated assistance for all your technical inquiries.</p>
-            </div>
-          </FadeUp>
-        </div>
-      </section>
+          </div>
+        </FadeUp>
+      </div>
 
       <FadeUp className="section-padding container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
