@@ -120,7 +120,7 @@ const Dashboard = () => {
           title="Total Revenue"
           value={formatPrice(stats.revenue)}
           icon={<DollarSign size={20} />}
-          iconBg="rgba(16,185,129,0.12)" iconColor="var(--color-primary)"
+          iconBg="rgba(37,99,235,0.12)" iconColor="var(--color-primary)"
           trend={trends.revenue} trendUp={trends.revenue >= 0}
           subtitle="vs last 7 days"
         />

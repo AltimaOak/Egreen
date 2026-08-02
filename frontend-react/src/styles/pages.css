@@ -2,7 +2,7 @@
 .hero-landing {
   padding-top: calc(var(--nav-height) + 1.5rem);
   padding-bottom: 3.5rem;
-  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
   position: relative;
   overflow: hidden;
 }
@@ -24,9 +24,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  color: var(--primary);
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  color: #EFF6FF;
   font-weight: 700;
   font-size: 0.775rem;
   padding: 5px 12px;
@@ -37,14 +37,18 @@
 .hero-landing-title {
   font-size: clamp(2.25rem, 3.8vw, 3.1rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff;
   line-height: 1.2;
   margin-bottom: 0.85rem;
 }
 
+.hero-landing-title .text-primary {
+  color: #60A5FA;
+}
+
 .hero-landing-desc {
   font-size: 0.975rem;
-  color: #64748b;
+  color: #CBD5E1;
   line-height: 1.55;
   margin-bottom: 1.35rem;
 }
@@ -64,6 +68,19 @@
   font-weight: 600;
   border-radius: 100px;
   transition: all 0.25s ease;
+}
+
+/* Dark hero: restyle the ghost button so it reads on the gradient */
+.hero-landing .btn-outline {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+}
+
+.hero-landing .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+  transform: scale(1.03);
 }
 
 .hero-landing-image-wrapper {
@@ -120,7 +137,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(37, 99, 235, 0.08);
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -238,8 +255,8 @@
 }
 
 .brand-card:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.12);
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
   transform: translateY(-3px);
 }
 
@@ -445,7 +462,7 @@
 
 .why-choose-card-clean:hover {
   transform: translateY(-4px);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(37, 99, 235, 0.35);
   box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.06);
 }
 
@@ -453,7 +470,7 @@
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(37, 99, 235, 0.08);
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -777,7 +794,7 @@ textarea.form-control {
 }
 
 .about-leadership-box {
-  background: #f0fdf4;
+  background: #eff6ff;
   border-left: 4px solid var(--primary);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
@@ -966,7 +983,7 @@ textarea.form-control {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(37, 99, 235, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1226,7 +1243,7 @@ textarea.form-control {
 }
 
 .custom-select-option.active {
-  background: #f0fdf4;
+  background: #eff6ff;
   color: var(--primary);
   font-weight: 600;
 }

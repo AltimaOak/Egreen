@@ -12,7 +12,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
 
-const COLORS = ['#10B981','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#6366F1'];
+const COLORS = ['#2563EB','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#6366F1'];
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState('Overview');
@@ -92,7 +92,7 @@ const Analytics = () => {
 
       {/* KPI row */}
       <div className="admin-stats-grid">
-        <StatCard title="Total Revenue" value={formatPrice(data.totalRevenue)} icon={<DollarSign size={20} />} iconBg="rgba(16,185,129,0.12)" iconColor="var(--color-primary)" trend={data.revenueTrend} trendUp={data.revenueTrend >= 0} subtitle="vs last month" />
+        <StatCard title="Total Revenue" value={formatPrice(data.totalRevenue)} icon={<DollarSign size={20} />} iconBg="rgba(37,99,235,0.12)" iconColor="var(--color-primary)" trend={data.revenueTrend} trendUp={data.revenueTrend >= 0} subtitle="vs last month" />
         <StatCard title="Avg. Order Value" value={formatPrice(data.avgOrderValue)} icon={<ShoppingCart size={20} />} iconBg="rgba(59,130,246,0.12)" iconColor="var(--color-blue)" subtitle="per transaction" />
         <StatCard title="Conversion Rate" value={`${data.conversionRate}%`} icon={<TrendingUp size={20} />} iconBg="rgba(99,102,241,0.12)" iconColor="var(--color-indigo)" subtitle="completed orders" />
         <StatCard title="New Clients" value={`+${data.newClients}`} icon={<Users size={20} />} iconBg="rgba(245,158,11,0.12)" iconColor="var(--color-warning)" subtitle="this month" />

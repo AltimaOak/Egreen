@@ -82,9 +82,9 @@ export const DEFAULT_SETTINGS_DATA = {
   logoImage: '', // Base64 or URL
   favicon: '',
   adminName: 'Administrator',
-  primaryColor: '#10B981', // green theme
-  primaryHoverColor: '#059669',
-  secondaryColor: '#111827',
+  primaryColor: '#2563EB', // blue theme
+  primaryHoverColor: '#1D4ED8',
+  secondaryColor: '#0F172A',
   footerText: 'Â© 2026 Egreen Technology. All rights reserved.',
   maintenanceMode: false
 };

@@ -95,7 +95,7 @@ export const AdminCard = Card;
 ══════════════════════════════════════════════════════════ */
 export const StatCard = ({
   title, value, icon,
-  iconBg = 'rgba(16,185,129,0.12)', iconColor = 'var(--color-primary)',
+  iconBg = 'rgba(37,99,235,0.12)', iconColor = 'var(--color-primary)',
   trend, trendUp, subtitle,
 }) => (
   <div className="admin-stat-card">
