@@ -90,6 +90,16 @@ img {
   transform: scale(1.03);
 }
 
+.btn-dark {
+  background-color: var(--secondary);
+  color: #ffffff;
+}
+
+.btn-dark:hover {
+  background-color: #1f2937;
+  transform: scale(1.03);
+}
+
 /* Navbar */
 .navbar {
   position: fixed;
@@ -172,6 +182,34 @@ img {
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--text-heading);
+}
+
+/* Navbar actions */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-actions .btn {
+  padding: 9px 18px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.nav-actions .user-greeting {
+  font-size: 0.875rem;
+  color: var(--text-body);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Items shown only in the mobile menu, not the desktop bar */
+@media (min-width: 769px) {
+  .nav-links .nav-mobile-link {
+    display: none;
+  }
 }
 
 /* Cards */
