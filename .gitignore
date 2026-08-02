@@ -19,3 +19,6 @@ npm-debug.log*
 # Uploads (keep directory, ignore files)
 server/uploads/*
 !server/uploads/.gitkeep
+
+# Claude AI configuration
+.claude/
