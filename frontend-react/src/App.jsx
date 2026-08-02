@@ -75,7 +75,9 @@ function App() {
   return (
     <AdminProvider>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </ThemeProvider>
     </AdminProvider>
   );
