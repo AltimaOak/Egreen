@@ -1,17 +1,19 @@
-// Admin Homepage Content Editor Component â€” Redesigned
+// Admin Homepage Content Editor Component — Redesigned
 import React, { useState, useEffect } from 'react';
 import { pageService } from '../../services/pageService';
 import { useAdmin } from '../../contexts/AdminContext';
 import { FormSkeleton } from '../../components/admin/Skeleton';
 import {
-  Card,  Button,
+  Card,
+  Button,
   Tabs,
   Collapsible,
   Input,
   Textarea,
 } from '../../components/admin/UI';
 import {
-  Save,  Edit3,
+  Save,
+  Edit3,
   Plus,
   Trash2,
   Link as LinkIcon,
@@ -84,7 +86,7 @@ const HomepageEditor = () => {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     showToast('Saving Changes...', 'loading');
     try {
       await pageService.updateHomepage(homepageData);
@@ -98,7 +100,7 @@ const HomepageEditor = () => {
   if (loading) return <FormSkeleton />;
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -125,7 +127,7 @@ const HomepageEditor = () => {
       {activeTab === 'edit' && (
         <form onSubmit={handleSave}>
           <div className="space-y-4">
-            <Collapsible title="Hero Section" icon={<Edit3 size={16} />} defaultOpen>
+            <Collapsible title="Hero Section" icon={<Edit3 size={16} />} defaultOpen={true}>
               <Input
                 label="Hero Title Headline"
                 placeholder="Reliable New & Refurbished IT Hardware Solutions"
@@ -142,50 +144,36 @@ const HomepageEditor = () => {
               />
             </Collapsible>
 
-            <Collapsible title="Call to Action Buttons" icon={<LinkIcon size={16} />} defaultOpen={false}>
-              <div className="grid grid-cols-2 gap-4">
+            <Collapsible title="Call to Action Buttons" icon={<LinkIcon size={16} />} defaultOpen={true}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Hero Button Title"
                   value={homepageData.heroBtnText || ''}
                   onChange={(e) => handleInputChange('heroBtnText', e.target.value)}
                 />
-                <div>
-                  <label className="block text-xs font-medium text-text mb-1.5">Hero Button Link</label>
-                  <div className="relative">
-                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-                    <input
-                      type="text"
-                      className="admin-input"
-                      style={{ paddingLeft: '32px' }}
-                      value={homepageData.heroBtnLink || ''}
-                      onChange={(e) => handleInputChange('heroBtnLink', e.target.value)}
-                    />
-                  </div>
-                </div>
+                <Input
+                  label="Hero Button Link"
+                  icon={<LinkIcon size={14} />}
+                  value={homepageData.heroBtnLink || ''}
+                  onChange={(e) => handleInputChange('heroBtnLink', e.target.value)}
+                />
                 <Input
                   label="CTA Offer Button Title"
                   value={homepageData.ctaBtnText || ''}
                   onChange={(e) => handleInputChange('ctaBtnText', e.target.value)}
                 />
-                <div>
-                  <label className="block text-xs font-medium text-text mb-1.5">CTA Offer Button Link</label>
-                  <div className="relative">
-                    <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-                    <input
-                      type="text"
-                      className="admin-input"
-                      style={{ paddingLeft: '32px' }}
-                      value={homepageData.ctaBtnLink || ''}
-                      onChange={(e) => handleInputChange('ctaBtnLink', e.target.value)}
-                    />
-                  </div>
-                </div>
+                <Input
+                  label="CTA Offer Button Link"
+                  icon={<LinkIcon size={14} />}
+                  value={homepageData.ctaBtnLink || ''}
+                  onChange={(e) => handleInputChange('ctaBtnLink', e.target.value)}
+                />
               </div>
             </Collapsible>
 
-            <Collapsible title="Features / Grid Cards" icon={<Plus size={14} />} defaultOpen={false}>
+            <Collapsible title="Features / Grid Cards" icon={<Plus size={14} />} defaultOpen={true}>
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs text-muted">{homepageData.offers.length} / 8 cards</span>
+                <span className="text-xs text-muted font-medium">{homepageData.offers.length} / 8 cards</span>
                 <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={addOffer}>
                   Add Card
                 </Button>
@@ -193,11 +181,11 @@ const HomepageEditor = () => {
               {homepageData.offers.map((offer, idx) => (
                 <Card key={idx} padding="sm" className="mb-3">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-medium text-text">Card #{idx + 1}</span>
+                    <span className="text-xs font-semibold text-text">Card #{idx + 1}</span>
                     {homepageData.offers.length > 1 && (
                       <button
                         type="button"
-                        className="text-danger text-xs hover:text-danger/80"
+                        className="text-danger text-xs hover:text-danger/80 flex items-center gap-1 cursor-pointer"
                         onClick={() => removeOffer(idx)}
                       >
                         <Trash2 size={12} /> Remove
@@ -221,16 +209,16 @@ const HomepageEditor = () => {
               ))}
             </Collapsible>
 
-            <Collapsible title="Customer Testimonials" icon={<Edit3 size={16} />} defaultOpen={false}>
+            <Collapsible title="Customer Testimonials" icon={<Edit3 size={16} />} defaultOpen={true}>
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs text-muted">{homepageData.testimonials.length} testimonials</span>
+                <span className="text-xs text-muted font-medium">{homepageData.testimonials.length} testimonials</span>
                 <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={addTestimonial}>
                   Add Testimonial
                 </Button>
               </div>
               {homepageData.testimonials.map((t, idx) => (
                 <Card key={t.id} padding="sm" className="mb-3">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Client Name"
                       value={t.name || ''}
@@ -255,7 +243,7 @@ const HomepageEditor = () => {
                   {homepageData.testimonials.length > 1 && (
                     <button
                       type="button"
-                      className="text-danger text-xs hover:text-danger/80 mt-2"
+                      className="text-danger text-xs hover:text-danger/80 mt-2 flex items-center gap-1 cursor-pointer"
                       onClick={() => removeTestimonial(idx)}
                     >
                       <Trash2 size={12} /> Remove Review
@@ -265,7 +253,7 @@ const HomepageEditor = () => {
               ))}
             </Collapsible>
 
-            <Collapsible title="Footer Text" icon={<Edit3 size={16} />} defaultOpen={false}>
+            <Collapsible title="Footer Text" icon={<Edit3 size={16} />} defaultOpen={true}>
               <Input
                 label="Footer Copyright text"
                 value={homepageData.footerText || ''}
@@ -278,7 +266,7 @@ const HomepageEditor = () => {
 
       {/* Live preview */}
       {activeTab === 'preview' && (
-        <div className="border border-border rounded-[var(--radius-card)] overflow-hidden bg-white text-muted">
+        <Card padding="none" className="overflow-hidden bg-white text-muted">
           {/* Preview header (site nav) */}
           <div className="bg-white border-b border-border px-6 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2 font-bold text-text">
@@ -302,12 +290,8 @@ const HomepageEditor = () => {
               {homepageData.heroSubtitle || 'Hero subtitle'}
             </p>
             <div className="flex gap-3 justify-center">
-              <button type="button" className="admin-btn admin-btn-primary">
-                {homepageData.heroBtnText || 'Explore Products'}
-              </button>
-              <button type="button" className="admin-btn admin-btn-secondary">
-                {homepageData.ctaBtnText || 'Request Quote'}
-              </button>
+              <Button variant="primary">{homepageData.heroBtnText || 'Explore Products'}</Button>
+              <Button variant="secondary">{homepageData.ctaBtnText || 'Request Quote'}</Button>
             </div>
           </div>
 
@@ -342,14 +326,12 @@ const HomepageEditor = () => {
 
           {/* Footer preview */}
           <div className="bg-text text-muted py-4 text-center text-xs">
-            {homepageData.footerText || 'Â© 2026 Egreen Technology. All rights reserved.'}
+            {homepageData.footerText || '© 2026 Egreen Technology. All rights reserved.'}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
 };
 
 export default HomepageEditor;
-
-

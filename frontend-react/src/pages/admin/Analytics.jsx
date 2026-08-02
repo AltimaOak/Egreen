@@ -1,138 +1,178 @@
-// Analytics & Performance Visualizer Component
-import React, { useState } from 'react';
-import { BarChart3, TrendingUp, DollarSign, RefreshCw, ShoppingCart, Percent } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { orderService } from '../../services/orderService';
+import { customerService } from '../../services/customerService';
+import { productService } from '../../services/productService';
+import { CardSkeleton } from '../../components/admin/Skeleton';
 import { formatPrice } from '../../utils/helpers';
+import { Card, StatCard, Tabs, Badge, AdminPageHeader } from '../../components/admin/UI';
+import MagicBento from '../../components/admin/MagicBento';
+import { DollarSign, ShoppingCart, TrendingUp, Users, Sparkles } from 'lucide-react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts';
+
+const COLORS = ['#10B981','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#6366F1'];
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState('Overview');
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    revenueTrend: 0, newClients: 0, ordersCount: 0,
+    totalRevenue: 0, avgOrderValue: 0, conversionRate: 0,
+    topCategory: '', categoryUnitsSold: 0, brandRevenue: {}, chartPoints: [],
+  });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const [orders, customers, products] = await Promise.all([
+          orderService.getOrders(),
+          customerService.getCustomers(),
+          productService.getProducts(),
+        ]);
+
+        const now = new Date();
+        const d30 = new Date(now - 30 * 86400000);
+        const d60 = new Date(now - 60 * 86400000);
+
+        const sum  = list => list.reduce((s, o) => s + (o.amount || 0), 0);
+        const rev  = (list, from, to) => sum(list.filter(o => { const t = new Date(o.date); return t >= from && (!to || t < to); }));
+        const tm   = rev(orders, d30);
+        const lm   = rev(orders, d60, d30);
+        const revT = lm > 0 ? Math.round(((tm - lm) / lm) * 100 * 10) / 10 : (tm > 0 ? 100 : 0);
+
+        const totalRevenue    = sum(orders.filter(o => o.status !== 'Cancelled'));
+        const avgOrderValue   = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
+        const completed       = orders.filter(o => ['Completed','Delivered'].includes(o.status)).length;
+        const conversionRate  = orders.length > 0 ? Math.round((completed / orders.length) * 100 * 10) / 10 : 0;
+        const newClients      = customers.filter(c => { const j = new Date(c.joinedDate); return !isNaN(j) && j >= d30; }).length;
+
+        // Chart
+        const dayMap = {};
+        [...orders].sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(o => {
+          const d = new Date(o.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+          dayMap[d] = (dayMap[d] || 0) + (o.amount || 0);
+        });
+        const chartPoints = Object.entries(dayMap).map(([day, revenue]) => ({ day, revenue }));
+
+        // Brand map
+        const brandRevenue = {};
+        orders.forEach(o => { const b = o.brand || 'Other'; brandRevenue[b] = (brandRevenue[b] || 0) + (o.amount || 0); });
+
+        // Top category
+        const catMap = {};
+        products.forEach(p => { const c = p.category || 'Other'; catMap[c] = (catMap[c] || 0) + (p.stock || 0); });
+        let topCategory = '', categoryUnitsSold = 0;
+        Object.entries(catMap).forEach(([k, v]) => { if (v > categoryUnitsSold) { categoryUnitsSold = v; topCategory = k; } });
+
+        setData({ revenueTrend: revT, newClients, ordersCount: orders.length, totalRevenue, avgOrderValue, conversionRate, topCategory: topCategory || 'N/A', categoryUnitsSold, brandRevenue, chartPoints });
+      } catch (e) { console.error('Analytics error', e); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  const pieData = useMemo(() =>
+    Object.entries(data.brandRevenue).map(([name, value], i) => ({ name, value, color: COLORS[i % COLORS.length] })),
+    [data.brandRevenue]
+  );
+
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div className="admin-stats-grid"><CardSkeleton count={4} /></div>
+    </div>
+  );
 
   return (
-    <div style={{ textAlign: 'left' }}>
-      {/* Page Header */}
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Analytics</h1>
-          <p className="admin-page-subtitle">Track revenue trends, product insights, and customer activity.</p>
-        </div>
-      </div>
-      
-      {/* Analytics Tabs */}
-      <div className="admin-editor-tabs" style={{ marginBottom: '24px' }}>
-        {['Overview', 'Sales Analysis', 'Products Insights', 'Customers Registry'].map(tab => (
-          <button 
-            key={tab}
-            className={`admin-editor-tab ${activeTab === tab ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <AdminPageHeader title="Analytics & Executive Insights" subtitle="Track revenue trends, product metrics, and interactive store intelligence." />
+
+      <Tabs tabs={['Overview','Sales Analysis','Products Insights','Customer Registry']} activeTab={activeTab} onChange={setActiveTab} />
+
+      {/* KPI row */}
+      <div className="admin-stats-grid">
+        <StatCard title="Total Revenue" value={formatPrice(data.totalRevenue)} icon={<DollarSign size={20} />} iconBg="rgba(16,185,129,0.12)" iconColor="var(--color-primary)" trend={data.revenueTrend} trendUp={data.revenueTrend >= 0} subtitle="vs last month" />
+        <StatCard title="Avg. Order Value" value={formatPrice(data.avgOrderValue)} icon={<ShoppingCart size={20} />} iconBg="rgba(59,130,246,0.12)" iconColor="var(--color-blue)" subtitle="per transaction" />
+        <StatCard title="Conversion Rate" value={`${data.conversionRate}%`} icon={<TrendingUp size={20} />} iconBg="rgba(99,102,241,0.12)" iconColor="var(--color-indigo)" subtitle="completed orders" />
+        <StatCard title="New Clients" value={`+${data.newClients}`} icon={<Users size={20} />} iconBg="rgba(245,158,11,0.12)" iconColor="var(--color-warning)" subtitle="this month" />
       </div>
 
-      {/* Main performance trend and share grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 mb-6">
-        
-        {/* Line Chart */}
-        <div className="admin-card" style={{ marginBottom: 0 }}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="admin-modal-title">Revenue Trend</h3>
-            <span style={{ fontSize: '0.85rem', color: '#10B981', fontWeight: 600 }}>+12.5% vs last month</span>
+      {/* Charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20 }}>
+        <Card title="Revenue Trend" subtitle="Daily order revenue over time">
+          <div style={{ height: 250, marginTop: 12 }}>
+            {data.chartPoints.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.chartPoints} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="analyticsGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="var(--color-primary)" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    formatter={v => [formatPrice(v), 'Revenue']}
+                    contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12 }}
+                    labelStyle={{ color: 'var(--color-muted)', fontSize: 11 }}
+                    itemStyle={{ color: 'var(--color-text)', fontSize: 13 }}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" strokeWidth={2.5} fill="url(#analyticsGrad)" dot={{ r: 3.5, fill: 'var(--color-primary)', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', fontSize: '0.85rem' }}>No data available</div>
+            )}
           </div>
+        </Card>
 
-          <div style={{ position: 'relative', width: '100%', padding: '10px 0' }}>
-            <svg viewBox="0 0 500 200" className="admin-chart-svg" style={{ overflow: 'visible' }}>
-              <defs>
-                <linearGradient id="revenue-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              <line x1="0" y1="40" x2="500" y2="40" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="80" x2="500" y2="80" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="120" x2="500" y2="120" className="chart-grid-line" stroke="#E2E8F0" />
-              <line x1="0" y1="160" x2="500" y2="160" className="chart-grid-line" stroke="#E2E8F0" />
-
-              <path d="M 0 200 L 0 140 C 80 150, 160 90, 240 100 C 320 60, 400 80, 500 20 L 500 200 Z" fill="url(#revenue-gradient)" />
-              <path d="M 0 140 C 80 150, 160 90, 240 100 C 320 60, 400 80, 500 20" stroke="#10B981" strokeWidth="3" fill="none" />
-
-              <circle cx="0" cy="140" r="4" className="chart-point" />
-              <circle cx="160" cy="90" r="4" className="chart-point" />
-              <circle cx="320" cy="60" r="4" className="chart-point" />
-              <circle cx="500" cy="20" r="4" className="chart-point" />
-            </svg>
-            <div className="flex justify-between mt-2" style={{ fontSize: '0.75rem', color: 'var(--admin-text-body)' }}>
-              <span>May 1</span>
-              <span>May 8</span>
-              <span>May 16</span>
-              <span>May 24</span>
-              <span>May 30</span>
-            </div>
+        <Card title="Sales by Brand" subtitle="Revenue by manufacturer">
+          <div style={{ height: 250, marginTop: 12 }}>
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="45%" innerRadius={48} outerRadius={72} paddingAngle={4} dataKey="value">
+                    {pieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <Tooltip formatter={v => formatPrice(v)} contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12 }} />
+                  <Legend verticalAlign="bottom" height={36} formatter={v => <span style={{ fontSize: '0.75rem', color: 'var(--color-text)', fontWeight: 600 }}>{v}</span>} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', fontSize: '0.85rem' }}>No brand data</div>
+            )}
           </div>
-        </div>
-
-        {/* Donut Chart */}
-        <div className="admin-card" style={{ marginBottom: 0, display: 'flex', flexDirection: 'column' }}>
-          <h3 className="admin-modal-title" style={{ marginBottom: '16px' }}>Sales by Brand</h3>
-          
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, position: 'relative', minHeight: '180px' }}>
-            {/* SVG Donut Chart */}
-            <svg width="150" height="150" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-              {/* Dell - 40% (dasharray: 2 * pi * r = 2 * 3.14 * 30 = 188.4) */}
-              <circle cx="50" cy="50" r="30" fill="none" stroke="#1D4ED8" strokeWidth="12" strokeDasharray="188.4" strokeDashoffset="0" />
-              {/* Lenovo - 30% */}
-              <circle cx="50" cy="50" r="30" fill="none" stroke="#EF4444" strokeWidth="12" strokeDasharray="188.4" strokeDashoffset="-75.3" />
-              {/* HP - 20% */}
-              <circle cx="50" cy="50" r="30" fill="none" stroke="#10B981" strokeWidth="12" strokeDasharray="188.4" strokeDashoffset="-131.8" />
-              {/* Acer - 10% */}
-              <circle cx="50" cy="50" r="30" fill="none" stroke="#F59E0B" strokeWidth="12" strokeDasharray="188.4" strokeDashoffset="-169.5" />
-            </svg>
-            <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyBetween: 'center' }}>
-              <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: 'var(--admin-text-heading)' }}>₹12.4L</span>
-              <span style={{ fontSize: '0.68rem', color: 'var(--admin-text-body)' }}>Total Revenue</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem', marginTop: '16px' }}>
-            <div className="flex items-center gap-1"><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1D4ED8' }}></span> Dell (40%)</div>
-            <div className="flex items-center gap-1"><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444' }}></span> Lenovo (30%)</div>
-            <div className="flex items-center gap-1"><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span> HP (20%)</div>
-            <div className="flex items-center gap-1"><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }}></span> Acer (10%)</div>
-          </div>
-        </div>
+        </Card>
       </div>
 
-      {/* Grid of details statistic boxes at bottom */}
-      <div className="admin-stats-grid" style={{ marginBottom: 0 }}>
-        {/* Selling category */}
-        <div className="admin-stat-card">
-          <span className="admin-stat-label">Top Selling Category</span>
-          <span className="admin-stat-val" style={{ fontSize: '1.2rem', margin: '4px 0' }}>Laptops</span>
-          <span style={{ fontSize: '0.78rem' }}>1,246 units sold <span className="trend-up" style={{ fontWeight: 600 }}>+16.2%</span></span>
+      {/* Interactive Bento Feature Section */}
+      <Card
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Sparkles size={18} color="var(--color-primary)" />
+            <span>Interactive Store Modules & Intelligence</span>
+          </div>
+        }
+        subtitle="Hover and click cards to explore animated Bento insights with tilt, spotlight, and particle stars."
+      >
+        <div style={{ marginTop: 16 }}>
+          <MagicBento
+            textAutoHide={true}
+            enableStars={true}
+            enableSpotlight={true}
+            enableBorderGlow={true}
+            enableTilt={true}
+            enableMagnetism={true}
+            clickEffect={true}
+            spotlightRadius={300}
+            particleCount={14}
+            glowColor="16, 185, 129"
+          />
         </div>
-
-        {/* Avg Order */}
-        <div className="admin-stat-card">
-          <span className="admin-stat-label">Avg. Order Value</span>
-          <span className="admin-stat-val" style={{ fontSize: '1.2rem', margin: '4px 0' }}>₹5,560</span>
-          <span style={{ fontSize: '0.78rem' }}>Per conversion <span className="trend-up" style={{ fontWeight: 600 }}>+6.4%</span></span>
-        </div>
-
-        {/* Conversion rate */}
-        <div className="admin-stat-card">
-          <span className="admin-stat-label">Conversion Rate</span>
-          <span className="admin-stat-val" style={{ fontSize: '1.2rem', margin: '4px 0' }}>3.24%</span>
-          <span style={{ fontSize: '0.78rem' }}>Session checkouts <span className="trend-up" style={{ fontWeight: 600 }}>+2.1%</span></span>
-        </div>
-
-        {/* Customer growth */}
-        <div className="admin-stat-card">
-          <span className="admin-stat-label">Customer Growth</span>
-          <span className="admin-stat-val" style={{ fontSize: '1.2rem', margin: '4px 0' }}>+348 clients</span>
-          <span style={{ fontSize: '0.78rem' }}>This month <span className="trend-up" style={{ fontWeight: 600 }}>+12.6%</span></span>
-        </div>
-      </div>
-
+      </Card>
     </div>
   );
 };

@@ -16,17 +16,11 @@ import AdminLayout from './components/admin/AdminLayout';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
-import HomepageEditor from './pages/admin/HomepageEditor';
-import AboutEditor from './pages/admin/AboutEditor';
-import ContactEditor from './pages/admin/ContactEditor';
 import Settings from './pages/admin/Settings';
 import NotFound from './pages/admin/NotFound';
-
-// New Redesigned Admin Modules
 import Orders from './pages/admin/Orders';
 import Categories from './pages/admin/Categories';
 import Customers from './pages/admin/Customers';
-import Pages from './pages/admin/Pages';
 import Analytics from './pages/admin/Analytics';
 
 const router = createBrowserRouter([
@@ -42,6 +36,9 @@ const router = createBrowserRouter([
     ]
   },
 
+  // Admin login (public)
+  { path: "/admin/login", element: <Login /> },
+
   // Protected Admin routes
   {
     path: "/admin",
@@ -56,7 +53,6 @@ const router = createBrowserRouter([
       { path: "orders", element: <Orders /> },
       { path: "categories", element: <Categories /> },
       { path: "customers", element: <Customers /> },
-      { path: "pages", element: <Pages /> },
       { path: "analytics", element: <Analytics /> },
       { path: "settings", element: <Settings /> },
       { path: "*", element: <NotFound /> }

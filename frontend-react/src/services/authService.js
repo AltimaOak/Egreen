@@ -42,7 +42,7 @@ export const authService = {
     if (username.toLowerCase() === expectedUsername.toLowerCase() && inputHash === expectedHash) {
       const now = Date.now();
       const session = {
-        token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
+        token: 'jwt-token-' + Math.random().toString(36).substring(2),
         username: expectedUsername,
         loginTime: now,
         expiryTime: now + SESSION_DURATION

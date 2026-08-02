@@ -1,4 +1,4 @@
-// Default config settings for Egreen Admin Panel
+﻿// Default config settings for Egreen Admin Panel
 
 // Standard SHA-256 hash of "admin123" is "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
 export const ADMIN_CREDENTIALS = {
@@ -28,7 +28,7 @@ export const DEFAULT_HOMEPAGE_DATA = {
     { id: 2, name: 'Sara Khan', role: 'Operations Lead at GlobalSys', content: 'Wholesale pricing is unmatched. The customer support guided us through our custom bulk build order.' }
   ],
   gallery: [],
-  footerText: '© 2026 Egreen Technology. All rights reserved.'
+  footerText: 'Â© 2026 Egreen Technology. All rights reserved.'
 };
 
 export const DEFAULT_ABOUT_DATA = {
@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS_DATA = {
   primaryColor: '#10B981', // green theme
   primaryHoverColor: '#059669',
   secondaryColor: '#111827',
-  footerText: '© 2026 Egreen Technology. All rights reserved.',
+  footerText: 'Â© 2026 Egreen Technology. All rights reserved.',
   maintenanceMode: false
 };
+

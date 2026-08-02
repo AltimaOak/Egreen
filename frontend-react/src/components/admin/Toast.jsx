@@ -1,4 +1,3 @@
-// Toast Alerts Display Component — wraps UI.Toast
 import React from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { Toast as UIToast } from './UI';

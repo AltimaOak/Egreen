@@ -1,4 +1,4 @@
-// Theme Config and Dynamic CSS Var Injector Context
+// Theme Config and Dynamic CSS Var Injector Context (Light Mode Only)
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { settingsService } from '../services/settingsService';
 
@@ -6,29 +6,28 @@ const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
   const [themeSettings, setThemeSettings] = useState({
-    theme: 'light', // light or dark
+    theme: 'light',
     primaryColor: '#10B981',
     secondaryColor: '#111827',
     websiteName: 'Egreen Technology',
-    adminName: 'Administrator'
+    adminName: 'Administrator',
   });
 
   const loadTheme = async () => {
     try {
       const settings = await settingsService.getSettings();
       setThemeSettings({
-        theme: settings.theme || 'light',
+        theme: 'light',
         primaryColor: settings.primaryColor || '#10B981',
         secondaryColor: settings.secondaryColor || '#111827',
         websiteName: settings.websiteName || 'Egreen Technology',
-        adminName: settings.adminName || 'Administrator'
+        adminName: settings.adminName || 'Administrator',
       });
     } catch (e) {
       console.error('Failed to load theme settings', e);
     }
   };
 
-  // Helper to adjust color hex brightness for hover states
   const adjustColorBrightness = (hex, percent) => {
     let R = parseInt(hex.substring(1, 3), 16);
     let G = parseInt(hex.substring(3, 5), 16);
@@ -52,7 +51,6 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     loadTheme();
 
-    // Listen to settings update events
     const handleSettingsUpdate = () => {
       loadTheme();
     };
@@ -63,51 +61,44 @@ export const ThemeProvider = ({ children }) => {
     };
   }, []);
 
-  // Apply CSS overrides to the document root element
+  // Apply Light Theme only
   useEffect(() => {
     const root = document.documentElement;
-    
-    // Apply primary/secondary colors via design tokens
+
     if (themeSettings.primaryColor) {
       root.style.setProperty('--color-primary', themeSettings.primaryColor);
       root.style.setProperty('--color-primary-hover', adjustColorBrightness(themeSettings.primaryColor, -15));
-      
-      // Backward-compatible aliases
       root.style.setProperty('--primary', themeSettings.primaryColor);
       root.style.setProperty('--primary-hover', adjustColorBrightness(themeSettings.primaryColor, -15));
       root.style.setProperty('--accent', themeSettings.primaryColor);
       root.style.setProperty('--accent-bg', `${themeSettings.primaryColor}1a`);
       root.style.setProperty('--accent-border', `${themeSettings.primaryColor}80`);
     }
-    
+
     if (themeSettings.secondaryColor) {
       root.style.setProperty('--color-text', themeSettings.secondaryColor);
       root.style.setProperty('--secondary', themeSettings.secondaryColor);
     }
 
-    // Apply Light/Dark class
-    if (themeSettings.theme === 'dark') {
-      root.setAttribute('data-theme', 'dark');
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.setAttribute('data-theme', 'light');
-      root.classList.add('light');
-      root.classList.remove('dark');
-    }
+    // Force Light Mode
+    root.setAttribute('data-theme', 'light');
+    root.classList.add('light');
+    root.classList.remove('dark');
   }, [themeSettings]);
 
   const updateTheme = async (updates) => {
-    await settingsService.updateSettings(updates);
+    await settingsService.updateSettings({ ...updates, theme: 'light' });
     loadTheme();
   };
 
   return (
-    <ThemeContext.Provider value={{
-      themeSettings,
-      updateTheme,
-      refreshTheme: loadTheme
-    }}>
+    <ThemeContext.Provider
+      value={{
+        themeSettings,
+        updateTheme,
+        refreshTheme: loadTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

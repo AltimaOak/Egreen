@@ -1,8 +1,8 @@
-// Admin Login Page
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../contexts/AdminContext';
 import { Lock, User } from 'lucide-react';
+import { Input, Button } from '../../components/admin/UI';
 
 const Login = () => {
   const { login, isAuthenticated } = useAdmin();
@@ -11,150 +11,85 @@ const Login = () => {
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // If already authenticated, redirect immediately
-  const from = location.state?.from?.pathname || location.pathname || '/admin';
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, from]);
+    if (isAuthenticated) navigate('/admin', { replace: true });
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
     setIsSubmitting(true);
-
     try {
       const result = await login(username, password);
-      if (!result.success) {
-        setFormError(result.error || 'Invalid credentials.');
-      } else {
-        navigate(from, { replace: true });
-      }
-    } catch (err) {
-      setFormError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+      if (!result.success) setFormError(result.error || 'Invalid credentials.');
+      else navigate('/admin', { replace: true });
+    } catch { setFormError('An unexpected error occurred. Please try again.'); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
     <div className="admin-login-layout">
       <div className="admin-login-card">
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div 
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              width: '48px', 
-              height: '48px', 
-              borderRadius: '12px', 
-              backgroundColor: 'var(--admin-primary)', 
-              color: 'white', 
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-              marginBottom: '12px'
-            }}
-          >
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 14, boxShadow: '0 6px 20px rgba(16,185,129,0.35)' }}>
             E
           </div>
-          <h2 className="admin-modal-title" style={{ fontSize: '1.4rem' }}>Egreen Tech Admin</h2>
-          <p style={{ color: 'var(--admin-text-body)', fontSize: '0.85rem', marginTop: '4px' }}>
-            Please authenticate to access the admin panel
+          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.025em' }}>
+            Egreen Tech Admin
+          </h1>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-muted)' }}>
+            Authenticate to access the admin panel
           </p>
         </div>
 
+        {/* Error */}
         {formError && (
-          <div 
-            style={{ 
-              backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-              color: '#EF4444', 
-              padding: '10px 14px', 
-              borderRadius: '8px', 
-              fontSize: '0.85rem', 
-              marginBottom: '20px',
-              border: '1px solid rgba(239, 68, 68, 0.2)'
-            }}
-          >
+          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: '0.82rem', color: 'var(--color-danger)', fontWeight: 600, marginBottom: 20 }}>
             {formError}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="admin-form-group">
-            <label className="admin-form-label" htmlFor="username">Username</label>
-            <div style={{ position: 'relative' }}>
-              <span 
-                style={{ 
-                  position: 'absolute', 
-                  left: '12px', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)', 
-                  color: 'var(--admin-text-body)', 
-                  display: 'flex' 
-                }}
-              >
-                <User size={16} />
-              </span>
-              <input 
-                type="text" 
-                id="username" 
-                className="admin-input" 
-                style={{ paddingLeft: '38px' }}
-                placeholder="Enter admin username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          <div className="admin-form-group" style={{ marginBottom: '24px' }}>
-            <label className="admin-form-label" htmlFor="password">Password</label>
-            <div style={{ position: 'relative' }}>
-              <span 
-                style={{ 
-                  position: 'absolute', 
-                  left: '12px', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)', 
-                  color: 'var(--admin-text-body)', 
-                  display: 'flex' 
-                }}
-              >
-                <Lock size={16} />
-              </span>
-              <input 
-                type="password" 
-                id="password" 
-                className="admin-input" 
-                style={{ paddingLeft: '38px' }}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            className="admin-btn admin-btn-primary w-full"
+          <Input
+            id="username"
+            label="Username"
+            type="text"
+            icon={<User />}
+            placeholder="Enter admin username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            required
             disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Authenticating...' : 'Sign In'}
-          </button>
+            autoComplete="username"
+          />
+          <Input
+            id="password"
+            label="Password"
+            type="password"
+            icon={<Lock />}
+            placeholder="Enter password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            disabled={isSubmitting}
+            autoComplete="current-password"
+          />
+          <div style={{ marginTop: 24 }}>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="admin-btn admin-btn-primary"
+              style={{ width: '100%', padding: '11px', fontSize: '0.9rem', borderRadius: 12 }}
+            >
+              {isSubmitting ? 'Authenticating…' : 'Sign In'}
+            </button>
+          </div>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--admin-text-body)' }}>
-          <p>Demo Username: <code>admin</code></p>
-          <p>Demo Password: <code>admin123</code></p>
+        <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.75rem', color: 'var(--color-muted)', borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
+          Demo credentials: <code style={{ fontWeight: 700, color: 'var(--color-text)' }}>admin</code>
         </div>
       </div>
     </div>

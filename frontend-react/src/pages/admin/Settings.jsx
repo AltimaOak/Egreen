@@ -1,4 +1,3 @@
-// Redesigned Admin Settings Management Component
 import React, { useState, useEffect } from 'react';
 import { settingsService } from '../../services/settingsService';
 import { authService } from '../../services/authService';
@@ -6,23 +5,20 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FormSkeleton } from '../../components/admin/Skeleton';
 import {
-  Card,
-  Button,
-  Tabs,
-  Collapsible,
-  Input,
-  Textarea,
+  Card, Button, Collapsible, Input, Select, Textarea, AdminPageHeader, Tabs, Badge,
 } from '../../components/admin/UI';
-import {
-  Save,
-  Upload,
-  Shield,
-  Bell,
-  Layout,
-  Settings as SettingsIcon,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { Save, Upload, Shield, Bell, Layout, Settings as SettingsIcon, Eye, EyeOff } from 'lucide-react';
+
+const TABS = ['General', 'Appearance', 'Site Info', 'Credentials', 'Notifications'];
+
+const COLORS = [
+  { value: '#10B981', label: 'Emerald' },
+  { value: '#3B82F6', label: 'Blue' },
+  { value: '#8B5CF6', label: 'Purple' },
+  { value: '#F59E0B', label: 'Amber' },
+  { value: '#EF4444', label: 'Red' },
+  { value: '#1E293B', label: 'Slate' },
+];
 
 const Settings = () => {
   const { showToast } = useAdmin();
@@ -31,290 +27,205 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('General');
   const [showPassword, setShowPassword] = useState(false);
 
-  const [websiteName, setWebsiteName] = useState('');
-  const [logoText, setLogoText] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#10B981');
+  const [websiteName, setWebsiteName]       = useState('');
+  const [logoText, setLogoText]             = useState('');
+  const [primaryColor, setPrimaryColor]     = useState('#10B981');
   const [secondaryColor, setSecondaryColor] = useState('#111827');
-  const [footerText, setFooterText] = useState('');
+  const [footerText, setFooterText]         = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [theme, setTheme] = useState('light');
-  const [storeEmail, setStoreEmail] = useState('info@egreentech.com');
-  const [storePhone, setStorePhone] = useState('+91 98765-43210');
-  const [storeAddress, setStoreAddress] = useState('Mumbai, Maharashtra, India');
-  const [adminUsername, setAdminUsername] = useState('admin');
-  const [newPassword, setNewPassword] = useState('');
+  const [theme, setTheme]                   = useState('light');
+  const [storeEmail, setStoreEmail]         = useState('');
+  const [storePhone, setStorePhone]         = useState('');
+  const [storeAddress, setStoreAddress]     = useState('');
+  const [adminUsername, setAdminUsername]   = useState('admin');
+  const [newPassword, setNewPassword]       = useState('');
 
-  const loadSettings = async () => {
+  const load = async () => {
     try {
       setLoading(true);
-      const data = await settingsService.getSettings();
-      setWebsiteName(data.websiteName || '');
-      setLogoText(data.logoText || '');
-      setPrimaryColor(data.primaryColor || '#10B981');
-      setSecondaryColor(data.secondaryColor || '#111827');
-      setFooterText(data.footerText || '');
-      setMaintenanceMode(data.maintenanceMode || false);
-      setTheme(data.theme || 'light');
-      setAdminUsername(data.adminUsername || 'admin');
-    } catch (e) {
-      showToast('Failed to load settings.', 'error');
-    } finally {
-      setLoading(false);
-    }
+      const d = await settingsService.getSettings();
+      setWebsiteName(d.websiteName || '');
+      setLogoText(d.logoText || '');
+      setPrimaryColor(d.primaryColor || '#10B981');
+      setSecondaryColor(d.secondaryColor || '#111827');
+      setFooterText(d.footerText || '');
+      setMaintenanceMode(d.maintenanceMode || false);
+      setStoreEmail(d.storeEmail || '');
+      setStorePhone(d.storePhone || '');
+      setStoreAddress(d.storeAddress || '');
+      setTheme(d.theme || 'light');
+      setAdminUsername(d.adminUsername || 'admin');
+    } catch { showToast('Failed to load settings.', 'error'); }
+    finally  { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const handleSaveSettings = async (e) => {
+  const handleSave = async (e) => {
     if (e) e.preventDefault();
-    showToast('Saving Changes...', 'loading');
-
+    showToast('Saving…', 'loading');
     try {
-      await settingsService.updateSettings({
-        websiteName,
-        logoText,
-        primaryColor,
-        secondaryColor,
-        footerText,
-        maintenanceMode,
-        theme,
-        adminUsername,
-      });
-      showToast('Changes Published Successfully', 'success');
+      await settingsService.updateSettings({ websiteName, logoText, primaryColor, secondaryColor, footerText, maintenanceMode, storeEmail, storePhone, storeAddress, theme, adminUsername });
+      showToast('Settings saved successfully', 'success');
       refreshTheme();
-      loadSettings();
-    } catch (err) {
-      showToast('Failed to save settings configurations.', 'error');
-    }
+    } catch { showToast('Failed to save settings.', 'error'); }
   };
 
-  const handleCredentialUpdate = async (e) => {
+  const handleCredentials = async (e) => {
     e.preventDefault();
-    showToast('Saving Credentials...', 'loading');
+    showToast('Saving credentials…', 'loading');
     try {
       await settingsService.updateSettings({ adminUsername });
-      if (newPassword) {
-        await authService.updateCredentials(adminUsername, newPassword);
-      }
-      showToast('Changes Published Successfully', 'success');
+      if (newPassword) await authService.updateCredentials(adminUsername, newPassword);
+      showToast('Credentials updated', 'success');
       setNewPassword('');
-    } catch (err) {
-      showToast('Failed to update credentials.', 'error');
-    }
+    } catch { showToast('Failed to update credentials.', 'error'); }
   };
 
   if (loading) return <FormSkeleton />;
 
-  const themeColorsList = [
-    { value: '#10B981', label: 'Emerald Green' },
-    { value: '#3B82F6', label: 'Royal Blue' },
-    { value: '#8B5CF6', label: 'Vibrant Purple' },
-    { value: '#1E293B', label: 'Slate Dark' },
-  ];
-
-  const tabsList = ['General', 'Appearance', 'Site Info', 'Admin Credentials', 'Notifications'];
-
   return (
-    <div>
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Settings</h1>
-          <p className="admin-page-subtitle">Configure store details, theme colors, and admin credentials.</p>
-        </div>
-        {activeTab === 'General' && (
-          <Button variant="primary" size="md" icon={<Save size={16} />} onClick={handleSaveSettings}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <AdminPageHeader
+        title="Settings"
+        subtitle="Configure store details, theme, and admin credentials."
+        action={
+          <Button variant="primary" icon={<Save size={15} />} onClick={handleSave}>
             Save Changes
           </Button>
-        )}
-      </div>
+        }
+      />
 
-      <Tabs tabs={tabsList} activeTab={activeTab} onChange={setActiveTab} />
+      {/* Tabs */}
+      <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 
+      {/* General */}
       {activeTab === 'General' && (
-        <form onSubmit={handleSaveSettings}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <Collapsible title="Store Information" icon={<SettingsIcon size={16} />} defaultOpen>
-                <Input
-                  label="Store Name"
-                  value={websiteName}
-                  onChange={(e) => {
-                    setWebsiteName(e.target.value);
-                    setLogoText(e.target.value);
-                  }}
-                  required
-                />
-                <Input
-                  type="email"
-                  label="Store Email"
-                  value={storeEmail}
-                  onChange={(e) => setStoreEmail(e.target.value)}
-                  required
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  <Input
-                    label="Store Phone"
-                    value={storePhone}
-                    onChange={(e) => setStorePhone(e.target.value)}
-                    required
-                  />
-                  <Input
-                    label="Admin Theme Base"
-                    as="select"
-                    value={theme}
-                    onChange={(e) => setTheme(e.target.value)}
-                  >
-                    <option value="light">Light Mode Interface</option>
-                    <option value="dark">Dark Mode Interface</option>
-                  </Input>
+        <form onSubmit={handleSave}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Store Info */}
+            <Collapsible title="Store Information" icon={<SettingsIcon />} defaultOpen>
+              <Input label="Store Name" value={websiteName} onChange={e => { setWebsiteName(e.target.value); setLogoText(e.target.value); }} required />
+              <Input label="Store Email" type="email" value={storeEmail} onChange={e => setStoreEmail(e.target.value)} required />
+              <Input label="Store Phone" value={storePhone} onChange={e => setStorePhone(e.target.value)} />
+              <Textarea label="Store Address" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} rows={3} />
+            </Collapsible>
+
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Logo preview */}
+              <Collapsible title="Store Logo Preview" icon={<Layout />} defaultOpen>
+                <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: 24, textAlign: 'center', marginBottom: 12, background: 'var(--color-background)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text)' }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>E</div>
+                    {websiteName || 'Egreen'}
+                  </div>
                 </div>
-                <Textarea
-                  label="Store Address"
-                  value={storeAddress}
-                  onChange={(e) => setStoreAddress(e.target.value)}
-                  required
-                  minHeight="60px"
-                />
+                <Button variant="secondary" size="sm" icon={<Upload size={14} />} className="w-full" type="button">Upload Logo</Button>
               </Collapsible>
 
-              <Collapsible title="Maintenance Mode" icon={<Layout size={16} />} defaultOpen={false}>
-                <div className="flex items-center justify-between p-3 border border-border rounded-[var(--radius-card)]">
-                  <div>
-                    <strong className="text-sm text-text">Temporarily disable the public website frontend</strong>
-                    <p className="text-xs text-muted mt-0.5">Visitors will see a maintenance page</p>
-                  </div>
-                  <label className="relative inline-flex h-5 w-9 items-center rounded-full">
-                    <input
-                      type="checkbox"
-                      className="sr-only"
-                      checked={maintenanceMode}
-                      onChange={(e) => setMaintenanceMode(e.target.checked)}
+              {/* Theme Colors */}
+              <Collapsible title="Brand Colors" icon={<SettingsIcon />} defaultOpen>
+                <div className="admin-color-selectors" style={{ marginBottom: 12 }}>
+                  {COLORS.map(c => (
+                    <div
+                      key={c.value}
+                      title={c.label}
+                      onClick={() => setPrimaryColor(c.value)}
+                      className={`admin-color-circle${primaryColor === c.value ? ' active' : ''}`}
+                      style={{ backgroundColor: c.value }}
                     />
-                    <span
-                      className={`inline-block h-5 w-9 rounded-full transition ${maintenanceMode ? 'bg-primary' : 'bg-muted'}`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${maintenanceMode ? 'translate-x-5' : 'translate-x-1'}`}
-                      />
-                    </span>
+                  ))}
+                </div>
+                <Input label="Hex Value" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} placeholder="#10B981" />
+              </Collapsible>
+
+              {/* Maintenance */}
+              <Collapsible title="Maintenance Mode" icon={<Layout />} defaultOpen>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', background: maintenanceMode ? 'rgba(245,158,11,0.06)' : 'var(--color-background)' }}>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text)' }}>Disable public frontend</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: 2 }}>Visitors will see a maintenance page</div>
+                  </div>
+                  <label className="admin-toggle-switch">
+                    <input type="checkbox" checked={maintenanceMode} onChange={e => setMaintenanceMode(e.target.checked)} />
+                    <span className="admin-toggle-slider" />
                   </label>
                 </div>
               </Collapsible>
             </div>
-
-            <div className="space-y-4">
-              <Collapsible title="Store Logo Preview" icon={<Layout size={16} />} defaultOpen>
-                <div className="border border-border rounded-[var(--radius-card)] p-6 text-center mb-3 bg-muted/3">
-                  <div className="flex items-center justify-center gap-2 color-text font-bold text-lg">
-                    <div
-                      className="w-8 h-8 rounded flex items-center justify-center text-white"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.58 1 9.3a7.012 7.012 0 0 1-6 8.7z" />
-                      </svg>
-                    </div>
-                    <span>{websiteName || 'Egreen'}</span>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" icon={<Upload size={14} />} fullWidth>
-                  Change Logo
-                </Button>
-              </Collapsible>
-
-              <Collapsible title="Theme Colors" icon={<SettingsIcon size={16} />} defaultOpen={false}>
-                <div className="flex gap-2 mb-3">
-                  {themeColorsList.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      className={`w-8 h-8 rounded-full border-2 transition ${primaryColor === color.value ? 'border-primary' : 'border-border'}`}
-                      style={{ backgroundColor: color.value }}
-                      onClick={() => setPrimaryColor(color.value)}
-                      title={color.label}
-                    />
-                  ))}
-                </div>
-                <Input
-                  label="Theme Color Hex Value"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  placeholder="#10B981"
-                />
-              </Collapsible>
-            </div>
           </div>
         </form>
       )}
 
+      {/* Appearance */}
       {activeTab === 'Appearance' && (
-        <form onSubmit={handleSaveSettings}>
-          <Card>
-            <h3 className="text-lg font-semibold text-text mb-4">Appearance Overrides</h3>
-            <Input label="Website Header Banner Image Link" defaultValue="/assets/hero_mini_pcs.png" />
-            <Button variant="primary" size="sm" icon={<Save size={14} />} type="submit">
-              Save Changes
-            </Button>
-          </Card>
-        </form>
-      )}
-
-      {activeTab === 'Site Info' && (
-        <form onSubmit={handleSaveSettings}>
-          <Card>
-            <h3 className="text-lg font-semibold text-text mb-4">Site Compliance Details</h3>
-            <Textarea label="Default SEO Site Description" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
-            <Button variant="primary" size="sm" icon={<Save size={14} />} type="submit">
-              Save Changes
-            </Button>
-          </Card>
-        </form>
-      )}
-
-      {activeTab === 'Admin Credentials' && (
-        <form onSubmit={handleCredentialUpdate}>
-          <Card className="max-w-md">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
-              <Shield size={18} className="text-primary" />
-              <h3 className="text-lg font-semibold text-text">Update Security Details</h3>
-            </div>
-            <Input
-              label="Admin Username"
-              value={adminUsername}
-              onChange={(e) => setAdminUsername(e.target.value)}
-              required
-            />
-            <div className="relative">
-              <Input
-                label="New Password (Optional)"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Type new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                icon={<>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</>}
-                onIconClick={() => setShowPassword(!showPassword)}
-              />
-            </div>
-            <Button variant="primary" icon={<Save size={16} />} type="submit">
-              Update Credentials
-            </Button>
-          </Card>
-        </form>
-      )}
-
-      {activeTab === 'Notifications' && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <Bell size={18} className="text-primary" />
-            <h3 className="text-lg font-semibold text-text">Email Alerts</h3>
+        <Card title="Appearance Overrides" subtitle="Banner and media configuration">
+          <Input label="Header Banner Image URL" defaultValue="/assets/hero_mini_pcs.png" />
+          <div style={{ marginTop: 8 }}>
+            <Button variant="primary" size="sm" icon={<Save size={14} />} onClick={handleSave}>Save Changes</Button>
           </div>
-          <div className="flex items-center gap-2 p-3 border border-border rounded-[var(--radius-card)]">
-            <input type="checkbox" id="email-orders" className="rounded border-border text-primary focus:ring-primary" defaultChecked />
-            <label htmlFor="email-orders" className="text-sm text-text">
-              Notify me when new orders are placed
-            </label>
+        </Card>
+      )}
+
+      {/* Site Info */}
+      {activeTab === 'Site Info' && (
+        <Card title="Site Information" subtitle="SEO and compliance details">
+          <Textarea label="Footer / SEO Description" value={footerText} onChange={e => setFooterText(e.target.value)} rows={5} />
+          <div style={{ marginTop: 8 }}>
+            <Button variant="primary" size="sm" icon={<Save size={14} />} onClick={handleSave}>Save Changes</Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Credentials */}
+      {activeTab === 'Credentials' && (
+        <form onSubmit={handleCredentials} style={{ maxWidth: 500 }}>
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--color-border)' }}>
+              <Shield size={18} color="var(--color-primary)" />
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text)' }}>Security Settings</h3>
+            </div>
+            <Input label="Admin Username" value={adminUsername} onChange={e => setAdminUsername(e.target.value)} required />
+            <div className="admin-form-group">
+              <label className="admin-form-label">New Password <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="admin-input"
+                  style={{ paddingRight: 40 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(s => !s)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)' }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <Button variant="primary" type="submit" icon={<Save size={15} />}>Update Credentials</Button>
+          </Card>
+        </form>
+      )}
+
+      {/* Notifications */}
+      {activeTab === 'Notifications' && (
+        <Card title="Email Notifications" subtitle="Configure alert preferences">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { id: 'notif-orders',   label: 'Notify when new orders are placed', def: true },
+              { id: 'notif-stock',    label: 'Alert when product stock is low',   def: true },
+              { id: 'notif-reviews',  label: 'Send review notifications',         def: false },
+            ].map(n => (
+              <label key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                <input type="checkbox" id={n.id} defaultChecked={n.def} style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }} />
+                {n.label}
+              </label>
+            ))}
           </div>
         </Card>
       )}
@@ -323,4 +234,3 @@ const Settings = () => {
 };
 
 export default Settings;
-

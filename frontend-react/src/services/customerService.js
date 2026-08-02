@@ -1,40 +1,68 @@
-// Mock Customers Registry Service
+// Customers Service — backed by localStorage, no pre-seeded mock data
 import { storageService } from './storageService';
+import { activityService } from './activityService';
 
 const CUSTOMERS_KEY = 'customers_list';
 
-const DEFAULT_CUSTOMERS = [
-  { id: 'cust_1', name: 'Rahul Sharma', email: 'rahul@gmail.com', orders: 8, totalSpent: 248800, status: 'Active', joinedDate: 'May 2024' },
-  { id: 'cust_2', name: 'Priya Singh', email: 'priya@gmail.com', orders: 5, totalSpent: 128400, status: 'Active', joinedDate: 'Apr 2024' },
-  { id: 'cust_3', name: 'Amit Verma', email: 'amit@gmail.com', orders: 12, totalSpent: 312900, status: 'Active', joinedDate: 'Mar 2024' },
-  { id: 'cust_4', name: 'Neha Kapoor', email: 'neha@gmail.com', orders: 4, totalSpent: 98700, status: 'Active', joinedDate: 'Mar 2024' },
-  { id: 'cust_5', name: 'Karan Mehta', email: 'karan@gmail.com', orders: 6, totalSpent: 145800, status: 'Active', joinedDate: 'Feb 2024' }
-];
-
 export const customerService = {
-  _ensureSeeded() {
-    const list = storageService.load(CUSTOMERS_KEY, null);
-    if (list === null) {
-      storageService.save(CUSTOMERS_KEY, DEFAULT_CUSTOMERS);
-      return DEFAULT_CUSTOMERS;
-    }
-    return list;
+  _load() {
+    return storageService.load(CUSTOMERS_KEY, []);
   },
 
   async getCustomers() {
     await storageService.simulateDelay(150);
-    return this._ensureSeeded();
+    return this._load();
+  },
+
+  async addCustomer(customerData) {
+    await storageService.simulateDelay(400);
+    const list = this._load();
+    const newCustomer = {
+      ...customerData,
+      id: 'cust_' + Date.now(),
+      joinedDate: new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+      orders: 0,
+      totalSpent: 0,
+      status: 'Active',
+    };
+    list.push(newCustomer);
+    storageService.save(CUSTOMERS_KEY, list);
+    await activityService.logActivity('Customer Added', `New customer "${newCustomer.name}" registered.`);
+    return newCustomer;
+  },
+
+  async updateCustomer(id, data) {
+    await storageService.simulateDelay(400);
+    const list = this._load();
+    const index = list.findIndex(c => c.id === id);
+    if (index !== -1) {
+      list[index] = { ...list[index], ...data };
+      storageService.save(CUSTOMERS_KEY, list);
+      await activityService.logActivity('Customer Updated', `Customer "${list[index].name}" was updated.`);
+      return list[index];
+    }
+    return null;
   },
 
   async getCustomerStats() {
-    const list = this._ensureSeeded();
+    const list = this._load();
+    if (!list.length) return { totalCustomers: 0, activeCustomers: 0, newThisMonth: 0, repeatCustomers: 0, avgSpent: 0 };
+
     const active = list.filter(c => c.status === 'Active').length;
-    const totalSpentSum = list.reduce((sum, c) => sum + c.totalSpent, 0);
+    const totalSpentSum = list.reduce((s, c) => s + (c.totalSpent || 0), 0);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const newThisMonth = list.filter(c => {
+      const j = new Date(c.joinedDate);
+      return !isNaN(j) && j >= thirtyDaysAgo;
+    }).length;
+    const repeatCustomers = list.filter(c => (c.orders || 0) >= 2).length;
+
     return {
       totalCustomers: list.length,
       activeCustomers: active,
-      newThisMonth: 12, // mock value
-      avgSpent: Math.round(totalSpentSum / list.length)
+      newThisMonth,
+      repeatCustomers,
+      avgSpent: list.length > 0 ? Math.round(totalSpentSum / list.length) : 0,
     };
-  }
+  },
 };

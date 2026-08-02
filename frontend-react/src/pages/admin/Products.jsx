@@ -1,7 +1,8 @@
-// Admin Product CRUD Page — Redesigned
+// Admin Product CRUD Page — Redesigned & User-Friendly
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { productService } from '../../services/productService';
+import { categoryService } from '../../services/categoryService';
 import { imageService } from '../../services/imageService';
 import { useAdmin } from '../../contexts/AdminContext';
 import {
@@ -15,6 +16,7 @@ import {
   Input,
   Select,
   Textarea,
+  AdminPageHeader,
 } from '../../components/admin/UI';
 import {
   Search,
@@ -26,22 +28,28 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
-  Star,
+  Check,
 } from 'lucide-react';
 import { formatPrice, generateSlug } from '../../utils/helpers';
 import { validateProduct } from '../../utils/validators';
 
-const CATEGORIES = [
-  { value: 'mini-pc', label: 'Mini PCs' },
-  { value: 'thin-client', label: 'Thin Clients' },
-  { value: 'desktop', label: 'Desktops' },
-  { value: 'laptop', label: 'Laptops' },
-  { value: 'processors', label: 'Processors' },
-  { value: 'components', label: 'Components & SSDs' },
-  { value: 'other', label: 'Other Accessories' },
+const DEFAULT_BRANDS = [
+  { value: 'Dell', label: 'Dell' },
+  { value: 'Lenovo', label: 'Lenovo' },
+  { value: 'HP', label: 'HP' },
+  { value: 'Acer', label: 'Acer' },
+  { value: 'Asus', label: 'Asus' },
+  { value: 'Intel', label: 'Intel' },
+  { value: 'Other', label: 'Other' },
 ];
 
-const BRANDS = ['Dell', 'HP', 'Lenovo', 'Intel', 'Asus', 'Apacer', 'Other'];
+const DEFAULT_CATEGORIES = [
+  { value: 'laptop', label: 'Laptops' },
+  { value: 'desktop', label: 'Desktops' },
+  { value: 'monitor', label: 'Monitors' },
+  { value: 'components', label: 'Components' },
+  { value: 'accessories', label: 'Accessories' },
+];
 
 const INITIAL_FORM_STATE = {
   name: '',
@@ -52,7 +60,7 @@ const INITIAL_FORM_STATE = {
   offerPrice: '',
   brand: 'Dell',
   SKU: '',
-  stock: 12,
+  stock: 10,
   rating: 4.5,
   status: 'Active',
   featured: false,
@@ -65,6 +73,8 @@ const INITIAL_FORM_STATE = {
 };
 
 const Products = () => {
+  const [categoryOptions, setCategoryOptions] = useState(DEFAULT_CATEGORIES);
+  const [brandOptions, setBrandOptions] = useState(DEFAULT_BRANDS);
   const { showToast } = useAdmin();
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -78,7 +88,7 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // Drawer state (replaces viewState list/create/edit/details)
+  // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('create'); // create | edit | view
   const [currentId, setCurrentId] = useState(null);
@@ -95,15 +105,38 @@ const Products = () => {
       setLoading(true);
       const data = await productService.getProducts();
       setProducts(data);
-    } catch (e) {
+    } catch {
       showToast('Failed to load products list.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchCategoriesAndBrands = async () => {
+    try {
+      const cats = await categoryService.getCategories();
+      if (cats && cats.length > 0) {
+        setCategoryOptions(cats.map((c) => ({ value: c.name.toLowerCase(), label: c.name })));
+      }
+      const prods = await productService.getProducts();
+      const brandSet = {};
+      prods.forEach((p) => { if (p.brand) brandSet[p.brand] = true; });
+
+      const mergedBrands = [...DEFAULT_BRANDS];
+      Object.keys(brandSet).forEach((b) => {
+        if (!mergedBrands.some((mb) => mb.value.toLowerCase() === b.toLowerCase())) {
+          mergedBrands.push({ value: b, label: b });
+        }
+      });
+      setBrandOptions(mergedBrands);
+    } catch {
+      // Use defaults if failed
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategoriesAndBrands();
   }, []);
 
   // Listen for ?action=add and ?q= search params
@@ -124,7 +157,7 @@ const Products = () => {
       setFormData((prev) => ({
         ...prev,
         slug: generateSlug(prev.name),
-        SKU: prev.SKU || `EG-${prev.brand.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
+        SKU: prev.SKU || `EG-${(prev.brand || 'GEN').substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
         seoTitle: `${prev.name} - Egreen Technology`,
         seoDescription: `Buy ${prev.name} online at wholesale rates. 100% genuine guaranteed.`,
       }));
@@ -132,26 +165,25 @@ const Products = () => {
   }, [formData.name, formData.brand, drawerMode]);
 
   // Brand filter counts
-  const brandCounts = {
-    all: products.length,
-    Dell: products.filter((p) => p.brand === 'Dell').length,
-    Lenovo: products.filter((p) => p.brand === 'Lenovo').length,
-    HP: products.filter((p) => p.brand === 'HP').length,
-    Acer: products.filter((p) => p.brand === 'Acer' || p.brand === 'Asus').length,
-  };
+  const brandCounts = { all: products.length };
+  products.forEach((p) => {
+    if (p.brand) {
+      brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
+    }
+  });
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.SKU || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesBrand = selectedBrandFilter === 'all' || p.brand.toLowerCase() === selectedBrandFilter.toLowerCase();
+    const matchesBrand = selectedBrandFilter === 'all' || (p.brand && p.brand.toLowerCase() === selectedBrandFilter.toLowerCase());
     return matchesSearch && matchesBrand;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    let valA = a[sortBy];
-    let valB = b[sortBy];
+    let valA = a[sortBy] || '';
+    let valB = b[sortBy] || '';
 
     if (sortBy === 'price') {
       valA = parseFloat(valA || 0);
@@ -172,7 +204,7 @@ const Products = () => {
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
   const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleSort = (field) => {
@@ -194,14 +226,28 @@ const Products = () => {
 
   const openEditDrawer = (product) => {
     setFormData({
-      ...INITIAL_FORM_STATE,
-      ...product,
-      features: product.features && product.features.length > 0 ? product.features : [''],
-      specifications: product.specifications && product.specifications.length > 0 ? product.specifications : [{ key: '', value: '' }],
+      name: product.name || '',
+      slug: product.slug || '',
+      category: product.category || 'laptop',
+      description: product.description || '',
+      price: product.price || '',
+      offerPrice: product.offerPrice || '',
+      brand: product.brand || 'Dell',
+      SKU: product.SKU || '',
+      stock: product.stock || 0,
+      rating: product.rating || 4.5,
+      status: product.status || 'Active',
+      featured: product.featured || false,
+      features: product.features && product.features.length ? product.features : [''],
+      specifications: product.specifications && product.specifications.length ? product.specifications : [{ key: '', value: '' }],
+      seoTitle: product.seoTitle || '',
+      seoDescription: product.seoDescription || '',
+      image: product.image || '',
+      gallery: product.gallery || [],
     });
-    setCurrentId(product.id);
     setWizardStep(0);
     setDrawerMode('edit');
+    setCurrentId(product.id);
     setDrawerOpen(true);
   };
 
@@ -213,31 +259,40 @@ const Products = () => {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
-    setWizardStep(0);
+  };
+
+  const handleDeleteClick = (product) => {
+    setProductToDelete(product);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      showToast('Deleting Product...', 'loading');
+      await productService.deleteProduct(productToDelete.id);
+      showToast('Product Deleted Successfully', 'success');
+      fetchProducts();
+      setDeleteModalOpen(false);
+    } catch {
+      showToast('Failed to delete product.', 'error');
+    }
   };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setImageUploading(true);
-    showToast('Uploading image...', 'loading');
-
     try {
-      const base64 = await imageService.uploadImage(file);
-      setFormData((prev) => ({ ...prev, image: base64 }));
+      setImageUploading(true);
+      showToast('Uploading image...', 'loading');
+      const url = await imageService.uploadImage(file);
+      setFormData((prev) => ({ ...prev, image: url }));
       showToast('Image uploaded successfully', 'success');
-    } catch (err) {
-      showToast(err.message || 'Image upload failed', 'error');
+    } catch {
+      showToast('Image upload failed.', 'error');
     } finally {
       setImageUploading(false);
     }
-  };
-
-  const handleSpecChange = (index, field, value) => {
-    const updatedSpecs = [...formData.specifications];
-    updatedSpecs[index][field] = value;
-    setFormData((prev) => ({ ...prev, specifications: updatedSpecs }));
   };
 
   const addSpecField = () => {
@@ -247,155 +302,166 @@ const Products = () => {
     }));
   };
 
-  const removeSpecField = (index) => {
-    const updatedSpecs = formData.specifications.filter((_, idx) => idx !== index);
-    setFormData((prev) => ({ ...prev, specifications: updatedSpecs }));
+  const removeSpecField = (idx) => {
+    setFormData((prev) => ({
+      ...prev,
+      specifications: prev.specifications.filter((_, i) => i !== idx),
+    }));
   };
 
-  const handleFeatureChange = (index, value) => {
-    const updatedFeatures = [...formData.features];
-    updatedFeatures[index] = value;
-    setFormData((prev) => ({ ...prev, features: updatedFeatures }));
+  const handleSpecChange = (idx, field, value) => {
+    setFormData((prev) => {
+      const list = [...prev.specifications];
+      list[idx][field] = value;
+      return { ...prev, specifications: list };
+    });
   };
 
   const addFeatureField = () => {
-    setFormData((prev) => ({ ...prev, features: [...prev.features, ''] }));
+    setFormData((prev) => ({
+      ...prev,
+      features: [...prev.features, ''],
+    }));
   };
 
-  const removeFeatureField = (index) => {
-    const updatedFeatures = formData.features.filter((_, idx) => idx !== index);
-    setFormData((prev) => ({ ...prev, features: updatedFeatures }));
+  const removeFeatureField = (idx) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== idx),
+    }));
   };
 
-  const handleDeleteClick = (product) => {
-    setProductToDelete(product);
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!productToDelete) return;
-    setDeleteModalOpen(false);
-    showToast('Deleting product...', 'loading');
-    try {
-      await productService.deleteProduct(productToDelete.id);
-      showToast('Changes Published Successfully', 'success');
-      fetchProducts();
-    } catch (e) {
-      showToast('Failed to delete product', 'error');
-    }
+  const handleFeatureChange = (idx, value) => {
+    setFormData((prev) => {
+      const list = [...prev.features];
+      list[idx] = value;
+      return { ...prev, features: list };
+    });
   };
 
   const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    const cleanedSpecs = formData.specifications.filter((s) => s.key.trim() !== '' && s.value.trim() !== '');
-    const cleanedFeatures = formData.features.filter((f) => f.trim() !== '');
+    const cleanSpecs = formData.specifications.filter((s) => s.key.trim() && s.value.trim());
+    const cleanFeats = formData.features.filter((f) => f.trim());
 
-    const finalData = {
+    const submissionData = {
       ...formData,
-      price: parseFloat(formData.price),
+      price: parseFloat(formData.price || 0),
       offerPrice: formData.offerPrice ? parseFloat(formData.offerPrice) : null,
-      stock: parseInt(formData.stock),
-      specifications: cleanedSpecs.length > 0 ? cleanedSpecs : [{ key: 'Specs', value: formData.description }],
-      features: cleanedFeatures.length > 0 ? cleanedFeatures : ['Tested Quality'],
+      stock: parseInt(formData.stock || 0),
+      rating: parseFloat(formData.rating || 4.5),
+      specifications: cleanSpecs,
+      features: cleanFeats,
     };
 
-    const errors = validateProduct(finalData);
-    if (errors.length > 0) {
-      showToast(errors[0], 'error');
+    const errors = validateProduct(submissionData);
+    if (Object.keys(errors).length > 0) {
+      const firstErr = Object.values(errors)[0];
+      showToast(firstErr, 'error');
       return;
     }
 
-    showToast('Saving Changes...', 'loading');
     try {
+      showToast(drawerMode === 'create' ? 'Creating Product...' : 'Saving Changes...', 'loading');
       if (drawerMode === 'create') {
-        await productService.createProduct(finalData);
+        await productService.createProduct(submissionData);
+        showToast('Product Created Successfully', 'success');
       } else {
-        await productService.updateProduct(currentId, finalData);
+        await productService.updateProduct(currentId, submissionData);
+        showToast('Product Updated Successfully', 'success');
       }
-      showToast('Changes Published Successfully', 'success');
-      setDrawerOpen(false);
       fetchProducts();
-    } catch (e) {
-      showToast('Failed to save product details.', 'error');
+      setDrawerOpen(false);
+    } catch {
+      showToast('Failed to save product configurations.', 'error');
     }
   };
 
   const wizardStepsLabels = [
-    { title: 'Basic Info', num: 1 },
-    { title: 'Specifications', num: 2 },
-    { title: 'Media', num: 3 },
-    { title: 'Pricing', num: 4 },
-    { title: 'Publish', num: 5 },
+    { num: 1, title: 'Basic Info' },
+    { num: 2, title: 'Specs & Stock' },
+    { num: 3, title: 'Media' },
+    { num: 4, title: 'Pricing' },
+    { num: 5, title: 'Publishing' },
   ];
 
-  const sortOptions = [
-    { value: 'name-asc', label: 'Name (A-Z)' },
-    { value: 'name-desc', label: 'Name (Z-A)' },
-    { value: 'price-asc', label: 'Price (Low-High)' },
-    { value: 'price-desc', label: 'Price (High-Low)' },
-    { value: 'stock-asc', label: 'Stock (Low-High)' },
-    { value: 'stock-desc', label: 'Stock (High-Low)' },
-  ];
-
-  const drawerTitle = drawerMode === 'create' ? 'Add New Product' : drawerMode === 'edit' ? `Edit: ${formData.name}` : `Product: ${formData.name}`;
+  const drawerTitle = drawerMode === 'create' ? 'Add New Product' : drawerMode === 'edit' ? `Edit: ${formData.name}` : `Product Details`;
 
   return (
-    <div>
-      {/* Page header */}
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Products</h1>
-          <p className="admin-page-subtitle">Manage product catalog, pricing, and inventory.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="Products Catalog"
+        subtitle="Manage inventory, brand specifications, pricing, and product status."
+        action={
+          <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openCreateDrawer}>
+            Add Product
+          </Button>
+        }
+      />
+
+      {/* Brand Filters Tabs Row */}
+      {Object.keys(brandCounts).length > 1 && (
+        <div className="admin-tabs">
+          {Object.keys(brandCounts).map((brand) => (
+            <button
+              key={brand}
+              onClick={() => {
+                setSelectedBrandFilter(brand);
+                setCurrentPage(1);
+              }}
+              className={`admin-tab-btn${selectedBrandFilter.toLowerCase() === brand.toLowerCase() ? ' active' : ''}`}
+            >
+              {brand === 'all' ? 'All Brands' : brand}
+              <span
+                style={{
+                  marginLeft: 6,
+                  padding: '1px 7px',
+                  borderRadius: 99,
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  background: selectedBrandFilter.toLowerCase() === brand.toLowerCase() ? 'var(--color-primary)' : 'rgba(107,114,128,0.12)',
+                  color: selectedBrandFilter.toLowerCase() === brand.toLowerCase() ? '#fff' : 'var(--color-muted)',
+                }}
+              >
+                {brandCounts[brand]}
+              </span>
+            </button>
+          ))}
         </div>
-        <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openCreateDrawer}>
-          Add Product
-        </Button>
-      </div>
+      )}
 
-      {/* Brand filter chips */}
-      <div className="admin-filter-chips">
-        {['all', 'Dell', 'Lenovo', 'HP', 'Acer'].map((brand) => (
-          <button
-            key={brand}
-            className={`admin-filter-chip ${selectedBrandFilter === brand ? 'active' : ''}`}
-            onClick={() => {
-              setSelectedBrandFilter(brand);
-              setCurrentPage(1);
-            }}
-          >
-            {brand === 'all' ? 'All' : brand} ({brandCounts[brand] || 0})
-          </button>
-        ))}
-      </div>
-
-      <Card noShadow>
-        {/* Search + Sort toolbar */}
-        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
-          <div className="relative w-full max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              type="text"
-              className="admin-input"
-              style={{ paddingLeft: '36px' }}
-              placeholder="Search products..."
+      {/* Products Table Card */}
+      <Card>
+        {/* Search controls */}
+        <div style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 260, flex: 1, maxWidth: 400 }}>
+            <Input
+              placeholder="Search by name, SKU, or brand..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
+              icon={<Search size={16} />}
             />
           </div>
 
-          <Select
-            options={sortOptions}
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [field, order] = e.target.value.split('-');
-              setSortBy(field);
-              setSortOrder(order);
-            }}
-          />
+          <div style={{ width: 180 }}>
+            <Select
+              options={[
+                { value: 'name', label: 'Sort by Name' },
+                { value: 'price', label: 'Sort by Price' },
+                { value: 'stock', label: 'Sort by Inventory' },
+              ]}
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -405,8 +471,12 @@ const Products = () => {
             {paginatedProducts.length === 0 ? (
               <EmptyState
                 title="No products found"
-                description="No products match your current filters."
-                action={<Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={openCreateDrawer}>Add Product</Button>}
+                description={searchTerm ? `No products matching "${searchTerm}".` : 'Start building your inventory catalog by adding your first product.'}
+                action={
+                  <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={openCreateDrawer}>
+                    Add Product
+                  </Button>
+                }
               />
             ) : (
               <div className="admin-table-container">
@@ -416,13 +486,19 @@ const Products = () => {
                       <th style={{ width: '40px' }}>
                         <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
                       </th>
-                      <th>Product</th>
+                      <th style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
+                        Product {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      </th>
                       <th>Brand</th>
                       <th>Category</th>
-                      <th>Price</th>
-                      <th>Stock</th>
+                      <th style={{ cursor: 'pointer' }} onClick={() => handleSort('price')}>
+                        Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th style={{ cursor: 'pointer' }} onClick={() => handleSort('stock')}>
+                        Stock {sortBy === 'stock' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      </th>
                       <th>Status</th>
-                      <th className="text-right">Actions</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -432,65 +508,52 @@ const Products = () => {
                           <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
                         </td>
                         <td>
-                          <div className="flex items-center gap-2">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             {p.image ? (
                               <img src={p.image} alt={p.name} className="admin-table-img" />
                             ) : (
-                              <div className="admin-table-img flex items-center justify-center bg-muted/10 text-muted text-xs">
+                              <div className="admin-table-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-background)', color: 'var(--color-muted)', fontSize: '0.68rem', fontWeight: 600 }}>
                                 No Image
                               </div>
                             )}
                             <div>
-                              <strong className="text-sm text-text">{p.name}</strong>
-                              <span className="block text-xs text-muted">SKU: {p.SKU || '-'}</span>
+                              <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text)', marginBottom: 2 }}>{p.name}</strong>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>SKU: {p.SKU || '-'}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="text-sm">{p.brand}</td>
-                        <td className="text-sm capitalize">
-                          {CATEGORIES.find((c) => c.value === p.category)?.label || p.category}
+                        <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{p.brand}</td>
+                        <td style={{ fontSize: '0.82rem', textTransform: 'capitalize' }}>
+                          {categoryOptions.find((c) => c.value === p.category)?.label || p.category}
                         </td>
                         <td>
-                          <span className="font-medium text-text">{formatPrice(p.price)}</span>
+                          <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>{formatPrice(p.price)}</span>
                           {p.offerPrice && (
-                            <span className="block text-xs text-danger line-through">{formatPrice(p.offerPrice)}</span>
+                            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--color-danger)', textDecoration: 'line-through' }}>{formatPrice(p.offerPrice)}</span>
                           )}
                         </td>
                         <td>
-                          <span className={p.stock === 0 ? 'text-danger' : (p.stock < 5 ? 'text-warning' : 'text-text')}>
+                          <span style={{ fontWeight: 600, color: p.stock === 0 ? 'var(--color-danger)' : p.stock < 5 ? 'var(--color-warning)' : 'var(--color-text)' }}>
                             {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
                           </span>
                         </td>
                         <td>
-                          <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>{p.status}</Badge>
-                          {p.featured && <Badge variant="primary" className="ml-1">Featured</Badge>}
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                            <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>{p.status}</Badge>
+                            {p.featured && <Badge variant="primary">Featured</Badge>}
+                          </div>
                         </td>
-                        <td className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <button
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
-                              style={{ padding: '4px 8px' }}
-                              title="View details"
-                              onClick={() => openViewDrawer(p)}
-                            >
+                        <td style={{ textAlign: 'right' }}>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+                            <Button variant="ghost" size="sm" title="View details" onClick={() => openViewDrawer(p)}>
                               <Eye size={13} />
-                            </button>
-                            <button
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
-                              style={{ padding: '4px 8px' }}
-                              title="Edit details"
-                              onClick={() => openEditDrawer(p)}
-                            >
+                            </Button>
+                            <Button variant="ghost" size="sm" title="Edit details" onClick={() => openEditDrawer(p)}>
                               <Edit2 size={13} />
-                            </button>
-                            <button
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
-                              style={{ padding: '4px 8px', color: 'var(--color-danger)' }}
-                              title="Delete"
-                              onClick={() => handleDeleteClick(p)}
-                            >
+                            </Button>
+                            <Button variant="ghost" size="sm" title="Delete" style={{ color: 'var(--color-danger)' }} onClick={() => handleDeleteClick(p)}>
                               <Trash2 size={13} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -502,35 +565,28 @@ const Products = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 text-xs text-muted">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, fontSize: '0.78rem', color: 'var(--color-muted)' }}>
                 <span>
                   Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length}
                 </span>
-                <div className="flex gap-1">
-                  <button
-                    className="admin-btn admin-btn-secondary admin-btn-sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  >
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <Button variant="secondary" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}>
                     <ChevronLeft size={14} />
-                  </button>
+                  </Button>
                   {Array.from({ length: totalPages }).map((_, idx) => (
-                    <button
+                    <Button
                       key={idx}
-                      className={`admin-btn admin-btn-secondary admin-btn-sm ${currentPage === idx + 1 ? 'admin-btn-primary' : ''}`}
-                      style={{ minWidth: '32px' }}
+                      variant={currentPage === idx + 1 ? 'primary' : 'secondary'}
+                      size="sm"
+                      style={{ minWidth: '32px', padding: '0 8px' }}
                       onClick={() => setCurrentPage(idx + 1)}
                     >
                       {idx + 1}
-                    </button>
+                    </Button>
                   ))}
-                  <button
-                    className="admin-btn admin-btn-secondary admin-btn-sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  >
+                  <Button variant="secondary" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}>
                     <ChevronRight size={14} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -547,62 +603,65 @@ const Products = () => {
         size="2xl"
         footer={
           drawerMode !== 'view' && (
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" size="sm" onClick={closeDrawer}>Discard</Button>
-              {wizardStep < wizardStepsLabels.length - 1 ? (
-                <Button size="sm" onClick={() => setWizardStep((s) => s + 1)}>Next</Button>
-              ) : (
-                <Button variant="primary" size="sm" onClick={handleFormSubmit}>
-                  {drawerMode === 'create' ? 'Create Product' : 'Save Changes'}
-                </Button>
-              )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <Button variant="secondary" size="sm" onClick={closeDrawer}>
+                Discard
+              </Button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {wizardStep > 0 && (
+                  <Button variant="secondary" size="sm" onClick={() => setWizardStep((s) => s - 1)}>
+                    Back
+                  </Button>
+                )}
+                {wizardStep < wizardStepsLabels.length - 1 ? (
+                  <Button variant="primary" size="sm" onClick={() => setWizardStep((s) => s + 1)}>
+                    Next Step →
+                  </Button>
+                ) : (
+                  <Button variant="primary" size="sm" onClick={handleFormSubmit}>
+                    {drawerMode === 'create' ? 'Create Product' : 'Save Changes'}
+                  </Button>
+                )}
+              </div>
             </div>
           )
         }
       >
         {drawerMode === 'view' ? (
           /* Read-only details view */
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">Product Name</h4>
-              <p className="text-sm text-text">{formData.name}</p>
-            </div>
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">Description</h4>
-              <p className="text-sm text-muted">{formData.description}</p>
-            </div>
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">Price</h4>
-              <p className="text-sm text-text">{formatPrice(formData.price)}</p>
-            </div>
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">SKU</h4>
-              <p className="text-sm text-text">{formData.SKU}</p>
-            </div>
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">Stock</h4>
-              <p className="text-sm text-text">{formData.stock} units</p>
-            </div>
-            <div>
-              <h4 className="text-xs font-medium text-muted mb-1">Status</h4>
-              <Badge variant={formData.status === 'Active' ? 'success' : 'warning'}>{formData.status}</Badge>
-            </div>
-            {formData.specifications && (
-              <div>
-                <h4 className="text-xs font-medium text-muted mb-2">Specifications</h4>
-                <table className="admin-table">
-                  <tbody>
-                    {formData.specifications.map((spec, i) => (
-                      <tr key={i}>
-                        <td className="font-medium text-text">{spec.key}</td>
-                        <td>{spec.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {formData.image && (
+              <div style={{ width: '100%', height: 200, borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 8 }}>
+                <img src={formData.image} alt={formData.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }} />
               </div>
             )}
-            <div className="flex gap-2 pt-4 border-t border-border">
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Product Name</div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text)' }}>{formData.name}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Brand</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{formData.brand}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Category</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', textTransform: 'capitalize' }}>{formData.category}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Price</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatPrice(formData.price)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Stock</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{formData.stock} units</div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Description</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>{formData.description}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
               <Button variant="primary" size="sm" onClick={() => openEditDrawer(formData)}>
                 Edit Product
               </Button>
@@ -612,247 +671,316 @@ const Products = () => {
             </div>
           </div>
         ) : (
-          /* Edit/Create form with wizard steps */
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            {/* Wizard step navigation */}
+          /* Edit/Create Form with Wizard Steps */
+          <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Step Wizard Navigation Header */}
             <div className="admin-form-wizard-headers">
-              {wizardStepsLabels.map((step, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={`admin-form-wizard-header ${wizardStep === idx ? 'active' : ''}`}
-                  onClick={() => setWizardStep(idx)}
-                >
-                  <div className="admin-form-wizard-header-num">{step.num}</div>
-                  {step.title}
-                </button>
-              ))}
+              {wizardStepsLabels.map((step, idx) => {
+                const isCompleted = idx < wizardStep;
+                const isCurrent = idx === wizardStep;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`admin-form-wizard-header${isCurrent ? ' active' : ''}`}
+                    onClick={() => setWizardStep(idx)}
+                  >
+                    <span className="admin-form-wizard-header-num" style={isCompleted ? { background: 'var(--color-success)', color: '#fff' } : undefined}>
+                      {isCompleted ? <Check size={11} /> : step.num}
+                    </span>
+                    <span>{step.title}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* STEP 0: Basic Info */}
             {wizardStep === 0 && (
-              <div className="space-y-4">
-                <Input
-                  label="Product Name"
-                  placeholder="e.g. Dell Inspiron 15 3530"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  required
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    label="Product Brand"
-                    options={BRANDS.map((b) => ({ value: b, label: b }))}
-                    value={formData.brand}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <Input
+                    label="Product Name *"
+                    placeholder="e.g. Dell Inspiron 15 3530"
+                    value={formData.name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     required
                   />
-                  <Select
-                    label="Category"
-                    options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
-                    value={formData.category}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <Select
+                      label="Product Brand *"
+                      options={brandOptions}
+                      value={formData.brand}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+                      required
+                    />
+                    <Select
+                      label="Category *"
+                      options={categoryOptions}
+                      value={formData.category}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <Textarea
+                    label="Short Description *"
+                    placeholder="Powerful and reliable laptop for work and entertainment..."
+                    value={formData.description}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                     required
+                    rows={4}
                   />
                 </div>
-                <Textarea
-                  label="Short Description"
-                  placeholder="Powerful and reliable laptop for work and entertainment..."
-                  value={formData.description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                  required
-                  minHeight="80px"
-                />
+
+                {/* Right side helper card */}
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                    Basic Info Tips
+                  </div>
+                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
+                    <li>Keep product name descriptive with brand and model number.</li>
+                    <li>Ensure category and brand are correct for catalog filtering.</li>
+                    <li>Write a concise description highlighting condition and key specs.</li>
+                  </ul>
+                </div>
               </div>
             )}
 
-            {/* STEP 1: Specifications */}
+            {/* STEP 1: Specifications & Stock */}
             {wizardStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="SKU Identifier"
-                    value={formData.SKU}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
-                    required
-                  />
-                  <Input
-                    label="Stock quantity"
-                    type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
-                    required
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <Input
+                      label="SKU Identifier *"
+                      value={formData.SKU}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
+                      required
+                    />
+                    <Input
+                      label="Stock Quantity *"
+                      type="number"
+                      value={formData.stock}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Technical Specifications</label>
+                      <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addSpecField}>
+                        Add Spec
+                      </Button>
+                    </div>
+                    {formData.specifications.map((spec, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <input
+                          type="text"
+                          className="admin-input"
+                          style={{ flex: 1 }}
+                          placeholder="Key (e.g. RAM)"
+                          value={spec.key}
+                          onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          className="admin-input"
+                          style={{ flex: 2 }}
+                          placeholder="Value (e.g. 16GB DDR4)"
+                          value={spec.value}
+                          onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                        />
+                        {formData.specifications.length > 1 && (
+                          <Button variant="ghost" size="sm" onClick={() => removeSpecField(idx)} style={{ color: 'var(--color-danger)' }}>
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Key Highlights / Features</label>
+                      <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addFeatureField}>
+                        Add Highlight
+                      </Button>
+                    </div>
+                    {formData.features.map((feat, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <input
+                          type="text"
+                          className="admin-input"
+                          placeholder="e.g. 15.6 FHD 120Hz display"
+                          value={feat}
+                          onChange={(e) => handleFeatureChange(idx, e.target.value)}
+                        />
+                        {formData.features.length > 1 && (
+                          <Button variant="ghost" size="sm" onClick={() => removeFeatureField(idx)} style={{ color: 'var(--color-danger)' }}>
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-medium text-text">Technical Specs</label>
-                    <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addSpecField}>
-                      + Add Spec
-                    </Button>
+                {/* Right side helper card */}
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                    Specs Guidelines
                   </div>
-                  {formData.specifications.map((spec, idx) => (
-                    <div key={idx} className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        className="admin-input"
-                        style={{ flex: 1 }}
-                        placeholder="RAM"
-                        value={spec.key}
-                        onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        className="admin-input"
-                        style={{ flex: 2 }}
-                        placeholder="16GB DDR4"
-                        value={spec.value}
-                        onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
-                      />
-                      {formData.specifications.length > 1 && (
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn-secondary"
-                          style={{ padding: '8px', color: 'var(--color-danger)' }}
-                          onClick={() => removeSpecField(idx)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-medium text-text">Highlights / Features</label>
-                    <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addFeatureField}>
-                      + Add Highlight
-                    </Button>
-                  </div>
-                  {formData.features.map((feat, idx) => (
-                    <div key={idx} className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="e.g. 15.6 FHD 120Hz display"
-                        value={feat}
-                        onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                      />
-                      {formData.features.length > 1 && (
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn-secondary"
-                          style={{ padding: '8px', color: 'var(--color-danger)' }}
-                          onClick={() => removeFeatureField(idx)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
+                    <li>SKUs are auto-generated but can be custom edited.</li>
+                    <li>Low stock values (&lt; 5) show warning indicators.</li>
+                    <li>Add technical specs like Processor, RAM, and Storage for buyer clarity.</li>
+                  </ul>
                 </div>
               </div>
             )}
 
             {/* STEP 2: Media */}
             {wizardStep === 2 && (
-              <div>
-                <label className="text-xs font-medium text-text mb-2 block">Upload Product Image</label>
-                {formData.image ? (
-                  <div className="relative w-full max-w-sm aspect-[1.4] overflow-hidden rounded-[var(--radius-card)] border border-border">
-                    <img src={formData.image} alt="Upload Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      className="admin-image-delete-btn"
-                      onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
-                    >
-                      <X size={14} />
-                    </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Product Showcase Image</label>
+                  {formData.image ? (
+                    <div style={{ position: 'relative', width: '100%', maxWidth: 360, height: 220, borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid var(--color-border)', background: '#fff' }}>
+                      <img src={formData.image} alt="Upload Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                        style={{
+                          position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                        }}
+                        title="Remove Image"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="admin-image-upload-zone">
+                      <Upload size={32} color="var(--color-muted)" />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginTop: 8 }}>Click or Drag image here to upload</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>PNG, JPG, WebP up to 5MB</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        disabled={imageUploading}
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Right side helper card */}
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                    Image Tips
                   </div>
-                ) : (
-                  <label className="admin-image-upload-zone">
-                    <Upload size={28} color="var(--color-muted)" />
-                    <span className="text-sm text-muted">Select file from local system</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      disabled={imageUploading}
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                )}
+                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
+                    <li>Use high-resolution photos on white or neutral backgrounds.</li>
+                    <li>Proper images significantly boost buyer trust.</li>
+                  </ul>
+                </div>
               </div>
             )}
 
             {/* STEP 3: Pricing */}
             {wizardStep === 3 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Regular Wholesaler Price (INR)"
-                    type="number"
-                    placeholder="e.g. 56990"
-                    value={formData.price}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
-                    required
-                  />
-                  <Input
-                    label="Special Offer Price (INR)"
-                    type="number"
-                    placeholder="e.g. 52990"
-                    value={formData.offerPrice}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
-                  />
-                </div>
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="featured-check"
-                    className="admin-checkbox"
-                    checked={formData.featured}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, featured: e.target.checked }))}
-                  />
-                  <label htmlFor="featured-check" className="text-sm text-text cursor-pointer">
-                    Highlight on Homepage slider
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <Input
+                      label="Regular Price (₹) *"
+                      type="number"
+                      placeholder="e.g. 45000"
+                      value={formData.price}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+                      required
+                    />
+                    <Input
+                      label="Offer Price (₹)"
+                      type="number"
+                      placeholder="e.g. 39999"
+                      value={formData.offerPrice}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
+                    />
+                  </div>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '12px 14px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-input)', background: 'var(--color-background)' }}>
+                    <input
+                      type="checkbox"
+                      className="admin-checkbox"
+                      checked={formData.featured}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, featured: e.target.checked }))}
+                    />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                      Feature this product on Homepage Banners
+                    </span>
                   </label>
+                </div>
+
+                {/* Right side helper card */}
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                    Pricing Structure
+                  </div>
+                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
+                    <li>Regular price is shown as the standard list price.</li>
+                    <li>If Offer Price is set, it displays with a strike-through discount badge.</li>
+                  </ul>
                 </div>
               </div>
             )}
 
-            {/* STEP 4: Publish */}
+            {/* STEP 4: Publishing */}
             {wizardStep === 4 && (
-              <div className="space-y-4">
-                <Select
-                  label="Publishing Status"
-                  options={[
-                    { value: 'Active', label: 'Active (Live on website)' },
-                    { value: 'Draft', label: 'Draft (Invisible)' },
-                    { value: 'Archived', label: 'Archived (Deprioritized)' },
-                  ]}
-                  value={formData.status}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
-                />
-                <Input
-                  label="Rating score"
-                  type="number"
-                  step="0.1"
-                  value={formData.rating}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, rating: e.target.value }))}
-                />
-                <Input
-                  label="SEO Title"
-                  value={formData.seoTitle}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, seoTitle: e.target.value }))}
-                />
-                <Textarea
-                  label="SEO Meta Description"
-                  value={formData.seoDescription}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, seoDescription: e.target.value }))}
-                  minHeight="60px"
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <Select
+                    label="Product Status"
+                    options={[
+                      { value: 'Active', label: 'Active (Visible on website)' },
+                      { value: 'Draft', label: 'Draft (Hidden from catalog)' },
+                      { value: 'Archived', label: 'Archived (Out of stock/Discontinued)' },
+                    ]}
+                    value={formData.status}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+                  />
+                  <Input
+                    label="Customer Rating (0 to 5)"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={formData.rating}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, rating: e.target.value }))}
+                  />
+                  <Input
+                    label="SEO Search Title"
+                    value={formData.seoTitle}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, seoTitle: e.target.value }))}
+                  />
+                  <Textarea
+                    label="SEO Meta Description"
+                    value={formData.seoDescription}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, seoDescription: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Right side helper card */}
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                    Publishing Checklist
+                  </div>
+                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
+                    <li><strong>Active:</strong> Product appears immediately in search & catalog.</li>
+                    <li><strong>Draft:</strong> Saves configuration without publishing live.</li>
+                  </ul>
+                </div>
               </div>
             )}
           </form>

@@ -4,7 +4,7 @@ import { storageService } from './storageService';
 export const imageService = {
   /**
    * Process and upload file
-   * Converts to base64 representing mock upload to storage
+   * Converts to base64 representing upload to local storage
    * @param {File} file 
    * @returns {Promise<string>}
    */

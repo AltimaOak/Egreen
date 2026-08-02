@@ -1,79 +1,72 @@
-@import "tailwindcss";
-
 /* ============================================================
-   Egreen Admin Design System — Semantic Token Layer
-   Tailwind CSS v4 @theme directive
-   ============================================================ */
-
-@theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-
-  /* Core palette */
-  --color-background: #F7F8FA;
-  --color-surface: #FFFFFF;
-  --color-primary: #10B981;
-  --color-blue: #2563EB;
-  --color-indigo: #4F46E5;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-text: #111827;
-  --color-muted: #6B7280;
-  --color-border: rgba(15, 23, 42, 0.06);
-
-  /* Radii */
-  --radius-card: 14px;
-  --radius-button: 10px;
-  --radius-input: 10px;
-
-  /* Shadows — restrained, enterprise */
-  --shadow-soft: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
-  --shadow-elevated: 0 10px 15px -3px rgba(15, 23, 42, 0.04), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-}
-
-/* ============================================================
-   Backward-compatibility aliases (public site + legacy refs)
+   Egreen — Global Design Tokens (CSS Custom Properties)
+   Applies to both the admin panel and public site (Light Theme Only).
    ============================================================ */
 
 :root {
-  --primary: var(--color-primary);
-  --primary-hover: #059669;
-  --secondary: var(--color-text);
-  --bg-color: var(--color-background);
-  --bg-muted: #F3F4F6;
-  --card-bg: var(--color-surface);
-  --border: var(--color-border);
-  --text-heading: var(--color-text);
-  --text-body: var(--color-muted);
-  --success: var(--color-success);
-  --warning: var(--color-warning);
-  --danger: var(--color-danger);
-  --info: var(--color-blue);
-  --font-body: var(--font-sans);
-  --font-heading: var(--font-sans);
-  --radius: var(--radius-card);
-  --radius-sm: var(--radius-button);
-  --transition: all 0.2s ease;
-  --shadow-sm: var(--shadow-soft);
-  --shadow-md: var(--shadow-elevated);
-  --shadow-lg: var(--shadow-elevated);
-}
+  /* Font families */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
 
-/* ============================================================
-   Dark-mode token overrides
-   The ThemeContext toggles a `dark` class on <html>.
-   ============================================================ */
+  /* Brand / Primary */
+  --color-primary:       #10B981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #D1FAE5;
 
-.dark {
-  --color-background: #0B0F17;
-  --color-surface: #151C2C;
-  --color-text: #F8FAFC;
-  --color-muted: #94A3B8;
-  --color-border: rgba(15, 23, 42, 0.12);
-  --bg-color: #0B0F17;
-  --bg-muted: #1E293B;
-  --card-bg: #151C2C;
-  --border: rgba(15, 23, 42, 0.12);
-  --text-heading: #F8FAFC;
-  --text-body: #94A3B8;
+  /* Backgrounds */
+  --color-background: #F3F4F8;
+  --color-surface:    #FFFFFF;
+  --color-surface-2:  #F9FAFB;
+
+  /* Semantic */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger:  #EF4444;
+  --color-blue:    #3B82F6;
+  --color-indigo:  #6366F1;
+  --color-purple:  #8B5CF6;
+
+  /* Text */
+  --color-text:   #111827;
+  --color-muted:  #6B7280;
+  --color-subtle: #9CA3AF;
+
+  /* Borders */
+  --color-border:   #E5E7EB;
+  --color-border-2: rgba(0,0,0,0.06);
+
+  /* Border radii */
+  --radius-card:   16px;
+  --radius-button: 10px;
+  --radius-input:  10px;
+  --radius-badge:  9999px;
+  --radius-sm:     8px;
+  --radius:        12px;
+
+  /* Shadows */
+  --shadow-soft:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card:     0 2px 8px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.05);
+  --shadow-overlay:  0 20px 60px rgba(0,0,0,0.18);
+
+  /* Backward-compat aliases */
+  --primary:          var(--color-primary);
+  --primary-hover:    var(--color-primary-hover);
+  --secondary:        #111827;
+  --bg-color:         var(--color-background);
+  --bg-muted:         var(--color-surface-2);
+  --card-bg:          var(--color-surface);
+  --text-heading:     var(--color-text);
+  --text-body:        var(--color-muted);
+  --border:           var(--color-border);
+  --shadow-sm:        var(--shadow-soft);
+  --shadow-md:        var(--shadow-card);
+  --shadow-lg:        var(--shadow-elevated);
+  --shadow-hover:     var(--shadow-elevated);
+  --transition:       all 0.2s ease;
+  --nav-height:       72px;
+
+  /* Admin-specific */
+  --adminPanelBg:     var(--color-background);
 }

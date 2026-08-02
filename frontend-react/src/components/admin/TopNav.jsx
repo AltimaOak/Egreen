@@ -1,87 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { useAdmin } from '../../contexts/AdminContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Search, Plus, Bell, Sun, Moon, ChevronRight } from 'lucide-react';
+import { Menu, Search, Bell, Plus, ChevronRight } from 'lucide-react';
+
+const PAGE_TITLES = {
+  '/admin':            'Dashboard',
+  '/admin/products':   'Products',
+  '/admin/orders':     'Orders',
+  '/admin/categories': 'Categories',
+  '/admin/customers':  'Customers',
+  '/admin/analytics':  'Analytics',
+  '/admin/settings':   'Settings',
+};
 
 const TopNav = ({ toggleSidebar, collapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { themeSettings, updateTheme } = useTheme();
-  const [currentDate, setCurrentDate] = useState('');
-  const [searchValue, setSearchValue] = useState('');
+  const { themeSettings } = useTheme();
+  const [date, setDate] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-    setCurrentDate(new Date().toLocaleDateString('en-US', options));
+    setDate(new Date().toLocaleDateString('en-IN', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    }));
   }, []);
 
-  const toggleThemeMode = () => {
-    const nextTheme = themeSettings.theme === 'dark' ? 'light' : 'dark';
-    updateTheme({ theme: nextTheme });
-  };
+  const pageTitle = PAGE_TITLES[location.pathname] ?? 'Admin';
 
-  const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter' && searchValue.trim() !== '') {
-      navigate(`/admin/products?q=${encodeURIComponent(searchValue)}`);
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && search.trim()) {
+      navigate(`/admin/products?q=${encodeURIComponent(search)}`);
     }
   };
 
-  // Derive page title from current route
-  const getPageTitle = () => {
-    const path = location.pathname;
-    if (path === '/admin') return 'Dashboard';
-    if (path === '/admin/products') return 'Products';
-    if (path === '/admin/orders') return 'Orders';
-    if (path === '/admin/categories') return 'Categories';
-    if (path === '/admin/customers') return 'Customers';
-    if (path === '/admin/pages') return 'Pages';
-    if (path === '/admin/analytics') return 'Analytics';
-    if (path === '/admin/settings') return 'Settings';
-    return 'Admin';
-  };
+  const initial = (themeSettings.adminName || 'A').charAt(0).toUpperCase();
 
   return (
     <header className="admin-topnav">
+      {/* Left */}
       <div className="admin-topnav-left">
         <button
-          className="admin-topnav-toggle"
+          className="admin-topnav-icon-btn"
           onClick={toggleSidebar}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="4" y1="18" x2="20" y2="18"></line>
-          </svg>
+          <Menu size={17} />
         </button>
 
         <div>
-          <h1 className="text-lg font-semibold text-text">{getPageTitle()}</h1>
-          <nav className="flex items-center gap-1 text-xs text-muted">
-            <Link to="/admin" className="hover:text-text transition-colors">Admin</Link>
-            <ChevronRight size={12} />
-            <span className="text-text">{getPageTitle()}</span>
+          <div className="admin-topnav-title">{pageTitle}</div>
+          <nav className="admin-topnav-breadcrumb">
+            <Link to="/admin">Admin</Link>
+            <ChevronRight size={11} />
+            <span>{pageTitle}</span>
           </nav>
         </div>
       </div>
 
+      {/* Right */}
       <div className="admin-topnav-right">
-        <div className="admin-topnav-search-box">
-          <Search size={16} className="absolute left-3 text-muted" />
+        {/* Search */}
+        <div className="admin-topnav-search">
+          <Search size={15} className="admin-topnav-search-icon" />
           <input
-            type="text"
             className="admin-topnav-search-input"
-            placeholder="Search anything..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyPress={handleSearchKeyPress}
+            placeholder="Search products, orders…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={handleSearch}
           />
-          <span className="admin-topnav-search-kbd">⌘K</span>
         </div>
 
-        <span className="admin-topnav-date">{currentDate}</span>
+        {/* Date pill */}
+        <span className="admin-topnav-date-badge">{date}</span>
 
+        {/* Add Product shortcut */}
         <Link
           to="/admin/products?action=add"
           className="admin-btn admin-btn-primary admin-btn-sm"
@@ -90,24 +84,14 @@ const TopNav = ({ toggleSidebar, collapsed }) => {
           <Plus size={14} /> Add Product
         </Link>
 
-        <button
-          className="admin-topnav-icon-btn has-badge"
-          title="Notifications"
-        >
+        {/* Notifications */}
+        <button className="admin-topnav-icon-btn" title="Notifications">
           <Bell size={16} />
+          <span className="admin-topnav-notification-dot" />
         </button>
 
-        <button
-          className="admin-topnav-icon-btn"
-          onClick={toggleThemeMode}
-          title={`Switch to ${themeSettings.theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-        >
-          {themeSettings.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
-
-        <div className="admin-topnav-avatar">
-          {themeSettings.adminName?.charAt(0).toUpperCase() || 'A'}
-        </div>
+        {/* Avatar */}
+        <div className="admin-topnav-avatar" title="Profile">{initial}</div>
       </div>
     </header>
   );
