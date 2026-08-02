@@ -6,6 +6,7 @@ import About from './pages/About';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
 
+<<<<<<< HEAD
 // Admin Components
 import { AdminProvider } from './contexts/AdminContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -25,6 +26,9 @@ import Analytics from './pages/admin/Analytics';
 
 const router = createBrowserRouter([
   // Public client website routes
+=======
+const router = createBrowserRouter([
+>>>>>>> 1c861ec904e502df740e5e9a7f7caa3bd43edb8f
   {
     path: "/",
     element: <Layout />,
@@ -34,6 +38,7 @@ const router = createBrowserRouter([
       { path: "products", element: <Products /> },
       { path: "contact", element: <Contact /> }
     ]
+<<<<<<< HEAD
   },
 
   // Admin login (public)
@@ -63,10 +68,13 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <NotFound />
+=======
+>>>>>>> 1c861ec904e502df740e5e9a7f7caa3bd43edb8f
   }
 ]);
 
 function App() {
+<<<<<<< HEAD
   return (
     <AdminProvider>
       <ThemeProvider>
@@ -74,6 +82,9 @@ function App() {
       </ThemeProvider>
     </AdminProvider>
   );
+=======
+  return <RouterProvider router={router} />;
+>>>>>>> 1c861ec904e502df740e5e9a7f7caa3bd43edb8f
 }
 
 export default App;
