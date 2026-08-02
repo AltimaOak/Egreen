@@ -1,23 +1,23 @@
 /* Custom properties for theme */
 :root {
   /* Brand Colors */
-  --primary: #10B981;
-  --primary-hover: #059669;
-  --secondary: #111827;
-  --accent: #34D399;
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --secondary: #0F172A;
+  --accent: #3B82F6;
   
   /* Neutral Colors */
-  --bg-color: #FAFAFA;
-  --bg-muted: #F3F4F6;
+  --bg-color: #F1F5F9;
+  --bg-muted: #E2E8F0;
   --card-bg: #FFFFFF;
-  --border: #E5E7EB;
+  --border: #CBD5E1;
   
   /* Text Colors */
-  --text-heading: #111827;
-  --text-body: #6B7280;
+  --text-heading: #0F172A;
+  --text-body: #334155;
   
   /* Status */
-  --success: #22C55E;
+  --success: #16A34A;
   
   /* Typography */
   --font-heading: 'Poppins', sans-serif;

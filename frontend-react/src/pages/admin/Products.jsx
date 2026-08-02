@@ -732,7 +732,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Basic Info Tips
                   </div>
@@ -826,7 +826,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Specs Guidelines
                   </div>
@@ -875,7 +875,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Image Tips
                   </div>
@@ -923,7 +923,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Pricing Structure
                   </div>
@@ -972,7 +972,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Publishing Checklist
                   </div>

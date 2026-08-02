@@ -12,8 +12,8 @@ import { Save, Upload, Shield, Bell, Layout, Settings as SettingsIcon, Eye, EyeO
 const TABS = ['General', 'Appearance', 'Site Info', 'Credentials', 'Notifications'];
 
 const COLORS = [
-  { value: '#10B981', label: 'Emerald' },
-  { value: '#3B82F6', label: 'Blue' },
+  { value: '#2563EB', label: 'Blue' },
+  { value: '#3B82F6', label: 'Sky' },
   { value: '#8B5CF6', label: 'Purple' },
   { value: '#F59E0B', label: 'Amber' },
   { value: '#EF4444', label: 'Red' },
@@ -29,8 +29,8 @@ const Settings = () => {
 
   const [websiteName, setWebsiteName]       = useState('');
   const [logoText, setLogoText]             = useState('');
-  const [primaryColor, setPrimaryColor]     = useState('#10B981');
-  const [secondaryColor, setSecondaryColor] = useState('#111827');
+  const [primaryColor, setPrimaryColor]     = useState('#2563EB');
+  const [secondaryColor, setSecondaryColor] = useState('#0F172A');
   const [footerText, setFooterText]         = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [theme, setTheme]                   = useState('light');
@@ -46,8 +46,8 @@ const Settings = () => {
       const d = await settingsService.getSettings();
       setWebsiteName(d.websiteName || '');
       setLogoText(d.logoText || '');
-      setPrimaryColor(d.primaryColor || '#10B981');
-      setSecondaryColor(d.secondaryColor || '#111827');
+      setPrimaryColor(d.primaryColor || '#2563EB');
+      setSecondaryColor(d.secondaryColor || '#0F172A');
       setFooterText(d.footerText || '');
       setMaintenanceMode(d.maintenanceMode || false);
       setStoreEmail(d.storeEmail || '');
@@ -137,7 +137,7 @@ const Settings = () => {
                     />
                   ))}
                 </div>
-                <Input label="Hex Value" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} placeholder="#10B981" />
+                <Input label="Hex Value" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} placeholder="#2563EB" />
               </Collapsible>
 
               {/* Maintenance */}
