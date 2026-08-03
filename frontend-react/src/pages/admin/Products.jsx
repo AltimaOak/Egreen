@@ -69,6 +69,7 @@ const INITIAL_FORM_STATE = {
   seoTitle: '',
   seoDescription: '',
   image: '',
+  imagePublicId: '',
   gallery: [],
 };
 
@@ -243,6 +244,7 @@ const Products = () => {
       seoTitle: product.seoTitle || '',
       seoDescription: product.seoDescription || '',
       image: product.image || '',
+      imagePublicId: product.imagePublicId || '',
       gallery: product.gallery || [],
     });
     setWizardStep(0);
@@ -269,6 +271,9 @@ const Products = () => {
   const confirmDelete = async () => {
     try {
       showToast('Deleting Product...', 'loading');
+      if (productToDelete.imagePublicId) {
+        imageService.deleteImage(productToDelete.imagePublicId);
+      }
       await productService.deleteProduct(productToDelete.id);
       showToast('Product Deleted Successfully', 'success');
       fetchProducts();
@@ -285,8 +290,8 @@ const Products = () => {
     try {
       setImageUploading(true);
       showToast('Uploading image...', 'loading');
-      const url = await imageService.uploadImage(file);
-      setFormData((prev) => ({ ...prev, image: url }));
+      const { url, publicId } = await imageService.uploadImage(file);
+      setFormData((prev) => ({ ...prev, image: url, imagePublicId: publicId }));
       showToast('Image uploaded successfully', 'success');
     } catch {
       showToast('Image upload failed.', 'error');
@@ -849,7 +854,12 @@ const Products = () => {
                       <img src={formData.image} alt="Upload Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                       <button
                         type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                        onClick={() => {
+                          if (formData.imagePublicId) {
+                            imageService.deleteImage(formData.imagePublicId);
+                          }
+                          setFormData((prev) => ({ ...prev, image: '', imagePublicId: '' }));
+                        }}
                         style={{
                           position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                         }}
