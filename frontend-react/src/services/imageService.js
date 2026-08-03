@@ -1,42 +1,43 @@
-// Image Upload & Management Service
-import { storageService } from './storageService';
+// Image Upload & Management Service — uploads to Cloudinary via the backend
+const UPLOAD_URL = '/api/upload';
 
 export const imageService = {
   /**
-   * Process and upload file
-   * Converts to base64 representing upload to local storage
-   * @param {File} file 
-   * @returns {Promise<string>}
+   * Upload an image file to Cloudinary through the backend.
+   * Only the returned URL + public_id are stored on the product.
+   * @param {File} file
+   * @returns {Promise<{ url: string, publicId: string }>}
    */
   async uploadImage(file) {
-    await storageService.simulateDelay(1500); // 1.5s simulated upload delay
-    
-    return new Promise((resolve, reject) => {
-      if (!file) {
-        reject(new Error('No file provided.'));
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result); // Returns base64 representation
-      };
-      reader.onerror = () => {
-        reject(new Error('Failed to read file contents.'));
-      };
-      reader.readAsDataURL(file);
-    });
+    if (!file) {
+      throw new Error('No file provided.');
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Image upload failed.');
+    }
+
+    return { url: data.url, publicId: data.publicId };
   },
 
   /**
-   * Delete an image
-   * @param {string} urlOrBase64 
+   * Delete an image from Cloudinary by its public_id.
+   * @param {string} publicId
    * @returns {Promise<boolean>}
    */
-  async deleteImage(urlOrBase64) {
-    await storageService.simulateDelay(500);
-    // In local storage, there is nothing specific to delete from storage directly unless tracking it.
-    // In production, this would make an API call to delete the asset from S3/Cloudinary.
-    return true;
+  async deleteImage(publicId) {
+    if (!publicId) return true;
+
+    const response = await fetch(`${UPLOAD_URL}/${encodeURIComponent(publicId)}`, {
+      method: 'DELETE',
+    });
+
+    return response.ok;
   }
 };
