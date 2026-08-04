@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { productService } from '../services/productService';
+import { fetchCatalogProducts } from '../services/catalogService';
 import FadeUp from '../components/FadeUp';
 
 const categories = [
@@ -35,7 +35,7 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await productService.getProducts();
+        const data = await fetchCatalogProducts();
         // Only display active products on customer facing side
         const active = data.filter(p => p.status === 'Active');
         setProductsList(active);

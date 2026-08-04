@@ -262,6 +262,17 @@ async function main() {
   }
   console.log(`Created ${brands.length} brands`);
 
+  // Create an admin account (overridable via ADMIN_EMAIL / ADMIN_PASSWORD in .env)
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@egreen.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: { role: 'admin', password: adminHash },
+    create: { name: 'Admin', email: adminEmail, password: adminHash, role: 'admin' },
+  });
+  console.log(`Ensured admin user (${adminEmail})`);
+
   // Load scraped data and merge it onto the seed products
   const { products: scrapedProducts, skipped } = loadScrapedProducts();
   const enrichmentMap = buildEnrichmentMap(scrapedProducts);
