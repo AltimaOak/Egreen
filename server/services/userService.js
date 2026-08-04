@@ -42,4 +42,22 @@ const updateProfile = async (userId, data) => {
   return user;
 };
 
-module.exports = { getProfile, updateProfile };
+// Admin: list customer accounts (with their order totals so the UI can derive
+// order count + total spent).
+const listUsers = async () => {
+  return prisma.user.findMany({
+    where: { role: 'customer' },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      companyName: true,
+      createdAt: true,
+      orders: { select: { total: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+module.exports = { getProfile, updateProfile, listUsers };

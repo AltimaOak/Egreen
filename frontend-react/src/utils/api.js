@@ -1,4 +1,17 @@
 const TOKEN_KEY = 'egreen_token';
+const ADMIN_SESSION_KEY = 'egreen_auth_session';
+
+// Prefer the admin session token when an admin is logged in (the admin API
+// routes require it); fall back to the customer token.
+function getAuthToken() {
+  try {
+    const admin = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
+    if (admin && admin.token) return admin.token;
+  } catch {
+    /* ignore malformed session */
+  }
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 class ApiError extends Error {
   constructor({ error, details, status }) {
@@ -11,7 +24,7 @@ class ApiError extends Error {
 }
 
 async function request(endpoint, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = getAuthToken();
 
   const headers = {
     'Content-Type': 'application/json',
@@ -35,6 +48,7 @@ async function request(endpoint, options = {}) {
     // Handle token expiry specifically
     if (response.status === 401 && data.error === 'TOKEN_EXPIRED') {
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(ADMIN_SESSION_KEY);
       window.dispatchEvent(new CustomEvent('auth:tokenExpired'));
     }
 

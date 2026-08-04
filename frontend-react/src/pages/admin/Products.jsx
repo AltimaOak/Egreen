@@ -44,11 +44,12 @@ const DEFAULT_BRANDS = [
 ];
 
 const DEFAULT_CATEGORIES = [
-  { value: 'laptop', label: 'Laptops' },
+  { value: 'mini-pc', label: 'Mini PCs' },
+  { value: 'thin-client', label: 'Thin Clients' },
   { value: 'desktop', label: 'Desktops' },
-  { value: 'monitor', label: 'Monitors' },
-  { value: 'components', label: 'Components' },
-  { value: 'accessories', label: 'Accessories' },
+  { value: 'laptop', label: 'Laptops' },
+  { value: 'processors', label: 'Processors' },
+  { value: 'components', label: 'Components & SSDs' },
 ];
 
 const INITIAL_FORM_STATE = {
@@ -117,7 +118,7 @@ const Products = () => {
     try {
       const cats = await categoryService.getCategories();
       if (cats && cats.length > 0) {
-        setCategoryOptions(cats.map((c) => ({ value: c.name.toLowerCase(), label: c.name })));
+        setCategoryOptions(cats.map((c) => ({ value: c.slug, label: c.name })));
       }
       const prods = await productService.getProducts();
       const brandSet = {};

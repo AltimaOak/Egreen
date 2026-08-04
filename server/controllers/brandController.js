@@ -11,4 +11,19 @@ const getById = catchAsync(async (req, res) => {
   res.json({ brand });
 });
 
-module.exports = { list, getById };
+const create = catchAsync(async (req, res) => {
+  const brand = await brandService.createBrand(req.body);
+  res.status(201).json({ brand });
+});
+
+const update = catchAsync(async (req, res) => {
+  const brand = await brandService.updateBrand(parseInt(req.params.id), req.body);
+  res.json({ brand });
+});
+
+const remove = catchAsync(async (req, res) => {
+  await brandService.deleteBrand(parseInt(req.params.id));
+  res.json({ success: true });
+});
+
+module.exports = { list, getById, create, update, remove };

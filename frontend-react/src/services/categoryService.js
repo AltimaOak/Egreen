@@ -1,74 +1,41 @@
-// Categories Service — backed by localStorage, no pre-seeded mock data
-import { storageService } from './storageService';
-import { activityService } from './activityService';
+// Category Service — backend-backed. Used by the admin product form for the
+// category dropdown.
+import { api } from '../utils/api';
 
-const CATEGORIES_KEY = 'categories_list';
+function toCategory(c) {
+  return {
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    value: c.slug,
+    label: c.name,
+    count: c._count?.products ?? 0,
+  };
+}
 
 export const categoryService = {
-  _load() {
-    return storageService.load(CATEGORIES_KEY, []);
-  },
-
   async getCategories() {
-    await storageService.simulateDelay(100);
-    return this._load();
+    const data = await api.get('/api/categories');
+    return (data.categories || []).map(toCategory);
   },
 
-  async toggleCategoryStatus(id) {
-    await storageService.simulateDelay(300);
-    const list = this._load();
-    const index = list.findIndex(c => c.id === id);
-    if (index !== -1) {
-      const nextStatus = list[index].status === 'Active' ? 'Inactive' : 'Active';
-      list[index].status = nextStatus;
-      storageService.save(CATEGORIES_KEY, list);
-      await activityService.logActivity('Category Modified', `Category "${list[index].name}" status toggled to ${nextStatus}.`);
-      return true;
-    }
-    return false;
+  // Kept for parity with the old API; categories have no active flag.
+  async toggleCategoryStatus() {
+    return true;
   },
 
   async addCategory(category) {
-    await storageService.simulateDelay(300);
-    const list = this._load();
-    const newCat = {
-      ...category,
-      id: 'cat_' + Date.now(),
-      count: 0,
-      logoText: category.name.substring(0, 2).toUpperCase(),
-    };
-    list.push(newCat);
-    storageService.save(CATEGORIES_KEY, list);
-    await activityService.logActivity('Category Created', `New brand category "${newCat.name}" was added.`);
-    return newCat;
+    const data = await api.post('/api/categories', { name: category.name });
+    return toCategory(data.category);
   },
 
   async updateCategory(id, categoryData) {
-    await storageService.simulateDelay(300);
-    const list = this._load();
-    const index = list.findIndex(c => c.id === id);
-    if (index !== -1) {
-      list[index] = {
-        ...list[index],
-        ...categoryData,
-        logoText: (categoryData.name || list[index].name).substring(0, 2).toUpperCase(),
-      };
-      storageService.save(CATEGORIES_KEY, list);
-      await activityService.logActivity('Category Updated', `Category "${list[index].name}" was updated.`);
-      return list[index];
-    }
-    return null;
+    const data = await api.put(`/api/categories/${id}`, { name: categoryData.name });
+    return toCategory(data.category);
   },
 
   async deleteCategory(id) {
-    await storageService.simulateDelay(300);
-    const list = this._load();
-    const cat = list.find(c => c.id === id);
-    const updated = list.filter(c => c.id !== id);
-    storageService.save(CATEGORIES_KEY, updated);
-    if (cat) {
-      await activityService.logActivity('Category Deleted', `Brand category "${cat.name}" was removed.`);
-    }
+    await api.del(`/api/categories/${id}`);
     return true;
   },
 };

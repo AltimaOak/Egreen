@@ -117,4 +117,44 @@ const getOrderById = async (userId, orderId) => {
   return order;
 };
 
-module.exports = { placeOrder, getUserOrders, getOrderById };
+// Admin: all orders with customer info and item/brand details.
+const listAllOrders = async () => {
+  return prisma.order.findMany({
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, phone: true, companyName: true },
+      },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              specs: true,
+              brand: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+// Admin: update an order's status.
+const updateOrderStatus = async (orderId, status) => {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) {
+    throw new AppError('Order not found', 404);
+  }
+  return prisma.order.update({ where: { id: orderId }, data: { status } });
+};
+
+module.exports = {
+  placeOrder,
+  getUserOrders,
+  getOrderById,
+  listAllOrders,
+  updateOrderStatus,
+};

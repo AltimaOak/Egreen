@@ -11,4 +11,19 @@ const getBySlug = catchAsync(async (req, res) => {
   res.json({ category });
 });
 
-module.exports = { list, getBySlug };
+const create = catchAsync(async (req, res) => {
+  const category = await categoryService.createCategory(req.body);
+  res.status(201).json({ category });
+});
+
+const update = catchAsync(async (req, res) => {
+  const category = await categoryService.updateCategory(parseInt(req.params.id), req.body);
+  res.json({ category });
+});
+
+const remove = catchAsync(async (req, res) => {
+  await categoryService.deleteCategory(parseInt(req.params.id));
+  res.json({ success: true });
+});
+
+module.exports = { list, getBySlug, create, update, remove };

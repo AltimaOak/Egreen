@@ -57,10 +57,17 @@ model Product {
   condition   String   @default("New")
   stock       String   @default("In Stock")
   specs       String   @default("")
-  image       String   @default("")
-  price       Decimal? @db.Decimal(10, 2)
-  isFeatured  Boolean  @default(false)
-  isActive    Boolean  @default(true)
+  image           String   @default("")
+  imagePublicId   String?
+  price           Decimal? @db.Decimal(10, 2)
+  offerPrice      Decimal? @db.Decimal(10, 2)
+  rating          Decimal? @db.Decimal(3, 1)
+  seoTitle        String?
+  seoDescription  String?
+  features        Json?
+  gallery         Json?
+  isFeatured      Boolean  @default(false)
+  isActive        Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
