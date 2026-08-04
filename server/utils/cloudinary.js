@@ -13,7 +13,7 @@ cloudinary.config({
  * @param {{ folder?: string }} [options]
  * @returns {Promise<{ url: string, publicId: string }>}
  */
-const uploadImage = (buffer, { folder = 'egreen/products' } = {}) =>
+const uploadImage = (buffer, { folder = 'laptop' } = {}) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder },
