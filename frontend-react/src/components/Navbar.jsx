@@ -41,6 +41,7 @@ const Navbar = () => {
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
           <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
+          <Link to="/admin" className="nav-mobile-link" onClick={closeMenu}>Admin</Link>
           {!isAuthenticated && !loading && (
             <Link to="/login" className={`nav-mobile-link ${location.pathname === '/login' ? 'active' : ''}`} onClick={closeMenu}>Sign In</Link>
           )}
@@ -50,6 +51,7 @@ const Navbar = () => {
         </div>
         <div className="nav-actions">
           <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
+          <Link to="/admin" className="btn btn-outline" onClick={closeMenu}>Admin</Link>
           {loading ? null : isAuthenticated ? (
             <>
               <span className="user-greeting">
