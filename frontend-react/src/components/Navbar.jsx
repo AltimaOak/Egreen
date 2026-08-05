@@ -32,8 +32,8 @@ const Navbar = () => {
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container">
         <Link to="/" className="logo" onClick={closeMenu}>
-          <div className="logo-icon"></div>
-          Egreen Technology
+          <img src="/assets/egreen_logo.png" alt="Egreen Technology Logo" className="navbar-logo-img" />
+          <span className="logo-text">Egreen <span className="logo-accent">Technology</span></span>
         </Link>
         <div className={`nav-links ${isMenuOpen ? 'active-menu' : ''}`}>
           <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>Home</Link>

@@ -12,12 +12,12 @@ import { Save, Upload, Shield, Bell, Layout, Settings as SettingsIcon, Eye, EyeO
 const TABS = ['General', 'Appearance', 'Site Info', 'Credentials', 'Notifications'];
 
 const COLORS = [
+  { value: '#16A34A', label: 'Green' },
   { value: '#2563EB', label: 'Blue' },
-  { value: '#3B82F6', label: 'Sky' },
   { value: '#8B5CF6', label: 'Purple' },
   { value: '#F59E0B', label: 'Amber' },
   { value: '#EF4444', label: 'Red' },
-  { value: '#1E293B', label: 'Slate' },
+  { value: '#0F291E', label: 'Dark Emerald' },
 ];
 
 const Settings = () => {
@@ -29,8 +29,8 @@ const Settings = () => {
 
   const [websiteName, setWebsiteName]       = useState('');
   const [logoText, setLogoText]             = useState('');
-  const [primaryColor, setPrimaryColor]     = useState('#2563EB');
-  const [secondaryColor, setSecondaryColor] = useState('#0F172A');
+  const [primaryColor, setPrimaryColor]     = useState('#16A34A');
+  const [secondaryColor, setSecondaryColor] = useState('#0F291E');
   const [footerText, setFooterText]         = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [theme, setTheme]                   = useState('light');
@@ -46,8 +46,8 @@ const Settings = () => {
       const d = await settingsService.getSettings();
       setWebsiteName(d.websiteName || '');
       setLogoText(d.logoText || '');
-      setPrimaryColor(d.primaryColor || '#2563EB');
-      setSecondaryColor(d.secondaryColor || '#0F172A');
+      setPrimaryColor(d.primaryColor || '#16A34A');
+      setSecondaryColor(d.secondaryColor || '#0F291E');
       setFooterText(d.footerText || '');
       setMaintenanceMode(d.maintenanceMode || false);
       setStoreEmail(d.storeEmail || '');

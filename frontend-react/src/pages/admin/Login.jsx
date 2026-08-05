@@ -33,8 +33,8 @@ const Login = () => {
       <div className="admin-login-card">
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#2563EB,#1D4ED8)', color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 14, boxShadow: '0 6px 20px rgba(37,99,235,0.35)' }}>
-            E
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+            <img src="/assets/egreen_logo.png" alt="Egreen Technology Logo" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
           </div>
           <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.025em' }}>
             Egreen Tech Admin

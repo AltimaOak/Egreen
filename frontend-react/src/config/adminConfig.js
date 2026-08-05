@@ -1,4 +1,4 @@
-﻿// Default config settings for Egreen Admin Panel
+// Default config settings for Egreen Admin Panel
 
 // Standard SHA-256 hash of "admin123" is "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
 export const ADMIN_CREDENTIALS = {
@@ -69,7 +69,7 @@ export const DEFAULT_CONTACT_DATA = {
   email: 'egreentechnology24@gmail.com',
   workingHours: 'Monday - Saturday: 9:00 AM - 6:00 PM; Sunday: Closed',
   googleMapsLink: 'https://maps.google.com/maps?q=19%C2%B010\'22.5%22N+72%C2%B051\'27.1%22E&hl=en&z=15&output=embed',
-  facebook: 'https://facebook.com',
+  facebook: 'https://www.facebook.com/profile.php?id=61592575032790#',
   instagram: 'https://instagram.com',
   linkedin: 'https://linkedin.com',
   twitter: 'https://twitter.com',
@@ -79,13 +79,13 @@ export const DEFAULT_CONTACT_DATA = {
 export const DEFAULT_SETTINGS_DATA = {
   websiteName: 'Egreen Technology',
   logoText: 'Egreen Technology',
-  logoImage: '', // Base64 or URL
-  favicon: '',
+  logoImage: '/assets/egreen_logo.png', // Official Logo Image
+  favicon: '/assets/egreen_logo.png',
   adminName: 'Administrator',
-  primaryColor: '#2563EB', // blue theme
-  primaryHoverColor: '#1D4ED8',
-  secondaryColor: '#0F172A',
-  footerText: 'Â© 2026 Egreen Technology. All rights reserved.',
+  primaryColor: '#2A3AB9', // Royal Blue theme
+  primaryHoverColor: '#1E2A96',
+  secondaryColor: '#0F164C',
+  footerText: '© 2026 Egreen Technology. All rights reserved.',
   maintenanceMode: false
 };
 

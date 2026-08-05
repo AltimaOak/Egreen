@@ -7,8 +7,8 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
   const [themeSettings, setThemeSettings] = useState({
     theme: 'light',
-    primaryColor: '#2563EB',
-    secondaryColor: '#0F172A',
+    primaryColor: '#2A3AB9',
+    secondaryColor: '#0F164C',
     websiteName: 'Egreen Technology',
     adminName: 'Administrator',
   });
@@ -18,8 +18,8 @@ export const ThemeProvider = ({ children }) => {
       const settings = await settingsService.getSettings();
       setThemeSettings({
         theme: 'light',
-        primaryColor: settings.primaryColor || '#2563EB',
-        secondaryColor: settings.secondaryColor || '#0F172A',
+        primaryColor: settings.primaryColor || '#2A3AB9',
+        secondaryColor: settings.secondaryColor || '#0F164C',
         websiteName: settings.websiteName || 'Egreen Technology',
         adminName: settings.adminName || 'Administrator',
       });
