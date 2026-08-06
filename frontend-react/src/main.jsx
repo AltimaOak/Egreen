@@ -5,7 +5,6 @@ import App from './App.jsx';
 import './styles/variables.css';
 import './styles/main.css';
 import './styles/pages.css';
-<<<<<<< HEAD
 import './styles/admin.css';
 
 // ── Storage migration: clear mock-seeded data on version bump ──────────────
@@ -26,15 +25,9 @@ if (storedVersion !== DATA_VERSION) {
   localStorage.setItem(versionKey, DATA_VERSION);
 }
 // ──────────────────────────────────────────────────────────────────────────
-=======
->>>>>>> 1c861ec904e502df740e5e9a7f7caa3bd43edb8f
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
 );
-<<<<<<< HEAD
-
-=======
->>>>>>> 1c861ec904e502df740e5e9a7f7caa3bd43edb8f
