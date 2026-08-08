@@ -1,10 +1,13 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 // Admin Components
 import { AdminProvider } from './contexts/AdminContext';
@@ -13,7 +16,7 @@ import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminLayout from './components/admin/AdminLayout';
 
 // Admin Pages
-import Login from './pages/admin/Login';
+import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
 import Settings from './pages/admin/Settings';
@@ -32,12 +35,14 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "about", element: <About /> },
       { path: "products", element: <Products /> },
-      { path: "contact", element: <Contact /> }
+      { path: "contact", element: <Contact /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
     ]
   },
 
   // Admin login (public)
-  { path: "/admin/login", element: <Login /> },
+  { path: "/admin/login", element: <AdminLogin /> },
 
   // Protected Admin routes
   {
@@ -70,7 +75,9 @@ function App() {
   return (
     <AdminProvider>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </ThemeProvider>
     </AdminProvider>
   );

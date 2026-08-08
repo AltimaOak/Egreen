@@ -44,11 +44,12 @@ const DEFAULT_BRANDS = [
 ];
 
 const DEFAULT_CATEGORIES = [
-  { value: 'laptop', label: 'Laptops' },
+  { value: 'mini-pc', label: 'Mini PCs' },
+  { value: 'thin-client', label: 'Thin Clients' },
   { value: 'desktop', label: 'Desktops' },
-  { value: 'monitor', label: 'Monitors' },
-  { value: 'components', label: 'Components' },
-  { value: 'accessories', label: 'Accessories' },
+  { value: 'laptop', label: 'Laptops' },
+  { value: 'processors', label: 'Processors' },
+  { value: 'components', label: 'Components & SSDs' },
 ];
 
 const INITIAL_FORM_STATE = {
@@ -69,6 +70,7 @@ const INITIAL_FORM_STATE = {
   seoTitle: '',
   seoDescription: '',
   image: '',
+  imagePublicId: '',
   gallery: [],
 };
 
@@ -116,7 +118,7 @@ const Products = () => {
     try {
       const cats = await categoryService.getCategories();
       if (cats && cats.length > 0) {
-        setCategoryOptions(cats.map((c) => ({ value: c.name.toLowerCase(), label: c.name })));
+        setCategoryOptions(cats.map((c) => ({ value: c.slug, label: c.name })));
       }
       const prods = await productService.getProducts();
       const brandSet = {};
@@ -243,6 +245,7 @@ const Products = () => {
       seoTitle: product.seoTitle || '',
       seoDescription: product.seoDescription || '',
       image: product.image || '',
+      imagePublicId: product.imagePublicId || '',
       gallery: product.gallery || [],
     });
     setWizardStep(0);
@@ -269,6 +272,9 @@ const Products = () => {
   const confirmDelete = async () => {
     try {
       showToast('Deleting Product...', 'loading');
+      if (productToDelete.imagePublicId) {
+        imageService.deleteImage(productToDelete.imagePublicId);
+      }
       await productService.deleteProduct(productToDelete.id);
       showToast('Product Deleted Successfully', 'success');
       fetchProducts();
@@ -285,8 +291,8 @@ const Products = () => {
     try {
       setImageUploading(true);
       showToast('Uploading image...', 'loading');
-      const url = await imageService.uploadImage(file);
-      setFormData((prev) => ({ ...prev, image: url }));
+      const { url, publicId } = await imageService.uploadImage(file);
+      setFormData((prev) => ({ ...prev, image: url, imagePublicId: publicId }));
       showToast('Image uploaded successfully', 'success');
     } catch {
       showToast('Image upload failed.', 'error');
@@ -732,7 +738,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Basic Info Tips
                   </div>
@@ -826,7 +832,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Specs Guidelines
                   </div>
@@ -849,7 +855,12 @@ const Products = () => {
                       <img src={formData.image} alt="Upload Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                       <button
                         type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                        onClick={() => {
+                          if (formData.imagePublicId) {
+                            imageService.deleteImage(formData.imagePublicId);
+                          }
+                          setFormData((prev) => ({ ...prev, image: '', imagePublicId: '' }));
+                        }}
                         style={{
                           position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                         }}
@@ -875,7 +886,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Image Tips
                   </div>
@@ -923,7 +934,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Pricing Structure
                   </div>
@@ -972,7 +983,7 @@ const Products = () => {
                 </div>
 
                 {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(16,185,129,0.2)', height: 'fit-content' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                     Publishing Checklist
                   </div>

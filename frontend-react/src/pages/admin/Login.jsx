@@ -6,7 +6,7 @@ import { Input, Button } from '../../components/admin/UI';
 
 const Login = () => {
   const { login, isAuthenticated } = useAdmin();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,7 +21,7 @@ const Login = () => {
     setFormError('');
     setIsSubmitting(true);
     try {
-      const result = await login(username, password);
+      const result = await login(email, password);
       if (!result.success) setFormError(result.error || 'Invalid credentials.');
       else navigate('/admin', { replace: true });
     } catch { setFormError('An unexpected error occurred. Please try again.'); }
@@ -33,7 +33,7 @@ const Login = () => {
       <div className="admin-login-card">
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 14, boxShadow: '0 6px 20px rgba(16,185,129,0.35)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#2563EB,#1D4ED8)', color: '#fff', fontWeight: 800, fontSize: '1.4rem', marginBottom: 14, boxShadow: '0 6px 20px rgba(37,99,235,0.35)' }}>
             E
           </div>
           <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.025em' }}>
@@ -53,16 +53,16 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <Input
-            id="username"
-            label="Username"
-            type="text"
+            id="email"
+            label="Email"
+            type="email"
             icon={<User />}
-            placeholder="Enter admin username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            placeholder="admin@egreen.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             required
             disabled={isSubmitting}
-            autoComplete="username"
+            autoComplete="email"
           />
           <Input
             id="password"
@@ -89,7 +89,7 @@ const Login = () => {
         </form>
 
         <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.75rem', color: 'var(--color-muted)', borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
-          Demo credentials: <code style={{ fontWeight: 700, color: 'var(--color-text)' }}>admin</code>
+          Demo credentials: <code style={{ fontWeight: 700, color: 'var(--color-text)' }}>admin@egreen.com</code>
         </div>
       </div>
     </div>

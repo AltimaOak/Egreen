@@ -1,26 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { settingsService } from '../services/settingsService';
-import { pageService } from '../services/pageService';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [settings, setSettings] = useState({ websiteName: 'Egreen Technology', logoText: 'Egreen Technology' });
-  const [whatsapp, setWhatsapp] = useState('917942625065');
   const location = useLocation();
-
-  const fetchBranding = async () => {
-    try {
-      const s = await settingsService.getSettings();
-      setSettings(s);
-      const c = await pageService.getContact();
-      const cleanPhone = c.whatsapp ? c.whatsapp.replace(/[+\-\s]/g, '') : '917942625065';
-      setWhatsapp(cleanPhone);
-    } catch (e) {
-      console.error('Error fetching navbar settings', e);
-    }
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,37 +18,53 @@ const Navbar = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    fetchBranding();
-
-    window.addEventListener('egreen_settings_updated', fetchBranding);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('egreen_settings_updated', fetchBranding);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const closeMenu = () => setIsMenuOpen(false);
 
-  // If we are on an admin route, do NOT render the customer navbar
-  if (location.pathname.startsWith('/admin')) {
-    return null;
-  }
+  const handleLogout = () => {
+    logout();
+    closeMenu();
+  };
 
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container">
         <Link to="/" className="logo" onClick={closeMenu}>
           <div className="logo-icon"></div>
-          {settings.logoText || settings.websiteName || 'Egreen Technology'}
+          Egreen Technology
         </Link>
         <div className={`nav-links ${isMenuOpen ? 'active-menu' : ''}`}>
           <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>Home</Link>
           <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>About Us</Link>
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
+          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
+          <Link to="/admin" className="nav-mobile-link" onClick={closeMenu}>Admin</Link>
+          {!isAuthenticated && !loading && (
+            <Link to="/login" className={`nav-mobile-link ${location.pathname === '/login' ? 'active' : ''}`} onClick={closeMenu}>Sign In</Link>
+          )}
+          {isAuthenticated && (
+            <button onClick={handleLogout} className="mobile-logout nav-mobile-link" style={{ background: 'none', border: 'none', fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--text-body)', cursor: 'pointer', textAlign: 'left', padding: '8px 0' }}>Logout</button>
+          )}
         </div>
         <div className="nav-actions">
-          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
+          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
+          <Link to="/admin" className="btn btn-outline" onClick={closeMenu}>Admin</Link>
+          {loading ? null : isAuthenticated ? (
+            <>
+              <span className="user-greeting">
+                Hi, {user.name?.split(' ')[0]}
+              </span>
+              <button onClick={handleLogout} className="btn btn-outline">Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-outline">Sign In</Link>
+              <Link to="/register" className="btn btn-dark">Register</Link>
+            </>
+          )}
         </div>
         <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

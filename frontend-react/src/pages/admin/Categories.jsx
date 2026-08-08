@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { categoryService } from '../../services/categoryService';
+import { brandService } from '../../services/brandService';
 import { useAdmin } from '../../contexts/AdminContext';
 import { Plus, Edit2, Trash2, Layers, Search } from 'lucide-react';
 import { CardSkeleton } from '../../components/admin/Skeleton';
@@ -95,7 +95,7 @@ const Categories = () => {
   const fetch = async () => {
     try {
       setLoading(true);
-      setCategories(await categoryService.getCategories());
+      setCategories(await brandService.getCategories());
     } catch { showToast('Failed to load categories.', 'error'); }
     finally  { setLoading(false); }
   };
@@ -106,14 +106,14 @@ const Categories = () => {
   const openEdit   = c  => { setCatName(c.name); setCatSub(c.subcategories || ''); setEditingId(c.id); setModalMode('edit'); setModalOpen(true); };
 
   const handleToggle = async (id) => {
-    const ok = await categoryService.toggleCategoryStatus(id);
+    const ok = await brandService.toggleCategoryStatus(id);
     ok ? (showToast('Status updated', 'success'), fetch()) : showToast('Failed to toggle status.', 'error');
   };
 
   const confirmDelete = async () => {
     try {
       showToast('Deleting…', 'loading');
-      await categoryService.deleteCategory(catToDelete.id);
+      await brandService.deleteCategory(catToDelete.id);
       showToast('Category deleted', 'success');
       setDeleteOpen(false);
       fetch();
@@ -126,10 +126,10 @@ const Categories = () => {
     showToast(modalMode === 'create' ? 'Creating…' : 'Updating…', 'loading');
     try {
       if (modalMode === 'create') {
-        await categoryService.addCategory({ name: catName, subcategories: catSub || 'General', status: 'Active' });
+        await brandService.addCategory({ name: catName, subcategories: catSub || 'General', status: 'Active' });
         showToast('Category created', 'success');
       } else {
-        await categoryService.updateCategory(editingId, { name: catName, subcategories: catSub || 'General' });
+        await brandService.updateCategory(editingId, { name: catName, subcategories: catSub || 'General' });
         showToast('Category updated', 'success');
       }
       setModalOpen(false);
