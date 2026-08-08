@@ -6,11 +6,15 @@ const Home = () => {
   return (
     <>
       <section className="hero-landing">
-        <div className="container hero-landing-container">
+        {/* SaaS Ambient Glow Backdrop Spots */}
+        <div className="hero-ambient-glow hero-glow-right"></div>
+        <div className="hero-ambient-glow hero-glow-left"></div>
+
+        <div className="hero-landing-full-bleed">
           <FadeUp className="hero-landing-content visible">
             <div className="hero-badge-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              Trusted by 500+ Businesses
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Trusted by 500+ Businesses Across India
             </div>
             <h1 className="hero-landing-title">
               Reliable New &amp; Refurbished <br/>
@@ -33,8 +37,9 @@ const Home = () => {
           </FadeUp>
 
           <FadeUp className="hero-landing-image-wrapper visible">
-            <div className="hero-arch-frame">
-              <img src="/assets/office_modern_1785088069141.png" alt="Office Hardware Workspace" className="hero-arch-img" />
+            <div className="hero-workspace-composition">
+              <div className="hero-image-ambient-aura"></div>
+              <img src="/assets/hero_workspace.png" alt="Laptop and Desktop Workstation" className="hero-workspace-img" />
             </div>
           </FadeUp>
         </div>
@@ -43,7 +48,7 @@ const Home = () => {
       <div className="container">
         <FadeUp className="hero-features-bar card visible">
           <div className="hero-feature-item">
-            <div className="feature-icon-circle">
+            <div className="feature-icon-circle icon-circle-blue">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             </div>
             <div className="feature-item-text">
@@ -53,7 +58,7 @@ const Home = () => {
           </div>
 
           <div className="hero-feature-item">
-            <div className="feature-icon-circle">
+            <div className="feature-icon-circle icon-circle-green">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
             </div>
             <div className="feature-item-text">
@@ -63,7 +68,7 @@ const Home = () => {
           </div>
 
           <div className="hero-feature-item">
-            <div className="feature-icon-circle">
+            <div className="feature-icon-circle icon-circle-purple">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
             </div>
             <div className="feature-item-text">
@@ -73,8 +78,8 @@ const Home = () => {
           </div>
 
           <div className="hero-feature-item">
-            <div className="feature-icon-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+            <div className="feature-icon-circle icon-circle-amber">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
             </div>
             <div className="feature-item-text">
               <h4>Best Prices</h4>
@@ -169,7 +174,7 @@ const Home = () => {
             <div className="category-card-img-wrapper">
               <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Clients" className="category-card-img" />
               <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
               </div>
             </div>
             <div className="category-card-body">
@@ -186,7 +191,7 @@ const Home = () => {
             <div className="category-card-img-wrapper">
               <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PCs" className="category-card-img" />
               <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
               </div>
             </div>
             <div className="category-card-body">
@@ -203,7 +208,7 @@ const Home = () => {
             <div className="category-card-img-wrapper">
               <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre PCs" className="category-card-img" />
               <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
               </div>
             </div>
             <div className="category-card-body">
