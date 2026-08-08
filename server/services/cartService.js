@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 const getCart = async (userId) => {
   let cart = await prisma.cart.findUnique({
@@ -46,6 +45,10 @@ const addItem = async (userId, productId, quantity) => {
     throw new AppError('Product not found', 404);
   }
 
+  if (!product.isActive) {
+    throw new AppError('This product is no longer available', 400);
+  }
+
   // Get or create cart
   let cart = await prisma.cart.findUnique({ where: { userId } });
   if (!cart) {
@@ -58,9 +61,16 @@ const addItem = async (userId, productId, quantity) => {
   });
 
   if (existingItem) {
+    const newQuantity = existingItem.quantity + quantity;
+    if (product.stock < newQuantity) {
+      throw new AppError(
+        `Only ${product.stock} unit(s) of "${product.name}" are available`,
+        400
+      );
+    }
     return prisma.cartItem.update({
       where: { id: existingItem.id },
-      data: { quantity: existingItem.quantity + quantity },
+      data: { quantity: newQuantity },
       include: {
         product: {
           include: {
@@ -69,6 +79,13 @@ const addItem = async (userId, productId, quantity) => {
         },
       },
     });
+  }
+
+  if (product.stock < quantity) {
+    throw new AppError(
+      `Only ${product.stock} unit(s) of "${product.name}" are available`,
+      400
+    );
   }
 
   return prisma.cartItem.create({

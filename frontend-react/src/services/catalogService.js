@@ -2,21 +2,15 @@
 // API and maps each Product to the shape the customer Products page expects.
 import { api } from '../utils/api';
 
-// The DB stores `stock` as a string; the catalog page renders it as a number
-// (0 = Out of stock, < 5 = Low Stock, otherwise In Stock).
-const STOCK_TO_NUMBER = {
-  'In Stock': 100,
-  'Low Stock': 3,
-  'Out of stock': 0,
-};
+// `stock` is a numeric unit count from the backend (0 = Out of stock,
+// < 5 = Low Stock, otherwise In Stock). The catalog page renders it as such.
 
 /**
  * Map a backend Product row into the flat shape the Products page consumes.
  * @param {object} p - Product from GET /api/products
  */
 function toCatalogProduct(p) {
-  const stock =
-    p.stock in STOCK_TO_NUMBER ? STOCK_TO_NUMBER[p.stock] : 100;
+  const stock = p.stock ?? 0;
 
   return {
     id: p.id,

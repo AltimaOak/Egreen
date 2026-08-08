@@ -69,4 +69,4 @@ const api = {
   del: (endpoint) => request(endpoint, { method: 'DELETE' }),
 };
 
-export { api, ApiError, TOKEN_KEY };
+export { api, ApiError, TOKEN_KEY, getAuthToken };

@@ -1,9 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 const protect = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -41,4 +40,27 @@ const protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-module.exports = { protect };
+// Like `protect`, but non-blocking: attaches req.user when a valid token is
+// present and ignores missing/invalid tokens. Used on public routes that want
+// to enrich responses for authenticated admins (e.g. includeInactive products).
+const optionalUser = catchAsync(async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+          select: { id: true, email: true, name: true, role: true },
+        });
+        if (user) req.user = user;
+      } catch (err) {
+        // Invalid/expired token on a public route — just ignore it.
+      }
+    }
+  }
+  next();
+});
+
+module.exports = { protect, optionalUser };

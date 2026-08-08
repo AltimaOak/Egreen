@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 // Simple HTML-escaping to reduce XSS risk in user-submitted text
 const sanitize = (str) => {

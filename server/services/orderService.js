@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 const placeOrder = async (userId, notes) => {
   // Fetch the user's cart with items
@@ -23,12 +22,28 @@ const placeOrder = async (userId, notes) => {
 
   // Execute everything as a transaction
   const order = await prisma.$transaction(async (tx) => {
-    // Decrement stock for each product
+    // Validate availability and decrement stock for each product atomically.
     for (const item of cart.items) {
-      await tx.product.update({
+      const product = await tx.product.findUnique({
         where: { id: item.productId },
-        data: { stock: 'Low Stock' },
       });
+
+      if (!product || !product.isActive) {
+        throw new AppError(`"${item.product.name}" is no longer available`, 400);
+      }
+
+      // Guard the decrement so two concurrent orders cannot oversell the same
+      // unit — if stock is now short, count is 0 and the order is rejected.
+      const res = await tx.product.updateMany({
+        where: { id: item.productId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
+      });
+      if (res.count === 0) {
+        throw new AppError(
+          `Only ${product.stock} unit(s) of "${item.product.name}" are in stock`,
+          400
+        );
+      }
     }
 
     // Create order with items

@@ -2,19 +2,6 @@
 import { api } from '../utils/api';
 import { activityService } from './activityService';
 
-const STOCK_TO_NUMBER = {
-  'In Stock': 100,
-  'Low Stock': 3,
-  'Out of stock': 0,
-};
-
-function numberToStock(n) {
-  const num = Number(n) || 0;
-  if (num === 0) return 'Out of stock';
-  if (num < 5) return 'Low Stock';
-  return 'In Stock';
-}
-
 // The backend stores specs as "Key: Value, Key: Value"; the admin form uses an
 // array of { key, value }.
 function parseSpecs(specs) {
@@ -47,7 +34,7 @@ function toAdminProduct(p) {
     brand: p.brand?.name || '',
     price: p.price != null ? Number(p.price) : 0,
     offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
-    stock: STOCK_TO_NUMBER[p.stock] ?? 100,
+    stock: p.stock ?? 0,
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
     specifications: parseSpecs(p.specs),
@@ -77,7 +64,7 @@ function toBackendPayload(form) {
     price: form.price != null ? Number(form.price) : null,
     offerPrice: form.offerPrice != null ? Number(form.offerPrice) : null,
     rating: form.rating != null ? Number(form.rating) : null,
-    stock: numberToStock(form.stock),
+    stock: form.stock != null ? Number(form.stock) : 0,
     condition: conditionSpec?.value || 'New',
     specs: specsToString(form.specifications),
     image: form.image || '',
@@ -93,7 +80,9 @@ function toBackendPayload(form) {
 
 export const productService = {
   async getProducts() {
-    const data = await api.get('/api/products?limit=100');
+    // includeInactive lets admins see draft/soft-deleted products; it is only
+    // honored server-side for authenticated admins.
+    const data = await api.get('/api/products?limit=100&includeInactive=true');
     return (data.products || []).map(toAdminProduct);
   },
 
@@ -107,7 +96,7 @@ export const productService = {
   },
 
   async getProduct(id) {
-    const data = await api.get(`/api/products/${id}`);
+    const data = await api.get(`/api/products/${id}?includeInactive=true`);
     return data.product ? toAdminProduct(data.product) : null;
   },
 

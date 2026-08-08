@@ -1,6 +1,6 @@
 const express = require('express');
 const { z } = require('zod');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalUser } = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/requireAdmin');
 const validate = require('../middleware/validateMiddleware');
 const {
@@ -21,7 +21,7 @@ const baseProductSchema = z.object({
   categorySlug: z.string().min(1, 'Category is required'),
   brandName: z.string().optional().nullable(),
   condition: z.string().optional(),
-  stock: z.string().optional(),
+  stock: z.number().int().nonnegative().optional().nullable(),
   specs: z.string().optional(),
   image: z.string().optional(),
   imagePublicId: z.string().optional().nullable(),
@@ -36,9 +36,12 @@ const baseProductSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-// Public routes
-router.get('/', list);
-router.get('/:id', getById);
+const productIdSchema = z.object({ id: z.coerce.number().int().positive() });
+
+// Public routes. Authenticated admins can pass `?includeInactive=true` to see
+// draft/inactive products too (enforced in the controller via optionalUser).
+router.get('/', optionalUser, list);
+router.get('/:id', optionalUser, validate.validateParams(productIdSchema), getById);
 
 // Admin routes
 router.post('/', protect, requireAdmin, validate(baseProductSchema), create);

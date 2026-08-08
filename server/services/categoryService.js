@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 const listCategories = async () => {
   return prisma.category.findMany({
@@ -18,6 +17,7 @@ const getCategoryBySlug = async (slug) => {
     where: { slug },
     include: {
       products: {
+        where: { isActive: true },
         include: {
           brand: { select: { id: true, name: true, slug: true } },
         },

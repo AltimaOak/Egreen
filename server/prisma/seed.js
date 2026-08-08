@@ -262,9 +262,16 @@ async function main() {
   }
   console.log(`Created ${brands.length} brands`);
 
-  // Create an admin account (overridable via ADMIN_EMAIL / ADMIN_PASSWORD in .env)
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@egreen.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
+  // Create an admin account. Email is read from ADMIN_EMAIL or ADMIN_ID (the
+  // key actually set in .env). ADMIN_PASSWORD is required — there is no
+  // insecure default password. If it isn't provided, a random one is generated
+  // and logged so the seed can still complete.
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.ADMIN_ID || 'admin@egreen.com';
+  let adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    adminPassword = require('crypto').randomBytes(16).toString('hex');
+    console.log(`ADMIN_PASSWORD not set — generated random password for ${adminEmail}: ${adminPassword}`);
+  }
   const adminHash = await bcrypt.hash(adminPassword, 12);
   await prisma.user.upsert({
     where: { email: adminEmail },
@@ -282,6 +289,10 @@ async function main() {
     select: { slug: true, image: true },
   });
   const existingImageBySlug = new Map(existing.map((e) => [e.slug, e.image || '']));
+
+  // Convert legacy string stock labels to the numeric counts used by the UI.
+  const stockLabelToNumber = (label) =>
+    ({ 'In Stock': 10, 'Low Stock': 3, 'Out of stock': 0 })[label] ?? 10;
 
   let enrichedCount = 0;
   let uploadedCount = 0;
@@ -310,7 +321,7 @@ async function main() {
       categoryId: categoryMap[p.category],
       brandId: brandSlug ? brandMap[brandSlug] : null,
       condition: p.condition,
-      stock: p.stock,
+      stock: stockLabelToNumber(p.stock),
       specs: enrichment ? enrichment.specs : p.specs,
       description: enrichment ? enrichment.description : null,
       price,

@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 const productInclude = {
   category: { select: { id: true, name: true, slug: true } },
@@ -38,7 +37,7 @@ const buildProductData = async (input, existing) => {
         ? input.description
         : existing?.description ?? null,
     condition: input.condition || existing?.condition || 'New',
-    stock: input.stock || existing?.stock || 'In Stock',
+    stock: input.stock ?? existing?.stock ?? 0,
     specs: input.specs !== undefined ? input.specs : existing?.specs ?? '',
     image: input.image !== undefined ? input.image : existing?.image ?? '',
     imagePublicId:
@@ -84,8 +83,14 @@ const buildProductData = async (input, existing) => {
   return data;
 };
 
-const listProducts = async ({ category, brand, search, page = 1, limit = 20 }) => {
+const listProducts = async ({ category, brand, search, page = 1, limit = 20, includeInactive = false }) => {
   const where = {};
+
+  // Public feed only shows active products. `includeInactive` is only ever
+  // true for authenticated admins (set by the controller).
+  if (!includeInactive) {
+    where.isActive = true;
+  }
 
   if (category && category !== 'all') {
     where.category = { slug: category };
@@ -124,9 +129,9 @@ const listProducts = async ({ category, brand, search, page = 1, limit = 20 }) =
   };
 };
 
-const getProductById = async (id) => {
-  const product = await prisma.product.findUnique({
-    where: { id },
+const getProductById = async (id, includeInactive = false) => {
+  const product = await prisma.product.findFirst({
+    where: includeInactive ? { id } : { id, isActive: true },
     include: productInclude,
   });
 

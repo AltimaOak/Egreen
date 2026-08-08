@@ -22,6 +22,10 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust the first reverse proxy hop (Render/Railway/nginx) so rate limiting
+// and req.ip see the client's real IP instead of the proxy's.
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
@@ -41,7 +45,7 @@ app.use(morgan('dev'));
 // Global rate limit
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later' },
