@@ -103,51 +103,77 @@ const Home = () => {
           <div className="marquee-track">
             {[...Array(4)].flatMap(() => [
               {
-                name: 'Dell',
+                name: 'Lenovo',
                 svg: (
-                  <svg viewBox="0 0 140 40" className="brand-logo-svg brand-dell">
-                    <text x="5" y="32" fill="#0076ce" fontFamily="Arial, Helvetica, sans-serif" fontSize="34" fontWeight="900" letterSpacing="1px">DELL</text>
-                  </svg>
-                )
-              },
-              {
-                name: 'HP',
-                svg: (
-                  <svg viewBox="0 0 80 80" className="brand-logo-svg brand-hp">
-                    <circle cx="40" cy="40" r="38" fill="#0096d6"/>
-                    <text x="40" y="52" fill="#ffffff" fontFamily="Arial, Helvetica, sans-serif" fontSize="36" fontWeight="900" fontStyle="italic" textAnchor="middle" letterSpacing="-1px">hp</text>
+                  <svg viewBox="0 0 140 44" className="brand-logo-svg brand-lenovo">
+                    <rect width="140" height="44" rx="4" fill="#E2231A" />
+                    <text x="70" y="31" fill="#FFFFFF" fontFamily="'Helvetica Neue', Arial, sans-serif" fontSize="26" fontWeight="bold" textAnchor="middle" letterSpacing="0.2px">Lenovo</text>
                   </svg>
                 )
               },
               {
                 name: 'Acer',
                 svg: (
-                  <svg viewBox="0 0 140 40" className="brand-logo-svg brand-acer">
-                    <text x="0" y="33" fill="#74a613" fontFamily="Arial, Helvetica, sans-serif" fontSize="38" fontWeight="900" fontStyle="italic" letterSpacing="-2px">acer</text>
+                  <svg viewBox="0 0 130 40" className="brand-logo-svg brand-acer">
+                    <text x="65" y="32" fill="#83B81A" fontFamily="'Trebuchet MS', 'Arial Black', sans-serif" fontSize="36" fontWeight="900" fontStyle="italic" textAnchor="middle" letterSpacing="-2px">acer</text>
                   </svg>
                 )
               },
               {
-                name: 'Lenovo',
+                name: 'Intel',
                 svg: (
-                  <svg viewBox="0 0 160 50" className="brand-logo-svg brand-lenovo">
-                    <rect x="0" y="0" width="160" height="50" rx="3" fill="#e2231a" />
-                    <text x="10" y="34" fill="#ffffff" fontFamily="Arial, Helvetica, sans-serif" fontSize="28" fontWeight="bold" letterSpacing="0.5px">Lenovo</text>
-                    <text x="140" y="24" fill="#ffffff" fontFamily="Arial, sans-serif" fontSize="8" fontWeight="bold">TM</text>
+                  <svg viewBox="0 0 120 60" className="brand-logo-svg brand-intel">
+                    {/* Intel blue elliptical swoosh */}
+                    <ellipse cx="60" cy="30" rx="58" ry="28" fill="none" stroke="#0068B5" strokeWidth="4.5"/>
+                    {/* intel wordmark */}
+                    <text
+                      x="60" y="37"
+                      fill="#0068B5"
+                      fontFamily="'Arial', Helvetica, sans-serif"
+                      fontSize="22"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      letterSpacing="-0.5"
+                    >intel</text>
+                    {/* dot on the 'i' — part of the wordmark */}
+                    <rect x="17.5" y="19" width="5" height="5" fill="#0068B5" rx="0.5"/>
                   </svg>
                 )
               },
-             {
-  name: 'Intel',
-  svg: (
-    <svg viewBox="0 0 160 50">
-      <rect width="160" height="50" rx="3" fill="#0068B5" />
-      <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
-        intel
-      </text>
-    </svg>
-  )
-}
+              {
+                name: 'HP',
+                svg: (
+                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-hp">
+                    <circle cx="50" cy="50" r="48" fill="#0096D6" />
+                    <text
+                      x="50" y="66"
+                      fill="#FFFFFF"
+                      fontFamily="'Arial', Helvetica, sans-serif"
+                      fontSize="44"
+                      fontWeight="900"
+                      fontStyle="italic"
+                      textAnchor="middle"
+                    >hp</text>
+                  </svg>
+                )
+              },
+              {
+                name: 'Dell',
+                svg: (
+                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-dell">
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="#0076CE" strokeWidth="6" />
+                    <text
+                      x="50" y="61"
+                      fill="#0076CE"
+                      fontFamily="'Arial Black', Impact, sans-serif"
+                      fontSize="26"
+                      fontWeight="900"
+                      textAnchor="middle"
+                      letterSpacing="1.5"
+                    >DELL</text>
+                  </svg>
+                )
+              }
             ]).map((brand, idx) => (
               <div key={idx} className="brand-card" title={brand.name}>
                 {brand.svg}
