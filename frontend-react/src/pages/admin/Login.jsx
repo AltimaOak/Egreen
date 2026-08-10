@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../contexts/AdminContext';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Input, Button } from '../../components/admin/UI';
 
 const Login = () => {
   const { login, isAuthenticated } = useAdmin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -67,8 +68,10 @@ const Login = () => {
           <Input
             id="password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             icon={<Lock />}
+            rightIcon={showPassword ? <EyeOff /> : <Eye />}
+            onRightIconClick={() => setShowPassword(prev => !prev)}
             placeholder="Enter password"
             value={password}
             onChange={e => setPassword(e.target.value)}

@@ -146,8 +146,8 @@ export const Badge = ({ children, variant = 'neutral', className = '' }) => {
 ══════════════════════════════════════════════════════════ */
 export const Input = React.forwardRef(({
   label, placeholder, value, onChange, onKeyPress, onBlur,
-  icon, type = 'text', error, required, disabled,
-  className = '', id, name, min, step, autoComplete,
+  icon, rightIcon, onRightIconClick, type = 'text', error, required, disabled,
+  className = '', id, name, min, step, autoComplete, style,
 }, ref) => {
   const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
   const fieldName = name || fieldId;
@@ -159,7 +159,7 @@ export const Input = React.forwardRef(({
           {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
         </label>
       )}
-      <div className="admin-input-group">
+      <div className={`admin-input-group${rightIcon ? ' has-right-icon' : ''}`}>
         {icon && (
           <span className="admin-input-icon">
             {React.cloneElement(icon, { size: 15 })}
@@ -181,9 +181,38 @@ export const Input = React.forwardRef(({
           step={step}
           autoComplete={autoComplete}
           aria-invalid={!!error}
-          className={`admin-input${error ? ' error' : ''}${icon ? '' : ''}`}
-          style={icon ? {} : { paddingLeft: 13 }}
+          className={`admin-input${error ? ' error' : ''}`}
+          style={{
+            ...(icon ? {} : { paddingLeft: 13 }),
+            ...(rightIcon ? { paddingRight: 38 } : {}),
+            ...style
+          }}
         />
+        {rightIcon && (
+          <button
+            type="button"
+            className="admin-input-right-icon"
+            onClick={onRightIconClick}
+            tabIndex={-1}
+            aria-label="Toggle input visibility"
+            style={{
+              position: 'absolute',
+              right: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            {React.cloneElement(rightIcon, { size: 15 })}
+          </button>
+        )}
       </div>
       {error && <p className="admin-form-error">{error}</p>}
     </div>
