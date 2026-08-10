@@ -6,8 +6,6 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Register from './pages/Register';
 
 // Admin Components
 import { AdminProvider } from './contexts/AdminContext';
@@ -36,8 +34,6 @@ const router = createBrowserRouter([
       { path: "about", element: <About /> },
       { path: "products", element: <Products /> },
       { path: "contact", element: <Contact /> },
-      { path: "login", element: <Login /> },
-      { path: "register", element: <Register /> },
     ]
   },
 

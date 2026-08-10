@@ -157,71 +157,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="section-padding container">
-        <FadeUp className="categories-header-row visible">
-          <div>
-            <span className="section-category-badge">BROWSE BY CATEGORY</span>
-            <h2 className="section-main-title">Featured Categories</h2>
-          </div>
-          <Link to="/products" className="btn btn-outline category-view-all">
-            View All Products
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </Link>
-        </FadeUp>
 
-        <div className="home-category-grid">
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Clients" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Dell Wyse Thin Clients</h3>
-              <p>Secure, manageable and efficient solutions for virtual desktop environments.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
-
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PCs" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Dell OptiPlex Mini PCs</h3>
-              <p>Ultra-compact business desktops with versatile mounting options.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
-
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre PCs" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Lenovo ThinkCentre PCs</h3>
-              <p>Space-saving desktops designed for diverse business productivity.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
-        </div>
-      </section>
 
       <section className="why-choose-section">
         <div className="container">

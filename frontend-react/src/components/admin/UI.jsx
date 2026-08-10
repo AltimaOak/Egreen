@@ -147,80 +147,92 @@ export const Badge = ({ children, variant = 'neutral', className = '' }) => {
 export const Input = React.forwardRef(({
   label, placeholder, value, onChange, onKeyPress, onBlur,
   icon, type = 'text', error, required, disabled,
-  className = '', id, min, step, autoComplete,
-}, ref) => (
-  <div style={{ marginBottom: error ? 0 : 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <div className="admin-input-group">
-      {icon && (
-        <span className="admin-input-icon">
-          {React.cloneElement(icon, { size: 15 })}
-        </span>
+  className = '', id, name, min, step, autoComplete,
+}, ref) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: error ? 0 : 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
       )}
-      <input
-        ref={ref}
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        onKeyPress={onKeyPress}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-        required={required}
-        min={min}
-        step={step}
-        autoComplete={autoComplete}
-        aria-invalid={!!error}
-        className={`admin-input${error ? ' error' : ''}${icon ? '' : ''}`}
-        style={icon ? {} : { paddingLeft: 13 }}
-      />
+      <div className="admin-input-group">
+        {icon && (
+          <span className="admin-input-icon">
+            {React.cloneElement(icon, { size: 15 })}
+          </span>
+        )}
+        <input
+          ref={ref}
+          id={fieldId}
+          name={fieldName}
+          type={type}
+          value={value}
+          onChange={onChange}
+          onKeyPress={onKeyPress}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          min={min}
+          step={step}
+          autoComplete={autoComplete}
+          aria-invalid={!!error}
+          className={`admin-input${error ? ' error' : ''}${icon ? '' : ''}`}
+          style={icon ? {} : { paddingLeft: 13 }}
+        />
+      </div>
+      {error && <p className="admin-form-error">{error}</p>}
     </div>
-    {error && <p className="admin-form-error">{error}</p>}
-  </div>
-));
+  );
+});
 
 /* ══════════════════════════════════════════════════════════
    SELECT
 ══════════════════════════════════════════════════════════ */
 export const Select = ({
   label, value, onChange, options = [],
-  placeholder, error, required, disabled, className = '', id,
-}) => (
-  <div style={{ marginBottom: 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <div style={{ position: 'relative' }}>
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        required={required}
-        aria-invalid={!!error}
-        className={`admin-select${error ? ' error' : ''}`}
-        style={{ paddingRight: 32 }}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map(o => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <ChevronDown
-        size={14}
-        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }}
-      />
+  placeholder, error, required, disabled, className = '', id, name,
+}) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
+      )}
+      <div style={{ position: 'relative' }}>
+        <select
+          id={fieldId}
+          name={fieldName}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          aria-invalid={!!error}
+          className={`admin-select${error ? ' error' : ''}`}
+          style={{ paddingRight: 32 }}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <ChevronDown
+          size={14}
+          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }}
+        />
+      </div>
+      {error && <p className="admin-form-error">{error}</p>}
     </div>
-    {error && <p className="admin-form-error">{error}</p>}
-  </div>
-);
+  );
+};
 
 /* ══════════════════════════════════════════════════════════
    TEXTAREA
@@ -228,18 +240,23 @@ export const Select = ({
 export const Textarea = ({
   label, placeholder, value, onChange,
   error, required, disabled, className = '',
-  id, rows = 4, minHeight = '100px', style = {},
-}) => (
-  <div style={{ marginBottom: 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <textarea
-      id={id}
-      rows={rows}
-      value={value}
+  id, name, rows = 4, minHeight = '100px', style = {},
+}) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
+      )}
+      <textarea
+        id={fieldId}
+        name={fieldName}
+        rows={rows}
+        value={value}
       onChange={onChange}
       placeholder={placeholder}
       disabled={disabled}
@@ -249,8 +266,9 @@ export const Textarea = ({
       style={{ minHeight, resize: 'vertical', ...style }}
     />
     {error && <p className="admin-form-error">{error}</p>}
-  </div>
-);
+    </div>
+  );
+};
 
 /* ══════════════════════════════════════════════════════════
    TABLE
@@ -348,13 +366,13 @@ export const Modal = ({ open, onClose, title, children, footer, size = 'md' }) =
    DRAWER
 ══════════════════════════════════════════════════════════ */
 export const Drawer = ({ open, onClose, title, children, footer, size = 'md' }) => {
-  const widthMap = { sm: 380, md: 480, lg: 640, xl: 780 };
+  const widthMap = { sm: 380, md: 480, lg: 640, xl: 780, '2xl': 880, full: '100%' };
   if (!open) return null;
   return (
     <AnimatePresence>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9990, overflow: 'hidden' }}>
         <motion.div {...fade}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9991 }}
           onClick={onClose}
         />
         <motion.div
@@ -363,23 +381,23 @@ export const Drawer = ({ open, onClose, title, children, footer, size = 'md' }) 
           exit={{ x: '100%' }}
           transition={spring}
           style={{
-            position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 51,
-            width: '100%', maxWidth: widthMap[size],
-            background: 'var(--color-surface)',
-            borderLeft: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-overlay)',
+            position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 9992,
+            width: '100%', maxWidth: (typeof window !== 'undefined' && window.innerWidth <= 768) ? '100%' : (widthMap[size] || 640),
+            background: 'var(--color-surface, #ffffff)',
+            borderLeft: '1px solid var(--color-border, #e2e8f0)',
+            boxShadow: 'var(--shadow-overlay, 0 20px 25px -5px rgba(0,0,0,0.1))',
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--color-text)' }}>{title}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid var(--color-border, #e2e8f0)', background: '#ffffff', flexShrink: 0 }}>
+            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--color-text, #0f172a)' }}>{title}</h3>
             <button onClick={onClose} className="admin-topnav-icon-btn" style={{ width: 28, height: 28 }}>
               <X size={16} />
             </button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>{children}</div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px', background: '#ffffff' }}>{children}</div>
           {footer && (
-            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8, background: 'var(--color-background)', flexShrink: 0 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--color-border, #e2e8f0)', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#ffffff', flexShrink: 0 }}>
               {footer}
             </div>
           )}

@@ -136,6 +136,56 @@ const Products = () => {
     }
   };
 
+  const openCreateDrawer = () => {
+    setFormData(INITIAL_FORM_STATE);
+    setWizardStep(0);
+    setDrawerMode('create');
+    setDrawerOpen(true);
+    setCurrentId(null);
+  };
+
+  const openEditDrawer = (product) => {
+    setFormData({
+      name: product.name || '',
+      slug: product.slug || '',
+      category: product.category || 'laptop',
+      description: product.description || '',
+      price: product.price || '',
+      offerPrice: product.offerPrice || '',
+      brand: product.brand || 'Dell',
+      SKU: product.SKU || '',
+      stock: product.stock || 0,
+      rating: product.rating || 4.5,
+      status: product.status || 'Active',
+      featured: product.featured || false,
+      features: product.features && product.features.length ? product.features : [''],
+      specifications: product.specifications && product.specifications.length ? product.specifications : [
+        { key: 'Processor', value: '' },
+        { key: 'RAM', value: '' },
+        { key: 'Storage', value: '' },
+      ],
+      seoTitle: product.seoTitle || '',
+      seoDescription: product.seoDescription || '',
+      image: product.image || '',
+      imagePublicId: product.imagePublicId || '',
+      gallery: product.gallery || [],
+    });
+    setWizardStep(0);
+    setDrawerMode('edit');
+    setCurrentId(product.id);
+    setDrawerOpen(true);
+  };
+
+  const openViewDrawer = (product) => {
+    setFormData(product);
+    setDrawerMode('view');
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategoriesAndBrands();
@@ -216,52 +266,6 @@ const Products = () => {
       setSortBy(field);
       setSortOrder('asc');
     }
-  };
-
-  const openCreateDrawer = () => {
-    setFormData(INITIAL_FORM_STATE);
-    setWizardStep(0);
-    setDrawerMode('create');
-    setDrawerOpen(true);
-    setCurrentId(null);
-  };
-
-  const openEditDrawer = (product) => {
-    setFormData({
-      name: product.name || '',
-      slug: product.slug || '',
-      category: product.category || 'laptop',
-      description: product.description || '',
-      price: product.price || '',
-      offerPrice: product.offerPrice || '',
-      brand: product.brand || 'Dell',
-      SKU: product.SKU || '',
-      stock: product.stock || 0,
-      rating: product.rating || 4.5,
-      status: product.status || 'Active',
-      featured: product.featured || false,
-      features: product.features && product.features.length ? product.features : [''],
-      specifications: product.specifications && product.specifications.length ? product.specifications : [{ key: '', value: '' }],
-      seoTitle: product.seoTitle || '',
-      seoDescription: product.seoDescription || '',
-      image: product.image || '',
-      imagePublicId: product.imagePublicId || '',
-      gallery: product.gallery || [],
-    });
-    setWizardStep(0);
-    setDrawerMode('edit');
-    setCurrentId(product.id);
-    setDrawerOpen(true);
-  };
-
-  const openViewDrawer = (product) => {
-    setFormData(product);
-    setDrawerMode('view');
-    setDrawerOpen(true);
-  };
-
-  const closeDrawer = () => {
-    setDrawerOpen(false);
   };
 
   const handleDeleteClick = (product) => {
@@ -362,20 +366,29 @@ const Products = () => {
     };
 
     const errors = validateProduct(submissionData);
-    if (Object.keys(errors).length > 0) {
-      const firstErr = Object.values(errors)[0];
-      showToast(firstErr, 'error');
+    if (Array.isArray(errors) && errors.length > 0) {
+      showToast(errors[0], 'error');
       return;
     }
 
     try {
       showToast(drawerMode === 'create' ? 'Creating Product...' : 'Saving Changes...', 'loading');
+      let result;
       if (drawerMode === 'create') {
-        await productService.createProduct(submissionData);
+        result = await productService.createProduct(submissionData);
         showToast('Product Created Successfully', 'success');
       } else {
-        await productService.updateProduct(currentId, submissionData);
+        result = await productService.updateProduct(currentId, submissionData);
         showToast('Product Updated Successfully', 'success');
+      }
+
+      if (result) {
+        setProducts((prev) => {
+          if (drawerMode === 'create') {
+            return [result, ...prev];
+          }
+          return prev.map((p) => (p.id === currentId ? result : p));
+        });
       }
       fetchProducts();
       setDrawerOpen(false);
@@ -610,25 +623,13 @@ const Products = () => {
         footer={
           drawerMode !== 'view' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <Button variant="secondary" size="sm" onClick={closeDrawer}>
-                Discard
+              <Button variant="secondary" size="md" onClick={closeDrawer}>
+                Cancel
               </Button>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {wizardStep > 0 && (
-                  <Button variant="secondary" size="sm" onClick={() => setWizardStep((s) => s - 1)}>
-                    Back
-                  </Button>
-                )}
-                {wizardStep < wizardStepsLabels.length - 1 ? (
-                  <Button variant="primary" size="sm" onClick={() => setWizardStep((s) => s + 1)}>
-                    Next Step →
-                  </Button>
-                ) : (
-                  <Button variant="primary" size="sm" onClick={handleFormSubmit}>
-                    {drawerMode === 'create' ? 'Create Product' : 'Save Changes'}
-                  </Button>
-                )}
-              </div>
+              <Button variant="primary" size="md" onClick={handleFormSubmit} style={{ paddingLeft: 24, paddingRight: 24 }}>
+                <Check size={16} style={{ marginRight: 6 }} />
+                {drawerMode === 'create' ? 'Save Product' : 'Save Changes'}
+              </Button>
             </div>
           )
         }
@@ -677,323 +678,212 @@ const Products = () => {
             </div>
           </div>
         ) : (
-          /* Edit/Create Form with Wizard Steps */
-          <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Step Wizard Navigation Header */}
-            <div className="admin-form-wizard-headers">
-              {wizardStepsLabels.map((step, idx) => {
-                const isCompleted = idx < wizardStep;
-                const isCurrent = idx === wizardStep;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={`admin-form-wizard-header${isCurrent ? ' active' : ''}`}
-                    onClick={() => setWizardStep(idx)}
-                  >
-                    <span className="admin-form-wizard-header-num" style={isCompleted ? { background: 'var(--color-success)', color: '#fff' } : undefined}>
-                      {isCompleted ? <Check size={11} /> : step.num}
-                    </span>
-                    <span>{step.title}</span>
-                  </button>
-                );
-              })}
+          /* Simple, User-Friendly Single-Page Form */
+          <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            
+            {/* Section 1: Basic Information */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>📦</span> Basic Information
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <Input
+                  label="Product Name"
+                  placeholder="e.g. Dell OptiPlex 7090 Micro i5 11th Gen"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Select
+                    label="Brand"
+                    options={brandOptions}
+                    value={formData.brand}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+                    required
+                  />
+                  <Select
+                    label="Category"
+                    options={categoryOptions}
+                    value={formData.category}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                    required
+                  />
+                </div>
+                <Textarea
+                  label="Product Description"
+                  placeholder="Enter a brief summary of the product features, condition, and specs..."
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  required
+                  rows={3}
+                />
+              </div>
             </div>
 
-            {/* STEP 0: Basic Info */}
-            {wizardStep === 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <Input
-                    label="Product Name *"
-                    placeholder="e.g. Dell Inspiron 15 3530"
-                    value={formData.name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <Select
-                      label="Product Brand *"
-                      options={brandOptions}
-                      value={formData.brand}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
-                      required
-                    />
-                    <Select
-                      label="Category *"
-                      options={categoryOptions}
-                      value={formData.category}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <Textarea
-                    label="Short Description *"
-                    placeholder="Powerful and reliable laptop for work and entertainment..."
-                    value={formData.description}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                    required
-                    rows={4}
-                  />
-                </div>
-
-                {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                    Basic Info Tips
-                  </div>
-                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
-                    <li>Keep product name descriptive with brand and model number.</li>
-                    <li>Ensure category and brand are correct for catalog filtering.</li>
-                    <li>Write a concise description highlighting condition and key specs.</li>
-                  </ul>
-                </div>
+            {/* Section 2: Pricing & Stock */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>💰</span> Pricing & Inventory
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                <Input
+                  label="Price (₹)"
+                  type="number"
+                  placeholder="e.g. 28500"
+                  value={formData.price}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+                  required
+                />
+                <Input
+                  label="Offer Price (₹) (Optional)"
+                  type="number"
+                  placeholder="e.g. 24999"
+                  value={formData.offerPrice}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
+                />
+                <Input
+                  label="Stock Quantity"
+                  type="number"
+                  placeholder="e.g. 10"
+                  value={formData.stock}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
+                  required
+                />
               </div>
-            )}
-
-            {/* STEP 1: Specifications & Stock */}
-            {wizardStep === 1 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <Input
-                      label="SKU Identifier *"
-                      value={formData.SKU}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
-                      required
-                    />
-                    <Input
-                      label="Stock Quantity *"
-                      type="number"
-                      value={formData.stock}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Technical Specifications</label>
-                      <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addSpecField}>
-                        Add Spec
-                      </Button>
-                    </div>
-                    {formData.specifications.map((spec, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                        <input
-                          type="text"
-                          className="admin-input"
-                          style={{ flex: 1 }}
-                          placeholder="Key (e.g. RAM)"
-                          value={spec.key}
-                          onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
-                        />
-                        <input
-                          type="text"
-                          className="admin-input"
-                          style={{ flex: 2 }}
-                          placeholder="Value (e.g. 16GB DDR4)"
-                          value={spec.value}
-                          onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
-                        />
-                        {formData.specifications.length > 1 && (
-                          <Button variant="ghost" size="sm" onClick={() => removeSpecField(idx)} style={{ color: 'var(--color-danger)' }}>
-                            <Trash2 size={14} />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Key Highlights / Features</label>
-                      <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addFeatureField}>
-                        Add Highlight
-                      </Button>
-                    </div>
-                    {formData.features.map((feat, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                        <input
-                          type="text"
-                          className="admin-input"
-                          placeholder="e.g. 15.6 FHD 120Hz display"
-                          value={feat}
-                          onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                        />
-                        {formData.features.length > 1 && (
-                          <Button variant="ghost" size="sm" onClick={() => removeFeatureField(idx)} style={{ color: 'var(--color-danger)' }}>
-                            <Trash2 size={14} />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                    Specs Guidelines
-                  </div>
-                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
-                    <li>SKUs are auto-generated but can be custom edited.</li>
-                    <li>Low stock values (&lt; 5) show warning indicators.</li>
-                    <li>Add technical specs like Processor, RAM, and Storage for buyer clarity.</li>
-                  </ul>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
+                <Select
+                  label="Status"
+                  options={[
+                    { value: 'Active', label: 'Active (Visible to customers on website)' },
+                    { value: 'Draft', label: 'Draft (Hidden from catalog)' },
+                  ]}
+                  value={formData.status}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+                />
+                <Input
+                  label="SKU Identifier (Auto-generated if blank)"
+                  placeholder="e.g. EG-DELL-8921"
+                  value={formData.SKU}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
+                />
               </div>
-            )}
+            </div>
 
-            {/* STEP 2: Media */}
-            {wizardStep === 2 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>Product Showcase Image</label>
-                  {formData.image ? (
-                    <div style={{ position: 'relative', width: '100%', maxWidth: 360, height: 220, borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid var(--color-border)', background: '#fff' }}>
-                      <img src={formData.image} alt="Upload Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (formData.imagePublicId) {
-                            imageService.deleteImage(formData.imagePublicId);
-                          }
-                          setFormData((prev) => ({ ...prev, image: '', imagePublicId: '' }));
-                        }}
-                        style={{
-                          position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                        }}
-                        title="Remove Image"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="admin-image-upload-zone">
-                      <Upload size={32} color="var(--color-muted)" />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginTop: 8 }}>Click or Drag image here to upload</span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>PNG, JPG, WebP up to 5MB</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        disabled={imageUploading}
-                        onChange={handleImageChange}
-                      />
-                    </label>
+            {/* Section 3: Image Upload */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>🖼️</span> Product Photo
+              </h3>
+              {formData.image ? (
+                <div style={{ position: 'relative', width: '100%', maxWidth: 300, height: 180, borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid var(--color-border)', background: '#fff' }}>
+                  <img src={formData.image} alt="Product Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.imagePublicId) {
+                        imageService.deleteImage(formData.imagePublicId);
+                      }
+                      setFormData((prev) => ({ ...prev, image: '', imagePublicId: '' }));
+                    }}
+                    style={{
+                      position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                    }}
+                    title="Remove Photo"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <label className="admin-image-upload-zone" style={{ padding: '24px 16px' }}>
+                  <Upload size={28} color="var(--color-muted)" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginTop: 8 }}>Click to Select or Drag Image File</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>PNG, JPG, WebP image up to 5MB</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={imageUploading}
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+            </div>
+
+            {/* Section 4: Specifications */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>⚙️</span> Technical Specifications
+                </h3>
+                <Button type="button" variant="ghost" size="sm" icon={<Plus size={13} />} onClick={addSpecField}>
+                  Add Row
+                </Button>
+              </div>
+
+              {/* Quick Spec Presets */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)', alignSelf: 'center', fontWeight: 600 }}>Quick Add:</span>
+                {['Processor', 'RAM', 'Storage', 'Condition', 'Display', 'Graphics'].map((keyName) => (
+                  <button
+                    key={keyName}
+                    type="button"
+                    onClick={() => {
+                      if (!formData.specifications.some((s) => s.key.toLowerCase() === keyName.toLowerCase())) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          specifications: [...prev.specifications, { key: keyName, value: '' }],
+                        }));
+                      }
+                    }}
+                    style={{
+                      padding: '3px 9px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 600,
+                      background: 'var(--color-primary-light)', color: 'var(--color-primary)', border: '1px solid rgba(37,99,235,0.2)', cursor: 'pointer'
+                    }}
+                  >
+                    + {keyName}
+                  </button>
+                ))}
+              </div>
+
+              {formData.specifications.map((spec, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    style={{ flex: 1 }}
+                    placeholder="Feature (e.g. RAM)"
+                    value={spec.key}
+                    onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="admin-input"
+                    style={{ flex: 2 }}
+                    placeholder="Value (e.g. 16GB DDR4)"
+                    value={spec.value}
+                    onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                  />
+                  {formData.specifications.length > 1 && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeSpecField(idx)} style={{ color: 'var(--color-danger)' }}>
+                      <Trash2 size={14} />
+                    </Button>
                   )}
                 </div>
+              ))}
+            </div>
 
-                {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                    Image Tips
-                  </div>
-                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
-                    <li>Use high-resolution photos on white or neutral backgrounds.</li>
-                    <li>Proper images significantly boost buyer trust.</li>
-                  </ul>
-                </div>
-              </div>
-            )}
+            {/* Always visible Save button at the bottom of the form */}
+            <div style={{ paddingTop: 8, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <Button type="button" variant="secondary" size="md" onClick={closeDrawer}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" size="md" style={{ paddingLeft: 24, paddingRight: 24 }}>
+                <Check size={16} style={{ marginRight: 6 }} />
+                {drawerMode === 'create' ? 'Save Product' : 'Save Changes'}
+              </Button>
+            </div>
 
-            {/* STEP 3: Pricing */}
-            {wizardStep === 3 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <Input
-                      label="Regular Price (₹) *"
-                      type="number"
-                      placeholder="e.g. 45000"
-                      value={formData.price}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
-                      required
-                    />
-                    <Input
-                      label="Offer Price (₹)"
-                      type="number"
-                      placeholder="e.g. 39999"
-                      value={formData.offerPrice}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
-                    />
-                  </div>
-
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '12px 14px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-input)', background: 'var(--color-background)' }}>
-                    <input
-                      type="checkbox"
-                      className="admin-checkbox"
-                      checked={formData.featured}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, featured: e.target.checked }))}
-                    />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>
-                      Feature this product on Homepage Banners
-                    </span>
-                  </label>
-                </div>
-
-                {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                    Pricing Structure
-                  </div>
-                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
-                    <li>Regular price is shown as the standard list price.</li>
-                    <li>If Offer Price is set, it displays with a strike-through discount badge.</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: Publishing */}
-            {wizardStep === 4 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <Select
-                    label="Product Status"
-                    options={[
-                      { value: 'Active', label: 'Active (Visible on website)' },
-                      { value: 'Draft', label: 'Draft (Hidden from catalog)' },
-                      { value: 'Archived', label: 'Archived (Out of stock/Discontinued)' },
-                    ]}
-                    value={formData.status}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
-                  />
-                  <Input
-                    label="Customer Rating (0 to 5)"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    value={formData.rating}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, rating: e.target.value }))}
-                  />
-                  <Input
-                    label="SEO Search Title"
-                    value={formData.seoTitle}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, seoTitle: e.target.value }))}
-                  />
-                  <Textarea
-                    label="SEO Meta Description"
-                    value={formData.seoDescription}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, seoDescription: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
-
-                {/* Right side helper card */}
-                <div style={{ padding: 16, borderRadius: 'var(--radius-card)', background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)', height: 'fit-content' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                    Publishing Checklist
-                  </div>
-                  <ul style={{ fontSize: '0.78rem', color: 'var(--color-muted)', paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, lineHeight: 1.5 }}>
-                    <li><strong>Active:</strong> Product appears immediately in search & catalog.</li>
-                    <li><strong>Draft:</strong> Saves configuration without publishing live.</li>
-                  </ul>
-                </div>
-              </div>
-            )}
           </form>
         )}
       </Drawer>

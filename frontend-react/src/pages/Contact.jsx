@@ -21,14 +21,15 @@ const Contact = () => {
 
   return (
     <>
-      <div className="page-header" style={{ paddingBottom: '2rem' }}>
+      <div className="page-header" style={{ paddingTop: 'calc(var(--nav-height, 80px) + 20px)', paddingBottom: '2rem' }}>
         <FadeUp className="container visible">
           <h1 className="h1">Contact Us</h1>
           <p style={{ fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto' }}>We're here to help you with quotes, bulk orders, and enterprise support.</p>
         </FadeUp>
       </div>
 
-      <div className="container contact-layout">
+      <div className="contact-section-wrapper">
+        <div className="contact-layout">
         <FadeUp>
           <h2 className="h2">Get In Touch</h2>
           <p style={{ marginBottom: '2rem' }}>Reach out to our dedicated support and sales team for immediate assistance.</p>
@@ -105,9 +106,10 @@ const Contact = () => {
           </form>
         </FadeUp>
       </div>
+    </div>
       
-      <FadeUp className="container">
-        <div style={{ width: '100%', height: '450px', borderRadius: '8px', overflow: 'hidden', marginTop: '2rem', marginBottom: '2rem' }}>
+    <FadeUp className="container">
+        <div className="contact-map-wrapper">
           <iframe src="https://maps.google.com/maps?q=19%C2%B010'22.5%22N+72%C2%B051'27.1%22E&hl=en&z=15&amp;output=embed" width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Google Maps"></iframe>
         </div>
       </FadeUp>

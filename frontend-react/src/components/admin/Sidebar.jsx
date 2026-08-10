@@ -67,6 +67,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               to={item.path}
               end={item.end}
               title={collapsed ? item.name : undefined}
+              onClick={() => window.innerWidth <= 768 && setCollapsed(true)}
               className={({ isActive }) =>
                 `admin-nav-item${isActive ? ' active' : ''}`
               }

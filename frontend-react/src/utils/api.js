@@ -5,12 +5,12 @@ const ADMIN_SESSION_KEY = 'egreen_auth_session';
 // routes require it); fall back to the customer token.
 function getAuthToken() {
   try {
-    const admin = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
+    const admin = JSON.parse(localStorage.getItem('auth_session') || localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
     if (admin && admin.token) return admin.token;
   } catch {
     /* ignore malformed session */
   }
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token');
 }
 
 class ApiError extends Error {
@@ -66,6 +66,7 @@ const api = {
   get: (endpoint) => request(endpoint, { method: 'GET' }),
   post: (endpoint, body) => request(endpoint, { method: 'POST', body }),
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body }),
+  patch: (endpoint, body) => request(endpoint, { method: 'PATCH', body }),
   del: (endpoint) => request(endpoint, { method: 'DELETE' }),
 };
 
