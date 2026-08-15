@@ -55,7 +55,7 @@ model Product {
   categoryId  Int
   brandId     Int?
   condition   String   @default("New")
-  stock       String   @default("In Stock")
+  stock       Int      @default(10)
   specs       String   @default("")
   image           String   @default("")
   imagePublicId   String?

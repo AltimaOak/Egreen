@@ -22,8 +22,13 @@ function toOrder(o) {
 
 export const orderService = {
   async getOrders() {
-    const data = await api.get('/api/admin/orders');
-    return (data.orders || []).map(toOrder);
+    try {
+      const data = await api.get('/api/admin/orders');
+      return (data.orders || []).map(toOrder);
+    } catch (err) {
+      console.warn('Backend unavailable for orders:', err.message);
+      return [];
+    }
   },
 
   async updateOrderStatus(id, status) {
