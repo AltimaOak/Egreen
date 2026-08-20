@@ -7,12 +7,30 @@
     "dev:server": "npm run dev --prefix server",
     "dev:frontend": "npm run dev --prefix frontend-react",
     "build": "npm run build:server && npm run build:frontend",
-    "build:server": "cd server && npm install && npx prisma generate",
+    "build:server": "npx prisma generate --schema=server/prisma/schema.prisma",
     "build:frontend": "cd frontend-react && npm install && npm run build",
     "start": "cd server && npm start",
     "vercel-build": "npm run build"
   },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.19.0",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.2.0",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.6.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.2.0",
+    "zod": "^3.24.2"
+  },
   "devDependencies": {
-    "concurrently": "^10.0.5"
+    "concurrently": "^10.0.5",
+    "nodemon": "^3.1.9",
+    "prisma": "^6.5.0"
   }
 }
