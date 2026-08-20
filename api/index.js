@@ -12,17 +12,23 @@ if (!process.env.JWT_EXPIRES_IN) {
   process.env.JWT_EXPIRES_IN = '1d';
 }
 
-const path = require('path');
-
 let app;
+let initError = null;
+
 try {
   app = require('../server/index');
-} catch (err1) {
-  try {
-    app = require(path.join(process.cwd(), 'server', 'index'));
-  } catch (err2) {
-    app = require('./server/index');
-  }
+} catch (err) {
+  console.error('Failed to load server/index:', err);
+  initError = err;
 }
 
-module.exports = app;
+module.exports = (req, res) => {
+  if (initError) {
+    return res.status(500).json({
+      error: 'Vercel Serverless Function Init Failed',
+      message: initError.message,
+      stack: initError.stack,
+    });
+  }
+  return app(req, res);
+};
