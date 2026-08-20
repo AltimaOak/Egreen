@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../utils/prisma');
 const AppError = require('../utils/AppError');
-
-const prisma = new PrismaClient();
 
 const getCart = async (userId) => {
   let cart = await prisma.cart.findUnique({
