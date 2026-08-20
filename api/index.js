@@ -12,6 +12,17 @@ if (!process.env.JWT_EXPIRES_IN) {
   process.env.JWT_EXPIRES_IN = '1d';
 }
 
-const app = require('../server/index');
+const path = require('path');
+
+let app;
+try {
+  app = require('../server/index');
+} catch (err1) {
+  try {
+    app = require(path.join(process.cwd(), 'server', 'index'));
+  } catch (err2) {
+    app = require('./server/index');
+  }
+}
 
 module.exports = app;
