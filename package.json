@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix frontend-react\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:frontend": "npm run dev --prefix frontend-react",
     "build": "npm run build:server && npm run build:frontend",
     "build:server": "cd server && npm install && npx prisma generate",
     "build:frontend": "cd frontend-react && npm install && npm run build",
     "start": "cd server && npm start",
     "vercel-build": "npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }
