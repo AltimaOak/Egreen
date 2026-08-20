@@ -161,15 +161,12 @@ const Analytics = () => {
         <div style={{ marginTop: 16 }}>
           <MagicBento
             textAutoHide={true}
-            enableStars={true}
-            enableSpotlight={true}
-            enableBorderGlow={true}
-            enableTilt={true}
-            enableMagnetism={true}
-            clickEffect={true}
-            spotlightRadius={300}
-            particleCount={14}
-            glowColor="16, 185, 129"
+            enableStars={false}
+            enableSpotlight={false}
+            enableBorderGlow={false}
+            enableTilt={false}
+            enableMagnetism={false}
+            clickEffect={false}
           />
         </div>
       </Card>

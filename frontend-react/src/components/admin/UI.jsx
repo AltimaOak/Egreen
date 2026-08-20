@@ -355,7 +355,7 @@ export const Modal = ({ open, onClose, title, children, footer, size = 'md' }) =
     <AnimatePresence>
       <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <motion.div {...fade}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)' }}
           onClick={onClose}
         />
         <motion.div
@@ -401,7 +401,7 @@ export const Drawer = ({ open, onClose, title, children, footer, size = 'md' }) 
     <AnimatePresence>
       <div style={{ position: 'fixed', inset: 0, zIndex: 9990, overflow: 'hidden' }}>
         <motion.div {...fade}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9991 }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', zIndex: 9991 }}
           onClick={onClose}
         />
         <motion.div
