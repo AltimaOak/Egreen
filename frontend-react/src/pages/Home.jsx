@@ -1,8 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import FadeUp from '../components/FadeUp';
 
+const heroSlides = [
+  {
+    id: 'hardware',
+    label: 'IT Hardware',
+    badgeIcon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    ),
+    badgeText: 'Trusted by 500+ Businesses Across India',
+    badgeStyle: {
+      background: 'rgba(245, 158, 11, 0.1)',
+      borderColor: 'rgba(245, 158, 11, 0.28)',
+      color: '#B45309'
+    },
+    titlePrefix: 'Reliable New & Refurbished',
+    titleHighlight: 'IT Hardware Solutions',
+    description: 'Enterprise-grade IT hardware from leading brands. Built for performance, backed by trust.',
+    primaryBtnText: 'Explore Products',
+    primaryBtnLink: '/products',
+    secondaryBtnText: 'Request Quote',
+    secondaryBtnLink: 'https://wa.me/919867760106',
+    image: '/assets/hero_workspace.png',
+    imageAlt: 'Laptop and Desktop Workstation Hardware'
+  },
+  {
+    id: 'services',
+    label: 'IT & Software Services',
+    badgeIcon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+    ),
+    badgeText: 'End-to-End IT & Digital Solutions',
+    badgeStyle: {
+      background: 'rgba(37, 99, 235, 0.1)',
+      borderColor: 'rgba(37, 99, 235, 0.28)',
+      color: '#1D4ED8'
+    },
+    titlePrefix: 'Enterprise IT Infrastructure',
+    titleHighlight: '& Software Services',
+    description: 'Cloud setup & migration, VDI virtualization, rack server assembly, networking, and custom software development.',
+    primaryBtnText: 'Explore Services',
+    primaryBtnLink: '/services',
+    secondaryBtnText: 'Get IT Support',
+    secondaryBtnLink: 'https://wa.me/919867760106',
+    image: '/assets/hero_services.png',
+    imageAlt: 'Enterprise Cloud & Server Infrastructure Services'
+  }
+];
+
 const Home = () => {
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleNextSlide();
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [currentSlideIndex]);
+
+  const handleNextSlide = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length);
+      setIsTransitioning(false);
+    }, 180);
+  };
+
+  const handleSelectSlide = (index) => {
+    if (index === currentSlideIndex) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlideIndex(index);
+      setIsTransitioning(false);
+    }, 180);
+  };
+
+  const activeSlide = heroSlides[currentSlideIndex];
+
   return (
     <>
       <section className="hero-landing">
@@ -12,34 +96,58 @@ const Home = () => {
 
         <div className="hero-landing-full-bleed">
           <FadeUp className="hero-landing-content visible">
-            <div className="hero-badge-pill">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              Trusted by 500+ Businesses Across India
+            <div className={`hero-content-crossfade ${isTransitioning ? 'fade-out' : 'fade-in'}`}>
+              <div className="hero-badge-pill" style={activeSlide.badgeStyle}>
+                {activeSlide.badgeIcon}
+                {activeSlide.badgeText}
+              </div>
+              <h1 className="hero-landing-title">
+                {activeSlide.titlePrefix} <br/>
+                <span className="text-primary">{activeSlide.titleHighlight}</span>
+              </h1>
+              <p className="hero-landing-desc">
+                {activeSlide.description}
+              </p>
+              <div className="hero-landing-btns">
+                <Link to={activeSlide.primaryBtnLink} className="btn btn-primary hero-btn">
+                  {activeSlide.primaryBtnText} 
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </Link>
+                <a href={activeSlide.secondaryBtnLink} target="_blank" rel="noreferrer" className="btn btn-outline hero-btn">
+                  {activeSlide.secondaryBtnText} 
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+              </div>
             </div>
-            <h1 className="hero-landing-title">
-              Reliable New &amp; Refurbished <br/>
-              <span className="text-primary">IT Hardware Solutions</span>
-            </h1>
-            <p className="hero-landing-desc">
-              Enterprise-grade IT hardware from leading brands.<br/>
-              Built for performance, backed by trust.
-            </p>
-            <div className="hero-landing-btns">
-              <Link to="/products" className="btn btn-primary hero-btn">
-                Explore Products 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-              <a href="https://wa.me/919867760106" target="_blank" rel="noreferrer" className="btn btn-outline hero-btn">
-                Request Quote 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
+
+            {/* Subtle Carousel Slide Pills */}
+            <div className="hero-carousel-indicators">
+              {heroSlides.map((slide, idx) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  className={`hero-indicator-pill ${currentSlideIndex === idx ? 'active' : ''}`}
+                  onClick={() => handleSelectSlide(idx)}
+                  aria-label={`Switch to ${slide.label}`}
+                >
+                  <span className="hero-indicator-dot-mark"></span>
+                  <span>{slide.label}</span>
+                </button>
+              ))}
             </div>
           </FadeUp>
 
           <FadeUp className="hero-landing-image-wrapper visible">
-            <div className="hero-workspace-composition">
+            <div className="hero-workspace-composition hero-images-stack">
               <div className="hero-image-ambient-aura"></div>
-              <img src="/assets/hero_workspace.png" alt="Laptop and Desktop Workstation" className="hero-workspace-img" />
+              {heroSlides.map((slide, idx) => (
+                <img 
+                  key={slide.id}
+                  src={slide.image} 
+                  alt={slide.imageAlt} 
+                  className={`hero-workspace-img hero-slide-img ${currentSlideIndex === idx ? 'active' : ''}`} 
+                />
+              ))}
             </div>
           </FadeUp>
         </div>
@@ -137,17 +245,17 @@ const Home = () => {
                   </svg>
                 )
               },
-             {
-  name: 'Intel',
-  svg: (
-    <svg viewBox="0 0 160 50">
-      <rect width="160" height="50" rx="3" fill="#0068B5" />
-      <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
-        intel
-      </text>
-    </svg>
-  )
-}
+              {
+                name: 'Intel',
+                svg: (
+                  <svg viewBox="0 0 160 50">
+                    <rect width="160" height="50" rx="3" fill="#0068B5" />
+                    <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
+                      intel
+                    </text>
+                  </svg>
+                )
+              }
             ]).map((brand, idx) => (
               <div key={idx} className="brand-card" title={brand.name}>
                 {brand.svg}
@@ -156,8 +264,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-
 
       <section className="why-choose-section">
         <div className="container">
