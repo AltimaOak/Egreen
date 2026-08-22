@@ -137,7 +137,7 @@ const ContactEditor = () => {
                 <Input
                   label="WhatsApp Number"
                   icon={<Phone size={14} />}
-                  placeholder="e.g. +917942625065"
+                  placeholder="e.g. +919867760106"
                   value={contactData.whatsapp || ''}
                   onChange={(e) => handleInputChange('whatsapp', e.target.value)}
                   required

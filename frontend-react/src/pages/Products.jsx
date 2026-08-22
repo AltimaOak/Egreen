@@ -187,7 +187,7 @@ const Products = () => {
                         </button>
 
                         <a 
-                          href={`https://wa.me/917942625065?text=${encodeURIComponent(`Hi, I would like to place an order for the product: ${p.name}. Please share order and payment details.`)}`}
+                          href={`https://wa.me/919867760106?text=${encodeURIComponent(`Hi, I would like to place an order for the product: ${p.name}. Please share order and payment details.`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="cpc-btn-secondary"

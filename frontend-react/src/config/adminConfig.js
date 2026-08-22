@@ -12,7 +12,7 @@ export const DEFAULT_HOMEPAGE_DATA = {
   heroBtnText: 'Explore Products',
   heroBtnLink: '/products',
   ctaBtnText: 'Request Quote',
-  ctaBtnLink: 'https://wa.me/917942625065',
+  ctaBtnLink: 'https://wa.me/919867760106',
   heroImage: '', // fallback to default CSS or standard image
   bannerImages: [],
   offers: [
@@ -64,8 +64,8 @@ export const DEFAULT_ABOUT_DATA = {
 
 export const DEFAULT_CONTACT_DATA = {
   address: '3rd Floor, A-302, Aakar Nirman Sra Co-Op-Hsg Soc, Vilgml Road Dindoshi, Goregaon East, Mumbai - 400063, Maharashtra, India',
-  phone: '+91-7942625065',
-  whatsapp: '+917942625065',
+  phone: '+91-9867760106',
+  whatsapp: '+919867760106',
   email: 'egreentechnology24@gmail.com',
   workingHours: 'Monday - Saturday: 9:00 AM - 6:00 PM; Sunday: Closed',
   googleMapsLink: 'https://maps.google.com/maps?q=19%C2%B010\'22.5%22N+72%C2%B051\'27.1%22E&hl=en&z=15&output=embed',
