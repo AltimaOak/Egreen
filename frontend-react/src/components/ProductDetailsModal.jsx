@@ -238,7 +238,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
             {/* Action CTAs */}
             <div className="pdm-actions-row">
               <a 
-                href={`https://wa.me/917942625065?text=${encodeURIComponent(`Hi, I would like to place an order for the product: ${product.name}. Please share order and payment details.`)}`}
+                href={`https://wa.me/919867760106?text=${encodeURIComponent(`Hi, I would like to place an order for the product: ${product.name}. Please share order and payment details.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="pdm-btn pdm-btn-primary"
@@ -251,7 +251,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
               </a>
               
               <a 
-                href={`https://wa.me/917942625065?text=${encodeURIComponent(`Hi, I have an enquiry regarding the product: ${product.name}. Please provide more details.`)}`}
+                href={`https://wa.me/919867760106?text=${encodeURIComponent(`Hi, I have an enquiry regarding the product: ${product.name}. Please provide more details.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="pdm-btn pdm-btn-secondary"
