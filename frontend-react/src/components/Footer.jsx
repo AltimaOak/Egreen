@@ -47,6 +47,7 @@ const Footer = () => {
             <div className="footer-links">
               <Link to="/">Home</Link>
               <Link to="/about">About Egreen</Link>
+              <Link to="/services">IT &amp; Software Services</Link>
               <Link to="/products">Product Catalog</Link>
               <Link to="/contact">Contact &amp; Quotes</Link>
             </div>

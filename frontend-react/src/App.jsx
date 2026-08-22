@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
+import Services from './pages/Services';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "about", element: <About /> },
+      { path: "services", element: <Services /> },
       { path: "products", element: <Products /> },
       { path: "contact", element: <Contact /> },
     ]
