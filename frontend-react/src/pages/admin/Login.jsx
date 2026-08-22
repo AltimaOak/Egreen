@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAdmin } from '../../contexts/AdminContext';
-import { Lock, User, Eye, EyeOff } from 'lucide-react';
-import { Input, Button } from '../../components/admin/UI';
+import { Lock, User, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Input } from '../../components/admin/UI';
 
 const Login = () => {
   const { login, isAuthenticated } = useAdmin();
@@ -25,13 +25,36 @@ const Login = () => {
       const result = await login(email, password);
       if (!result.success) setFormError(result.error || 'Invalid credentials.');
       else navigate('/admin', { replace: true });
-    } catch { setFormError('An unexpected error occurred. Please try again.'); }
-    finally { setIsSubmitting(false); }
+    } catch { 
+      setFormError('An unexpected error occurred. Please try again.'); 
+    } finally { 
+      setIsSubmitting(false); 
+    }
   };
 
   return (
     <div className="admin-login-layout">
       <div className="admin-login-card">
+        {/* Back Link */}
+        <div style={{ marginBottom: 20 }}>
+          <Link 
+            to="/" 
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 6, 
+              fontSize: '0.85rem', 
+              color: 'var(--color-muted)', 
+              textDecoration: 'none',
+              fontWeight: 600,
+              transition: 'color 0.2s ease'
+            }}
+            className="hover:text-primary"
+          >
+            <ArrowLeft size={16} /> Back to Website
+          </Link>
+        </div>
+
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ textAlign: 'center', marginBottom: 14 }}>
