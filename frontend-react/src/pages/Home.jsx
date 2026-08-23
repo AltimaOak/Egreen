@@ -120,21 +120,7 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Subtle Carousel Slide Pills */}
-            <div className="hero-carousel-indicators">
-              {heroSlides.map((slide, idx) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  className={`hero-indicator-pill ${currentSlideIndex === idx ? 'active' : ''}`}
-                  onClick={() => handleSelectSlide(idx)}
-                  aria-label={`Switch to ${slide.label}`}
-                >
-                  <span className="hero-indicator-dot-mark"></span>
-                  <span>{slide.label}</span>
-                </button>
-              ))}
-            </div>
+
           </FadeUp>
 
           <FadeUp className="hero-landing-image-wrapper visible">
