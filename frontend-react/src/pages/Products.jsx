@@ -60,14 +60,14 @@ const Products = () => {
 
   return (
     <>
-      <div className="page-header" style={{ paddingBottom: '2rem' }}>
+      <div className="page-header" style={{ padding: 'calc(var(--nav-height) + 1.75rem) 0 1.25rem' }}>
         <FadeUp className="container visible">
-          <h1 className="h1">Our Products</h1>
-          <p style={{ fontSize: '1.125rem', maxWidth: '600px', margin: '0 auto' }}>Premium enterprise hardware solutions for your business needs.</p>
+          <h1 className="h1" style={{ marginBottom: '0.35rem' }}>Our Products</h1>
+          <p style={{ fontSize: '1rem', maxWidth: '600px', margin: '0 auto', color: '#64748b' }}>Premium enterprise hardware solutions for your business needs.</p>
         </FadeUp>
       </div>
 
-      <div className="container fade-up visible" style={{ marginTop: '-1.5rem', marginBottom: '3rem', position: 'relative', zIndex: 10 }}>
+      <div className="container fade-up visible" style={{ marginTop: '-1.25rem', marginBottom: '1.5rem', position: 'relative', zIndex: 10 }}>
         <div className="unified-search-bar card">
           <div className="search-input-wrapper">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -109,7 +109,7 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="container fade-up visible" style={{ marginBottom: '4rem' }}>
+      <div className="container fade-up visible" style={{ marginBottom: '3.5rem' }}>
 
         <div>
           {loading ? (
@@ -179,7 +179,7 @@ const Products = () => {
                           className="cpc-btn-primary" 
                           onClick={() => setSelectedProduct(p)}
                         >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
                           </svg>
@@ -194,7 +194,7 @@ const Products = () => {
                           title="Order on WhatsApp"
                           style={{ gap: '4px', color: '#15803d', borderColor: '#bbf7d0', backgroundColor: '#f0fdf4' }}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.47.123.643-.074.173-.198.742-.865.94-1.162.198-.297.396-.247.668-.148.272.099 1.73.816 2.027.964.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/>
                           </svg>
                           Order
