@@ -37,6 +37,7 @@ const DEFAULT_BRANDS = [
   { value: 'Dell', label: 'Dell' },
   { value: 'Lenovo', label: 'Lenovo' },
   { value: 'HP', label: 'HP' },
+  { value: 'Apple', label: 'Apple' },
   { value: 'Acer', label: 'Acer' },
   { value: 'Asus', label: 'Asus' },
   { value: 'Intel', label: 'Intel' },

@@ -31,3 +31,4 @@ server/uploads/*
 
 # Claude AI configuration
 .claude/
+.vercel

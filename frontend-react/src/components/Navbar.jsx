@@ -31,13 +31,14 @@ const Navbar = () => {
         <div className={`nav-links ${isMenuOpen ? 'active-menu' : ''}`}>
           <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>Home</Link>
           <Link to="/about" className={location.pathname === '/about' ? 'active' : ''} onClick={closeMenu}>About Us</Link>
+          <Link to="/services" className={location.pathname === '/services' ? 'active' : ''} onClick={closeMenu}>Services</Link>
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
+          <a href="https://wa.me/919867760106" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
           <Link to="/admin" className="nav-mobile-link" onClick={closeMenu}>Admin Panel</Link>
         </div>
         <div className="nav-actions">
-          <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
+          <a href="https://wa.me/919867760106" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
           <Link to="/admin" className="btn btn-outline" onClick={closeMenu}>Admin Panel</Link>
         </div>
         <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => setIsMenuOpen(!isMenuOpen)}>
