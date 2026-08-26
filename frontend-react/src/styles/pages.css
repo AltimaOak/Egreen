@@ -2018,35 +2018,46 @@ textarea.form-control {
 .pdm-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 1rem;
   overflow-y: auto;
 }
 
 .pdm-modal-card {
   background: #ffffff;
   width: 100%;
-  max-width: 1020px;
-  max-height: 90vh;
-  border-radius: 18px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  max-width: 820px;
+  max-height: 92vh;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: pdmFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid #e2e8f0;
+  animation: pdmFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@keyframes pdmFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Header Bar */
 .pdm-header-bar {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2056,14 +2067,15 @@ textarea.form-control {
 .pdm-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
+  gap: 6px;
+  font-size: 0.775rem;
   color: #64748b;
   font-weight: 500;
 }
 
 .pdm-sep {
   color: #cbd5e1;
+  font-size: 0.75rem;
 }
 
 .pdm-active-crumb {
@@ -2073,10 +2085,10 @@ textarea.form-control {
 
 .pdm-close-btn {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  width: 36px;
-  height: 36px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2088,18 +2100,18 @@ textarea.form-control {
 .pdm-close-btn:hover {
   background: #f1f5f9;
   color: #0f172a;
-  border-color: #94a3b8;
-  transform: scale(1.05);
+  border-color: #cbd5e1;
+  transform: rotate(90deg);
 }
 
 /* Main Grid */
 .pdm-grid-container {
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 2.25rem;
-  padding: 1.75rem 2rem;
+  grid-template-columns: 290px 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
   overflow-y: auto;
-  max-height: calc(90vh - 65px);
+  max-height: calc(92vh - 52px);
   text-align: left;
 }
 
@@ -2107,121 +2119,124 @@ textarea.form-control {
 .pdm-left-col {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .pdm-image-box {
   position: relative;
-  background: #f8fafc;
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f1f5f9 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 340px;
-  max-height: 400px;
+  height: 220px;
+  min-height: 220px;
+  max-height: 220px;
   overflow: hidden;
 }
 
 .pdm-main-image {
   max-width: 100%;
-  max-height: 300px;
+  max-height: 180px;
   object-fit: contain;
   transition: transform 0.3s ease;
 }
 
 .pdm-image-box:hover .pdm-main-image {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
 .pdm-no-image {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   color: #9ca3af;
-  font-size: 0.9rem;
+  font-size: 0.775rem;
 }
 
 .pdm-image-badges {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 8px;
+  left: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   z-index: 2;
 }
 
 .pdm-badge {
-  padding: 5px 12px;
-  border-radius: 100px;
-  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
 }
 
 .pdm-badge-brand {
-  background: #1e293b;
+  background: rgba(15, 23, 42, 0.85);
   color: #ffffff;
 }
 
 .pdm-badge-condition {
-  background: #0284c7;
+  background: rgba(2, 132, 199, 0.9);
   color: #ffffff;
 }
 
-/* Trust Strip */
+/* Compact Trust Strip */
 .pdm-trust-strip {
-  background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  text-align: center;
 }
 
 .pdm-trust-item {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .pdm-trust-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
 .pdm-trust-item strong {
   display: block;
-  font-size: 0.875rem;
-  color: #1c1917;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  color: #1e293b;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .pdm-trust-item p {
-  font-size: 0.785rem;
-  color: #78716c;
-  margin: 2px 0 0;
+  display: none;
 }
 
 /* Right Column */
 .pdm-right-col {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .pdm-meta-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .pdm-brand-tag {
@@ -2229,22 +2244,22 @@ textarea.form-control {
   color: #1d4ed8;
   border: 1px solid #bfdbfe;
   font-weight: 700;
-  font-size: 0.75rem;
-  padding: 3px 10px;
-  border-radius: 6px;
+  font-size: 0.6875rem;
+  padding: 2px 7px;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .pdm-sku-tag {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
 }
 
 .pdm-stock-tag {
-  font-size: 0.8rem;
+  font-size: 0.725rem;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 100px;
 }
 
@@ -2261,28 +2276,28 @@ textarea.form-control {
 }
 
 .pdm-product-title {
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.3;
-  margin: 0 0 10px;
+  margin: 0 0 4px;
 }
 
 /* Amazon / Flipkart Rating Row */
 .pdm-rating-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.85rem;
+  gap: 8px;
+  font-size: 0.775rem;
   flex-wrap: wrap;
 }
 
 .pdm-stars-pill {
-  background: #388e3c; /* Flipkart green badge */
+  background: #388e3c;
   color: #ffffff;
   font-weight: 700;
-  font-size: 0.8rem;
-  padding: 2px 8px;
+  font-size: 0.725rem;
+  padding: 1.5px 6px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
@@ -2302,35 +2317,35 @@ textarea.form-control {
   font-weight: 600;
 }
 
-/* Price Box */
+/* Compact Price Box */
 .pdm-price-box {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
 }
 
 .pdm-price-row {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .pdm-curr-price {
-  font-size: 1.85rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .pdm-quote-price {
   color: #1d4ed8;
-  font-size: 1.5rem;
+  font-size: 1.15rem;
 }
 
 .pdm-mrp-price {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   color: #94a3b8;
   text-decoration: line-through;
   font-weight: 500;
@@ -2340,9 +2355,9 @@ textarea.form-control {
   background: #dcfce7;
   color: #15803d;
   font-weight: 700;
-  font-size: 0.825rem;
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-size: 0.725rem;
+  padding: 2px 7px;
+  border-radius: 4px;
   border: 1px solid #86efac;
 }
 
@@ -2353,33 +2368,42 @@ textarea.form-control {
 }
 
 .pdm-tax-note {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #64748b;
-  margin: 6px 0 0;
+  margin: 2px 0 0;
 }
 
-/* Bullets Box */
+/* Compact Highlights / Specs Section */
 .pdm-section-heading {
-  font-size: 1rem;
+  font-size: 0.825rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 10px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 6px;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pdm-bullets-box {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
 .pdm-bullets-list {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.9rem;
+  gap: 3px;
+  font-size: 0.785rem;
   color: #334155;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
-/* Flipkart & Amazon Style Specifications Table */
 .pdm-specs-section {
   display: flex;
   flex-direction: column;
@@ -2387,18 +2411,31 @@ textarea.form-control {
 
 .pdm-specs-table-wrapper {
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.pdm-specs-table-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+.pdm-specs-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.pdm-specs-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .pdm-specs-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.785rem;
 }
 
 .pdm-specs-table tr {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .pdm-specs-table tr:last-child {
@@ -2406,20 +2443,21 @@ textarea.form-control {
 }
 
 .pdm-specs-table tr:nth-child(even) {
-  background-color: #f8fafc;
+  background-color: #fafaf9;
 }
 
 .pdm-spec-key {
-  padding: 10px 16px;
-  width: 38%;
+  padding: 5px 10px;
+  width: 35%;
   font-weight: 600;
   color: #475569;
-  background-color: rgba(241, 245, 249, 0.6);
-  border-right: 1px solid #e2e8f0;
+  background-color: rgba(241, 245, 249, 0.7);
+  border-right: 1px solid #f1f5f9;
+  white-space: nowrap;
 }
 
 .pdm-spec-val {
-  padding: 10px 16px;
+  padding: 5px 10px;
   color: #0f172a;
   font-weight: 500;
 }
@@ -2427,69 +2465,91 @@ textarea.form-control {
 /* Action Buttons */
 .pdm-actions-row {
   display: flex;
-  gap: 14px;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.25rem;
 }
 
 .pdm-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 100px;
-  font-size: 0.9375rem;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .pdm-btn-primary {
-  background: #1d4ed8;
+  background: #16a34a;
   color: #ffffff;
   border: none;
-  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
-  flex: 1;
-  min-width: 220px;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  flex: 1.2;
 }
 
 .pdm-btn-primary:hover {
-  background: #1e40af;
-  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.45);
-  transform: translateY(-2px);
+  background: #15803d;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+  transform: translateY(-1px);
 }
 
 .pdm-btn-secondary {
-  background: #ffffff;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  flex: 1;
 }
 
 .pdm-btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-  color: #0f172a;
-  transform: translateY(-2px);
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+  transform: translateY(-1px);
 }
 
-/* Responsive Modal Styling */
-@media (max-width: 860px) {
+/* Responsive Modal Styling for Mobile */
+@media (max-width: 768px) {
+  .pdm-backdrop {
+    padding: 0.5rem;
+  }
+  .pdm-modal-card {
+    max-height: 94vh;
+    border-radius: 14px;
+  }
   .pdm-grid-container {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 1.25rem;
+    gap: 1rem;
+    padding: 1rem;
+    max-height: calc(94vh - 48px);
   }
   .pdm-image-box {
-    min-height: 250px;
+    height: 180px;
+    min-height: 180px;
+  }
+  .pdm-main-image {
+    max-height: 150px;
+  }
+  .pdm-trust-strip {
+    grid-template-columns: repeat(3, 1fr);
   }
   .pdm-product-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
   .pdm-curr-price {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+  .pdm-actions-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pdm-btn {
+    width: 100%;
+    padding: 10px 16px;
   }
 }
 
