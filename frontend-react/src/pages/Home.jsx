@@ -120,21 +120,7 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Subtle Carousel Slide Pills */}
-            <div className="hero-carousel-indicators">
-              {heroSlides.map((slide, idx) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  className={`hero-indicator-pill ${currentSlideIndex === idx ? 'active' : ''}`}
-                  onClick={() => handleSelectSlide(idx)}
-                  aria-label={`Switch to ${slide.label}`}
-                >
-                  <span className="hero-indicator-dot-mark"></span>
-                  <span>{slide.label}</span>
-                </button>
-              ))}
-            </div>
+
           </FadeUp>
 
           <FadeUp className="hero-landing-image-wrapper visible">
@@ -228,6 +214,20 @@ const Home = () => {
                 )
               },
               {
+                name: 'Apple',
+                svg: (
+                  <svg viewBox="0 0 150 50" className="brand-logo-svg brand-apple">
+                    <g transform="translate(12, 7) scale(1.35)">
+                      <path
+                        fill="#000000"
+                        d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.32c.67-.82 1.12-1.96.99-3.1-.96.04-2.14.65-2.83 1.45-.61.71-1.15 1.87-1.01 2.99 1.08.08 2.18-.52 2.85-1.34z"
+                      />
+                    </g>
+                    <text x="54" y="34" fill="#000000" fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" fontSize="28" fontWeight="700" letterSpacing="-0.5px">Apple</text>
+                  </svg>
+                )
+              },
+              {
                 name: 'Acer',
                 svg: (
                   <svg viewBox="0 0 140 40" className="brand-logo-svg brand-acer">
@@ -248,7 +248,7 @@ const Home = () => {
               {
                 name: 'Intel',
                 svg: (
-                  <svg viewBox="0 0 160 50">
+                  <svg viewBox="0 0 160 50" className="brand-logo-svg brand-intel">
                     <rect width="160" height="50" rx="3" fill="#0068B5" />
                     <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
                       intel

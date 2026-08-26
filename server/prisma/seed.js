@@ -22,6 +22,7 @@ const brands = [
   { name: 'Dell', slug: 'dell' },
   { name: 'HP', slug: 'hp' },
   { name: 'Lenovo', slug: 'lenovo' },
+  { name: 'Apple', slug: 'apple' },
   { name: 'Intel', slug: 'intel' },
   { name: 'Apacer', slug: 'apacer' },
   { name: 'Asus', slug: 'asus' },
@@ -38,6 +39,7 @@ function detectBrand(name) {
   if (name.startsWith('Dell')) return 'dell';
   if (name.startsWith('HP') || name.startsWith('Hp')) return 'hp';
   if (name.startsWith('Lenovo')) return 'lenovo';
+  if (name.startsWith('Apple')) return 'apple';
   if (name.startsWith('Intel')) return 'intel';
   if (name.startsWith('Apacer')) return 'apacer';
   if (name.startsWith('Asus')) return 'asus';
