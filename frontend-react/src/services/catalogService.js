@@ -62,6 +62,8 @@ function toCatalogProduct(p) {
     brand: p.brand?.name || (p.brandId === 1 ? 'Dell' : p.brandId === 2 ? 'HP' : p.brandId === 3 ? 'Lenovo' : 'Enterprise Hardware'),
     brandId: p.brandId,
     image: p.image || '',
+    gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? (()=>{ try { return JSON.parse(p.gallery); } catch(e){ return []; } })() : []),
+    features: Array.isArray(p.features) ? p.features : [],
     status: p.isActive ? 'Active' : 'Inactive',
     stock: typeof stock === 'number' && !isNaN(stock) ? stock : 10,
     condition: p.condition || 'Refurbished',
