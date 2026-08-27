@@ -257,9 +257,15 @@ const Home = () => {
                 )
               }
             ]).map((brand, idx) => (
-              <div key={idx} className="brand-card" title={brand.name}>
+              <Link 
+                key={idx} 
+                to={`/products?brand=${encodeURIComponent(brand.name)}`} 
+                className="brand-card" 
+                title={`Shop ${brand.name} Products`}
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
                 {brand.svg}
-              </div>
+              </Link>
             ))}
           </div>
         </div>
