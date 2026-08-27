@@ -9,6 +9,10 @@ const {
   create,
   update,
   remove,
+  listVariants,
+  createVariant,
+  updateVariant,
+  removeVariant,
 } = require('../controllers/productController');
 
 const router = express.Router();
@@ -36,7 +40,21 @@ const baseProductSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const variantSchema = z.object({
+  ram: z.string().optional().nullable(),
+  storage: z.string().optional().nullable(),
+  price: z.number().nonnegative().optional().nullable(),
+  offerPrice: z.number().nonnegative().optional().nullable(),
+  stock: z.number().int().nonnegative().optional(),
+  sku: z.string().optional().nullable(),
+  isDefault: z.boolean().optional(),
+});
+
 const productIdSchema = z.object({ id: z.coerce.number().int().positive() });
+const variantParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  variantId: z.coerce.number().int().positive(),
+});
 
 // Public routes. Authenticated admins can pass `?includeInactive=true` to see
 // draft/inactive products too (enforced in the controller via optionalUser).
@@ -49,9 +67,42 @@ router.put(
   '/:id',
   protect,
   requireAdmin,
+  validate.validateParams(productIdSchema),
   validate(baseProductSchema.partial()),
   update
 );
-router.delete('/:id', protect, requireAdmin, remove);
+router.delete('/:id', protect, requireAdmin, validate.validateParams(productIdSchema), remove);
+
+// Admin variant routes
+router.get(
+  '/:id/variants',
+  protect,
+  requireAdmin,
+  validate.validateParams(productIdSchema),
+  listVariants
+);
+router.post(
+  '/:id/variants',
+  protect,
+  requireAdmin,
+  validate.validateParams(productIdSchema),
+  validate(variantSchema),
+  createVariant
+);
+router.put(
+  '/:id/variants/:variantId',
+  protect,
+  requireAdmin,
+  validate.validateParams(variantParamsSchema),
+  validate(variantSchema.partial()),
+  updateVariant
+);
+router.delete(
+  '/:id/variants/:variantId',
+  protect,
+  requireAdmin,
+  validate.validateParams(variantParamsSchema),
+  removeVariant
+);
 
 module.exports = router;

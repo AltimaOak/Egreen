@@ -4,10 +4,9 @@ import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
+import Services from './pages/Services';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Register from './pages/Register';
 
 // Admin Components
 import { AdminProvider } from './contexts/AdminContext';
@@ -19,6 +18,7 @@ import AdminLayout from './components/admin/AdminLayout';
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
+import ProductVariants from './pages/admin/ProductVariants';
 import Settings from './pages/admin/Settings';
 import NotFound from './pages/admin/NotFound';
 import Orders from './pages/admin/Orders';
@@ -34,10 +34,9 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "about", element: <About /> },
+      { path: "services", element: <Services /> },
       { path: "products", element: <Products /> },
       { path: "contact", element: <Contact /> },
-      { path: "login", element: <Login /> },
-      { path: "register", element: <Register /> },
     ]
   },
 
@@ -55,6 +54,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: "products", element: <AdminProducts /> },
+      { path: "products/:id/variants", element: <ProductVariants /> },
       { path: "orders", element: <Orders /> },
       { path: "categories", element: <Categories /> },
       { path: "customers", element: <Customers /> },

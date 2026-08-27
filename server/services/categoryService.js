@@ -1,6 +1,5 @@
-const AppError = require('../utils/AppError');
-
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 const listCategories = async () => {
   return prisma.category.findMany({

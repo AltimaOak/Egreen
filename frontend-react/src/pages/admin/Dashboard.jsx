@@ -94,11 +94,20 @@ const Dashboard = () => {
       <AdminPageHeader
         title="Dashboard"
         subtitle="Welcome back — here's what's happening in your store."
-        action={lastUpdated && (
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
-            Updated {new Date(lastUpdated).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
-          </span>
-        )}
+        action={
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <Link to="/admin/products?action=add" style={{ textDecoration: 'none' }}>
+              <Button variant="primary" size="md" icon={<ShoppingBag size={16} />}>
+                + Add Product
+              </Button>
+            </Link>
+            <Link to="/admin/orders" style={{ textDecoration: 'none' }}>
+              <Button variant="secondary" size="md" icon={<ShoppingCart size={16} />}>
+                Manage Orders
+              </Button>
+            </Link>
+          </div>
+        }
       />
 
       {/* Alert banner */}

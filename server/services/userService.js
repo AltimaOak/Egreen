@@ -1,6 +1,5 @@
-const AppError = require('../utils/AppError');
-
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 const getProfile = async (userId) => {
   const user = await prisma.user.findUnique({

@@ -1,6 +1,5 @@
-const AppError = require('../utils/AppError');
-
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 const listBrands = async () => {
   return prisma.brand.findMany({

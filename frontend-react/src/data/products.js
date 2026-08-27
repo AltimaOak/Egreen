@@ -5,7 +5,7 @@ export const products = [
   { id: 3, name: 'Lenovo ThinkCentre M710q Tiny', category: 'mini-pc', condition: 'Refurbished', stock: 'Low Stock', specs: 'Intel Core i5-7400T, 8GB RAM, 256GB SSD', image: '/assets/lenovo_tiny_1785088129692.png' },
   { id: 4, name: 'HP ProDesk 600 G3 Mini', category: 'mini-pc', condition: 'New', stock: 'In Stock', specs: 'Intel Core i5-7500T, 16GB RAM, 512GB SSD', image: '/assets/hp_prodesk_1785088141452.png' },
   { id: 5, name: 'HP t630 Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'AMD GX-420GI, 8GB RAM, 32GB Flash', image: '/assets/hp_t630_1785088178254.png' },
-  { id: 6, name: 'Intel Core i7-10700 Processor', category: 'processors', condition: 'New', stock: 'In Stock', specs: '2.90 GHz Base, 16M Cache, LGA1200', image: '/assets/intel_processor_1785088189677.png' },
+  { id: 6, name: 'Intel Core i7-10700 Processor', category: 'components', condition: 'New', stock: 'In Stock', specs: '2.90 GHz Base, 16M Cache, LGA1200', image: '/assets/intel_processor_1785088189677.png' },
 
   // New Dell Thin Clients
   { id: 7, name: 'Dell Wyse 3030 LT Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'Contact for specs', image: '/assets/dell_wyse_1785088101397.png' },

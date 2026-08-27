@@ -52,7 +52,7 @@ const Orders = () => {
   const filtered = orders
     .filter(o => {
       const q = searchTerm.toLowerCase();
-      return (!q || o.customerName.toLowerCase().includes(q) || o.id.toLowerCase().includes(q) || (o.customerEmail || '').toLowerCase().includes(q))
+      return (!q || o.customerName.toLowerCase().includes(q) || String(o.id).toLowerCase().includes(q) || (o.customerEmail || '').toLowerCase().includes(q))
           && (activeTab === 'All' || o.status === activeTab);
     })
     .sort((a, b) => {

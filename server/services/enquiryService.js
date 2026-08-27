@@ -1,6 +1,5 @@
-const AppError = require('../utils/AppError');
-
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 // Simple HTML-escaping to reduce XSS risk in user-submitted text
 const sanitize = (str) => {

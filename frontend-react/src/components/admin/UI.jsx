@@ -146,81 +146,122 @@ export const Badge = ({ children, variant = 'neutral', className = '' }) => {
 ══════════════════════════════════════════════════════════ */
 export const Input = React.forwardRef(({
   label, placeholder, value, onChange, onKeyPress, onBlur,
-  icon, type = 'text', error, required, disabled,
-  className = '', id, min, step, autoComplete,
-}, ref) => (
-  <div style={{ marginBottom: error ? 0 : 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <div className="admin-input-group">
-      {icon && (
-        <span className="admin-input-icon">
-          {React.cloneElement(icon, { size: 15 })}
-        </span>
+  icon, rightIcon, onRightIconClick, type = 'text', error, required, disabled,
+  className = '', id, name, min, step, autoComplete, style,
+}, ref) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: error ? 0 : 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
       )}
-      <input
-        ref={ref}
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        onKeyPress={onKeyPress}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-        required={required}
-        min={min}
-        step={step}
-        autoComplete={autoComplete}
-        aria-invalid={!!error}
-        className={`admin-input${error ? ' error' : ''}${icon ? '' : ''}`}
-        style={icon ? {} : { paddingLeft: 13 }}
-      />
+      <div className={`admin-input-group${rightIcon ? ' has-right-icon' : ''}`}>
+        {icon && (
+          <span className="admin-input-icon">
+            {React.cloneElement(icon, { size: 15 })}
+          </span>
+        )}
+        <input
+          ref={ref}
+          id={fieldId}
+          name={fieldName}
+          type={type}
+          value={value}
+          onChange={onChange}
+          onKeyPress={onKeyPress}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          min={min}
+          step={step}
+          autoComplete={autoComplete}
+          aria-invalid={!!error}
+          className={`admin-input${error ? ' error' : ''}`}
+          style={{
+            ...(icon ? {} : { paddingLeft: 13 }),
+            ...(rightIcon ? { paddingRight: 38 } : {}),
+            ...style
+          }}
+        />
+        {rightIcon && (
+          <button
+            type="button"
+            className="admin-input-right-icon"
+            onClick={onRightIconClick}
+            tabIndex={-1}
+            aria-label="Toggle input visibility"
+            style={{
+              position: 'absolute',
+              right: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            {React.cloneElement(rightIcon, { size: 15 })}
+          </button>
+        )}
+      </div>
+      {error && <p className="admin-form-error">{error}</p>}
     </div>
-    {error && <p className="admin-form-error">{error}</p>}
-  </div>
-));
+  );
+});
 
 /* ══════════════════════════════════════════════════════════
    SELECT
 ══════════════════════════════════════════════════════════ */
 export const Select = ({
   label, value, onChange, options = [],
-  placeholder, error, required, disabled, className = '', id,
-}) => (
-  <div style={{ marginBottom: 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <div style={{ position: 'relative' }}>
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        required={required}
-        aria-invalid={!!error}
-        className={`admin-select${error ? ' error' : ''}`}
-        style={{ paddingRight: 32 }}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map(o => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <ChevronDown
-        size={14}
-        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }}
-      />
+  placeholder, error, required, disabled, className = '', id, name,
+}) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
+      )}
+      <div style={{ position: 'relative' }}>
+        <select
+          id={fieldId}
+          name={fieldName}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          aria-invalid={!!error}
+          className={`admin-select${error ? ' error' : ''}`}
+          style={{ paddingRight: 32 }}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <ChevronDown
+          size={14}
+          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }}
+        />
+      </div>
+      {error && <p className="admin-form-error">{error}</p>}
     </div>
-    {error && <p className="admin-form-error">{error}</p>}
-  </div>
-);
+  );
+};
 
 /* ══════════════════════════════════════════════════════════
    TEXTAREA
@@ -228,18 +269,23 @@ export const Select = ({
 export const Textarea = ({
   label, placeholder, value, onChange,
   error, required, disabled, className = '',
-  id, rows = 4, minHeight = '100px', style = {},
-}) => (
-  <div style={{ marginBottom: 16 }} className={className}>
-    {label && (
-      <label htmlFor={id} className={`admin-form-label${required ? ' required' : ''}`}>
-        {label}
-      </label>
-    )}
-    <textarea
-      id={id}
-      rows={rows}
-      value={value}
+  id, name, rows = 4, minHeight = '100px', style = {},
+}) => {
+  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
+  const fieldName = name || fieldId;
+  return (
+    <div style={{ marginBottom: 16 }} className={className}>
+      {label && (
+        <label htmlFor={fieldId} className={`admin-form-label${required ? ' required' : ''}`}>
+          {label}
+          {required && <span style={{ color: 'var(--color-danger, #ef4444)', marginLeft: 3 }}>*</span>}
+        </label>
+      )}
+      <textarea
+        id={fieldId}
+        name={fieldName}
+        rows={rows}
+        value={value}
       onChange={onChange}
       placeholder={placeholder}
       disabled={disabled}
@@ -249,8 +295,9 @@ export const Textarea = ({
       style={{ minHeight, resize: 'vertical', ...style }}
     />
     {error && <p className="admin-form-error">{error}</p>}
-  </div>
-);
+    </div>
+  );
+};
 
 /* ══════════════════════════════════════════════════════════
    TABLE
@@ -306,9 +353,9 @@ export const Modal = ({ open, onClose, title, children, footer, size = 'md' }) =
   if (!open) return null;
   return (
     <AnimatePresence>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <motion.div {...fade}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)' }}
           onClick={onClose}
         />
         <motion.div
@@ -317,24 +364,26 @@ export const Modal = ({ open, onClose, title, children, footer, size = 'md' }) =
           exit={{ opacity: 0, scale: 0.95, y: 12 }}
           transition={spring}
           style={{
-            position: 'relative', zIndex: 51,
+            position: 'relative', zIndex: 10001,
             width: '100%', maxWidth: widthMap[size],
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-card)',
-            boxShadow: 'var(--shadow-overlay)',
+            backgroundColor: '#FFFFFF',
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.25), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
             overflow: 'hidden',
+            color: '#0F172A',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid var(--color-border)' }}>
-            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--color-text)' }}>{title}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: '#0F172A' }}>{title}</h3>
             <button onClick={onClose} className="admin-topnav-icon-btn" style={{ width: 28, height: 28 }}>
               <X size={16} />
             </button>
           </div>
-          <div style={{ padding: '20px 22px', maxHeight: '72vh', overflowY: 'auto' }}>{children}</div>
+          <div style={{ padding: '20px 22px', maxHeight: '72vh', overflowY: 'auto', background: '#FFFFFF', color: '#0F172A' }}>{children}</div>
           {footer && (
-            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8, background: 'var(--color-background)' }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#F8FAFC' }}>
               {footer}
             </div>
           )}
@@ -348,13 +397,13 @@ export const Modal = ({ open, onClose, title, children, footer, size = 'md' }) =
    DRAWER
 ══════════════════════════════════════════════════════════ */
 export const Drawer = ({ open, onClose, title, children, footer, size = 'md' }) => {
-  const widthMap = { sm: 380, md: 480, lg: 640, xl: 780 };
+  const widthMap = { sm: 380, md: 480, lg: 640, xl: 780, '2xl': 880, full: '100%' };
   if (!open) return null;
   return (
     <AnimatePresence>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9990, overflow: 'hidden' }}>
         <motion.div {...fade}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', zIndex: 9991 }}
           onClick={onClose}
         />
         <motion.div
@@ -363,23 +412,24 @@ export const Drawer = ({ open, onClose, title, children, footer, size = 'md' }) 
           exit={{ x: '100%' }}
           transition={spring}
           style={{
-            position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 51,
-            width: '100%', maxWidth: widthMap[size],
-            background: 'var(--color-surface)',
-            borderLeft: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-overlay)',
+            position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 9992,
+            width: '100%', maxWidth: (typeof window !== 'undefined' && window.innerWidth <= 768) ? '100%' : (widthMap[size] || 640),
+            backgroundColor: '#FFFFFF',
+            background: '#FFFFFF',
+            borderLeft: '1px solid #E2E8F0',
+            boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.25)',
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--color-text)' }}>{title}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid #E2E8F0', background: '#FFFFFF', flexShrink: 0 }}>
+            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: '#0F172A' }}>{title}</h3>
             <button onClick={onClose} className="admin-topnav-icon-btn" style={{ width: 28, height: 28 }}>
               <X size={16} />
             </button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>{children}</div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px', background: '#FFFFFF', color: '#0F172A' }}>{children}</div>
           {footer && (
-            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'flex-end', gap: 8, background: 'var(--color-background)', flexShrink: 0 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#F8FAFC', flexShrink: 0 }}>
               {footer}
             </div>
           )}
@@ -433,8 +483,8 @@ export const Collapsible = ({ title, icon, children, defaultOpen = true }) => {
    CONFIRM DIALOG
 ══════════════════════════════════════════════════════════ */
 export const ConfirmDialog = ({
-  isOpen, title, message,
-  confirmText = 'Delete', cancelText = 'Cancel',
+  isOpen, title = 'Confirm Deletion', message,
+  confirmText = 'Delete Product', cancelText = 'Cancel',
   type = 'danger', onConfirm, onCancel,
 }) => (
   <Modal
@@ -449,9 +499,13 @@ export const ConfirmDialog = ({
       </>
     }
   >
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-      <AlertTriangle size={20} color="var(--color-danger)" style={{ flexShrink: 0, marginTop: 2 }} />
-      <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--color-text)' }}>{message}</p>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FEF2F2', border: '1px solid #FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <AlertTriangle size={20} color="#DC2626" />
+      </div>
+      <div style={{ flex: 1 }}>
+        <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5, color: '#0F172A', fontWeight: 500 }}>{message}</p>
+      </div>
     </div>
   </Modal>
 );
@@ -474,39 +528,42 @@ export const EmptyState = ({ icon, title, description, action, className = '' })
 export const Toast = ({ toast, hideToast }) => {
   if (!toast?.show) return null;
   const colors = {
-    success: { bg: 'var(--color-success)',  text: '#fff' },
-    error:   { bg: 'var(--color-danger)',   text: '#fff' },
-    warning: { bg: 'var(--color-warning)',  text: '#fff' },
-    info:    { bg: 'var(--color-blue)',     text: '#fff' },
-    loading: { bg: 'var(--color-text)',     text: 'var(--color-surface)' },
+    success: { bg: '#16A34A', text: '#FFFFFF', border: '#15803D' },
+    error:   { bg: '#DC2626', text: '#FFFFFF', border: '#B91C1C' },
+    warning: { bg: '#D97706', text: '#FFFFFF', border: '#B45309' },
+    info:    { bg: '#2563EB', text: '#FFFFFF', border: '#1D4ED8' },
+    loading: { bg: '#0F172A', text: '#FFFFFF', border: '#020617' },
   };
   const c = colors[toast.type] ?? colors.info;
   return (
     <AnimatePresence>
-      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 99 }}>
+      <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 100000, pointerEvents: 'none' }}>
         <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.95 }}
+          initial={{ opacity: 0, y: 20, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.95 }}
+          exit={{ opacity: 0, y: 20, scale: 0.9 }}
           style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '12px 18px',
-            borderRadius: 'var(--radius-button)',
-            background: c.bg, color: c.text,
-            boxShadow: 'var(--shadow-overlay)',
-            fontSize: '0.85rem', fontWeight: 600,
-            maxWidth: 380, minWidth: 220,
+            pointerEvents: 'auto',
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '14px 20px',
+            borderRadius: '10px',
+            background: c.bg,
+            color: c.text,
+            border: `1px solid ${c.border}`,
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
+            fontSize: '0.9rem', fontWeight: 600,
+            maxWidth: 420, minWidth: 260,
           }}
         >
-          {toast.type === 'success' && <Check size={16} />}
-          {toast.type === 'error' && <X size={16} />}
+          {toast.type === 'success' && <Check size={18} />}
+          {toast.type === 'error' && <X size={18} />}
           <span style={{ flex: 1 }}>{toast.message}</span>
           {hideToast && (
             <button
               onClick={hideToast}
-              style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, display: 'flex', opacity: 0.75 }}
+              style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, display: 'flex', opacity: 0.85 }}
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           )}
         </motion.div>

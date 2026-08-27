@@ -17,8 +17,13 @@ function toBrand(b) {
 
 export const brandService = {
   async getCategories() {
-    const data = await api.get('/api/brands');
-    return (data.brands || []).map(toBrand);
+    try {
+      const data = await api.get('/api/brands');
+      return (data.brands || []).map(toBrand);
+    } catch (err) {
+      console.warn('Backend unavailable for brands:', err.message);
+      return [];
+    }
   },
 
   // Brands have no active flag — keep the UI toggle harmless.

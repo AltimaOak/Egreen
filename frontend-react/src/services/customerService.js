@@ -19,8 +19,13 @@ function toCustomer(u) {
 
 export const customerService = {
   async getCustomers() {
-    const data = await api.get('/api/admin/users');
-    return (data.users || []).map(toCustomer);
+    try {
+      const data = await api.get('/api/admin/users');
+      return (data.users || []).map(toCustomer);
+    } catch (err) {
+      console.warn('Backend unavailable for customers:', err.message);
+      return [];
+    }
   },
 
   async addCustomer() {

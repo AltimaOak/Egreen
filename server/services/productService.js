@@ -1,10 +1,10 @@
-const AppError = require('../utils/AppError');
-
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 const productInclude = {
   category: { select: { id: true, name: true, slug: true } },
   brand: { select: { id: true, name: true, slug: true } },
+  variants: true,
 };
 
 const slugify = (name) =>
@@ -37,7 +37,7 @@ const buildProductData = async (input, existing) => {
         ? input.description
         : existing?.description ?? null,
     condition: input.condition || existing?.condition || 'New',
-    stock: input.stock ?? existing?.stock ?? 0,
+    stock: input.stock !== undefined ? (parseInt(input.stock, 10) || 0) : existing?.stock ?? 10,
     specs: input.specs !== undefined ? input.specs : existing?.specs ?? '',
     image: input.image !== undefined ? input.image : existing?.image ?? '',
     imagePublicId:
@@ -63,12 +63,15 @@ const buildProductData = async (input, existing) => {
   if (input.gallery !== undefined) data.gallery = input.gallery;
 
   if (input.categorySlug) {
-    const category = await prisma.category.findUnique({
+    const categoryName = input.categorySlug
+      .split('-')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ');
+    const category = await prisma.category.upsert({
       where: { slug: input.categorySlug },
+      update: {},
+      create: { name: categoryName, slug: input.categorySlug },
     });
-    if (!category) {
-      throw new AppError(`Category not found: ${input.categorySlug}`, 400);
-    }
     data.categoryId = category.id;
   } else if (existing) {
     data.categoryId = existing.categoryId;
@@ -109,7 +112,7 @@ const listProducts = async ({ category, brand, search, page = 1, limit = 20, inc
 
   const skip = (page - 1) * limit;
 
-  const [products, total] = await Promise.all([
+  const [productsRaw, total] = await Promise.all([
     prisma.product.findMany({
       where,
       include: productInclude,
@@ -119,6 +122,11 @@ const listProducts = async ({ category, brand, search, page = 1, limit = 20, inc
     }),
     prisma.product.count({ where }),
   ]);
+
+  const products = productsRaw.map((p) => ({
+    ...p,
+    stock: typeof p.stock === 'number' ? p.stock : (parseInt(p.stock, 10) || 0),
+  }));
 
   return {
     products,
@@ -176,10 +184,93 @@ const deleteProduct = async (id) => {
   }
 };
 
+const createVariant = async (productId, input) => {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) {
+    throw new AppError('Product not found', 404);
+  }
+
+  if (input.isDefault) {
+    await prisma.productVariant.updateMany({
+      where: { productId },
+      data: { isDefault: false },
+    });
+  }
+
+  return prisma.productVariant.create({
+    data: {
+      productId,
+      ram: input.ram !== undefined ? input.ram : null,
+      storage: input.storage !== undefined ? input.storage : null,
+      price: input.price !== undefined ? input.price : null,
+      offerPrice: input.offerPrice !== undefined ? input.offerPrice : null,
+      stock: input.stock !== undefined ? (parseInt(input.stock, 10) || 0) : 0,
+      sku: input.sku !== undefined ? input.sku : null,
+      isDefault: input.isDefault ?? false,
+    },
+  });
+};
+
+const updateVariant = async (productId, variantId, input) => {
+  const existing = await prisma.productVariant.findFirst({
+    where: { id: variantId, productId },
+  });
+  if (!existing) {
+    throw new AppError('Product variant not found', 404);
+  }
+
+  if (input.isDefault) {
+    await prisma.productVariant.updateMany({
+      where: { productId, id: { not: variantId } },
+      data: { isDefault: false },
+    });
+  }
+
+  const data = {};
+  if (input.ram !== undefined) data.ram = input.ram;
+  if (input.storage !== undefined) data.storage = input.storage;
+  if (input.price !== undefined) data.price = input.price;
+  if (input.offerPrice !== undefined) data.offerPrice = input.offerPrice;
+  if (input.stock !== undefined) data.stock = parseInt(input.stock, 10) || 0;
+  if (input.sku !== undefined) data.sku = input.sku;
+  if (input.isDefault !== undefined) data.isDefault = input.isDefault;
+
+  return prisma.productVariant.update({
+    where: { id: variantId },
+    data,
+  });
+};
+
+const deleteVariant = async (productId, variantId) => {
+  const existing = await prisma.productVariant.findFirst({
+    where: { id: variantId, productId },
+  });
+  if (!existing) {
+    throw new AppError('Product variant not found', 404);
+  }
+
+  await prisma.productVariant.delete({
+    where: { id: variantId },
+  });
+
+  return { deleted: true };
+};
+
+const getVariantsByProductId = async (productId) => {
+  return prisma.productVariant.findMany({
+    where: { productId },
+    orderBy: { id: 'asc' },
+  });
+};
+
 module.exports = {
   listProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  getVariantsByProductId,
+  createVariant,
+  updateVariant,
+  deleteVariant,
 };

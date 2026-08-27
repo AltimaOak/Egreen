@@ -41,4 +41,46 @@ const remove = catchAsync(async (req, res) => {
   res.json(result);
 });
 
-module.exports = { list, getById, create, update, remove };
+const listVariants = catchAsync(async (req, res) => {
+  const variants = await productService.getVariantsByProductId(
+    parseInt(req.params.id, 10)
+  );
+  res.json({ variants });
+});
+
+const createVariant = catchAsync(async (req, res) => {
+  const variant = await productService.createVariant(
+    parseInt(req.params.id, 10),
+    req.body
+  );
+  res.status(201).json({ variant });
+});
+
+const updateVariant = catchAsync(async (req, res) => {
+  const variant = await productService.updateVariant(
+    parseInt(req.params.id, 10),
+    parseInt(req.params.variantId, 10),
+    req.body
+  );
+  res.json({ variant });
+});
+
+const removeVariant = catchAsync(async (req, res) => {
+  const result = await productService.deleteVariant(
+    parseInt(req.params.id, 10),
+    parseInt(req.params.variantId, 10)
+  );
+  res.json(result);
+});
+
+module.exports = {
+  list,
+  getById,
+  create,
+  update,
+  remove,
+  listVariants,
+  createVariant,
+  updateVariant,
+  removeVariant,
+};

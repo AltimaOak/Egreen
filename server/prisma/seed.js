@@ -14,7 +14,7 @@ const categories = [
   { name: 'Thin Clients', slug: 'thin-client' },
   { name: 'Desktops', slug: 'desktop' },
   { name: 'Laptops', slug: 'laptop' },
-  { name: 'Processors', slug: 'processors' },
+  { name: 'Monitors', slug: 'monitors' },
   { name: 'Components & SSDs', slug: 'components' },
 ];
 
@@ -22,6 +22,7 @@ const brands = [
   { name: 'Dell', slug: 'dell' },
   { name: 'HP', slug: 'hp' },
   { name: 'Lenovo', slug: 'lenovo' },
+  { name: 'Apple', slug: 'apple' },
   { name: 'Intel', slug: 'intel' },
   { name: 'Apacer', slug: 'apacer' },
   { name: 'Asus', slug: 'asus' },
@@ -38,6 +39,7 @@ function detectBrand(name) {
   if (name.startsWith('Dell')) return 'dell';
   if (name.startsWith('HP') || name.startsWith('Hp')) return 'hp';
   if (name.startsWith('Lenovo')) return 'lenovo';
+  if (name.startsWith('Apple')) return 'apple';
   if (name.startsWith('Intel')) return 'intel';
   if (name.startsWith('Apacer')) return 'apacer';
   if (name.startsWith('Asus')) return 'asus';
@@ -65,7 +67,7 @@ const productsData = [
   { id: 3, name: 'Lenovo ThinkCentre M710q Tiny', category: 'mini-pc', condition: 'Refurbished', stock: 'Low Stock', specs: 'Intel Core i5-7400T, 8GB RAM, 256GB SSD', image: '/assets/lenovo_tiny_1785088129692.png' },
   { id: 4, name: 'HP ProDesk 600 G3 Mini', category: 'mini-pc', condition: 'New', stock: 'In Stock', specs: 'Intel Core i5-7500T, 16GB RAM, 512GB SSD', image: '/assets/hp_prodesk_1785088141452.png' },
   { id: 5, name: 'HP t630 Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'AMD GX-420GI, 8GB RAM, 32GB Flash', image: '/assets/hp_t630_1785088178254.png' },
-  { id: 6, name: 'Intel Core i7-10700 Processor', category: 'processors', condition: 'New', stock: 'In Stock', specs: '2.90 GHz Base, 16M Cache, LGA1200', image: '/assets/intel_processor_1785088189677.png' },
+  { id: 6, name: 'Intel Core i7-10700 Processor', category: 'components', condition: 'New', stock: 'In Stock', specs: '2.90 GHz Base, 16M Cache, LGA1200', image: '/assets/intel_processor_1785088189677.png' },
   { id: 7, name: 'Dell Wyse 3030 LT Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'Intel Celeron Dual Core, 2GB RAM, 8GB Storage, Thin OS, DisplayPort, 12 Months Warranty', price: 4200, image: '/assets/dell_wyse_1785088101397.png' },
   { id: 8, name: 'Dell Wyse 3040 Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'Intel Atom Quad Core, 2GB RAM, 8GB Storage, ThinOS, DisplayPort, 36 Months Warranty', price: 5500, image: '/assets/dell_wyse_1785088101397.png' },
   { id: 9, name: 'Dell Wyse 5010 Thin Client', category: 'thin-client', condition: 'Refurbished', stock: 'In Stock', specs: 'AMD Radeon HD 6250, 4GB RAM, 16GB Storage, Mini PC Form Factor, Windows 10 IoT, DVI, 36 Months Warranty', price: 10500, image: '/assets/dell_wyse_1785088101397.png' },

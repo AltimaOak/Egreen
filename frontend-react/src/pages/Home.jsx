@@ -1,8 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import FadeUp from '../components/FadeUp';
 
+const heroSlides = [
+  {
+    id: 'hardware',
+    label: 'IT Hardware',
+    badgeIcon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    ),
+    badgeText: 'Trusted by 500+ Businesses Across India',
+    badgeStyle: {
+      background: 'rgba(245, 158, 11, 0.1)',
+      borderColor: 'rgba(245, 158, 11, 0.28)',
+      color: '#B45309'
+    },
+    titlePrefix: 'Reliable New & Refurbished',
+    titleHighlight: 'IT Hardware Solutions',
+    description: 'Enterprise-grade IT hardware from leading brands. Built for performance, backed by trust.',
+    primaryBtnText: 'Explore Products',
+    primaryBtnLink: '/products',
+    secondaryBtnText: 'Request Quote',
+    secondaryBtnLink: 'https://wa.me/919867760106',
+    image: '/assets/hero_workspace.png',
+    imageAlt: 'Laptop and Desktop Workstation Hardware'
+  },
+  {
+    id: 'services',
+    label: 'IT & Software Services',
+    badgeIcon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+    ),
+    badgeText: 'End-to-End IT & Digital Solutions',
+    badgeStyle: {
+      background: 'rgba(37, 99, 235, 0.1)',
+      borderColor: 'rgba(37, 99, 235, 0.28)',
+      color: '#1D4ED8'
+    },
+    titlePrefix: 'Enterprise IT Infrastructure',
+    titleHighlight: '& Software Services',
+    description: 'Cloud setup & migration, VDI virtualization, rack server assembly, networking, and custom software development.',
+    primaryBtnText: 'Explore Services',
+    primaryBtnLink: '/services',
+    secondaryBtnText: 'Get IT Support',
+    secondaryBtnLink: 'https://wa.me/919867760106',
+    image: '/assets/hero_services.png',
+    imageAlt: 'Enterprise Cloud & Server Infrastructure Services'
+  }
+];
+
 const Home = () => {
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleNextSlide();
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [currentSlideIndex]);
+
+  const handleNextSlide = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length);
+      setIsTransitioning(false);
+    }, 180);
+  };
+
+  const handleSelectSlide = (index) => {
+    if (index === currentSlideIndex) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlideIndex(index);
+      setIsTransitioning(false);
+    }, 180);
+  };
+
+  const activeSlide = heroSlides[currentSlideIndex];
+
   return (
     <>
       <section className="hero-landing">
@@ -12,34 +96,44 @@ const Home = () => {
 
         <div className="hero-landing-full-bleed">
           <FadeUp className="hero-landing-content visible">
-            <div className="hero-badge-pill">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              Trusted by 500+ Businesses Across India
+            <div className={`hero-content-crossfade ${isTransitioning ? 'fade-out' : 'fade-in'}`}>
+              <div className="hero-badge-pill" style={activeSlide.badgeStyle}>
+                {activeSlide.badgeIcon}
+                {activeSlide.badgeText}
+              </div>
+              <h1 className="hero-landing-title">
+                {activeSlide.titlePrefix} <br/>
+                <span className="text-primary">{activeSlide.titleHighlight}</span>
+              </h1>
+              <p className="hero-landing-desc">
+                {activeSlide.description}
+              </p>
+              <div className="hero-landing-btns">
+                <Link to={activeSlide.primaryBtnLink} className="btn btn-primary hero-btn">
+                  {activeSlide.primaryBtnText} 
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </Link>
+                <a href={activeSlide.secondaryBtnLink} target="_blank" rel="noreferrer" className="btn btn-outline hero-btn">
+                  {activeSlide.secondaryBtnText} 
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+              </div>
             </div>
-            <h1 className="hero-landing-title">
-              Reliable New &amp; Refurbished <br/>
-              <span className="text-primary">IT Hardware Solutions</span>
-            </h1>
-            <p className="hero-landing-desc">
-              Enterprise-grade IT hardware from leading brands.<br/>
-              Built for performance, backed by trust.
-            </p>
-            <div className="hero-landing-btns">
-              <Link to="/products" className="btn btn-primary hero-btn">
-                Explore Products 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-              <a href="https://wa.me/917942625065" target="_blank" rel="noreferrer" className="btn btn-outline hero-btn">
-                Request Quote 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
-            </div>
+
+
           </FadeUp>
 
           <FadeUp className="hero-landing-image-wrapper visible">
-            <div className="hero-workspace-composition">
+            <div className="hero-workspace-composition hero-images-stack">
               <div className="hero-image-ambient-aura"></div>
-              <img src="/assets/hero_workspace.png" alt="Laptop and Desktop Workstation" className="hero-workspace-img" />
+              {heroSlides.map((slide, idx) => (
+                <img 
+                  key={slide.id}
+                  src={slide.image} 
+                  alt={slide.imageAlt} 
+                  className={`hero-workspace-img hero-slide-img ${currentSlideIndex === idx ? 'active' : ''}`} 
+                />
+              ))}
             </div>
           </FadeUp>
         </div>
@@ -112,6 +206,20 @@ const Home = () => {
                 )
               },
               {
+                name: 'Apple',
+                svg: (
+                  <svg viewBox="0 0 150 50" className="brand-logo-svg brand-apple">
+                    <g transform="translate(12, 7) scale(1.35)">
+                      <path
+                        fill="#000000"
+                        d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.32c.67-.82 1.12-1.96.99-3.1-.96.04-2.14.65-2.83 1.45-.61.71-1.15 1.87-1.01 2.99 1.08.08 2.18-.52 2.85-1.34z"
+                      />
+                    </g>
+                    <text x="54" y="34" fill="#000000" fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" fontSize="28" fontWeight="700" letterSpacing="-0.5px">Apple</text>
+                  </svg>
+                )
+              },
+              {
                 name: 'Acer',
                 svg: (
                   <svg viewBox="0 0 130 40" className="brand-logo-svg brand-acer">
@@ -141,36 +249,13 @@ const Home = () => {
                 )
               },
               {
-                name: 'HP',
+                name: 'Intel',
                 svg: (
-                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-hp">
-                    <circle cx="50" cy="50" r="48" fill="#0096D6" />
-                    <text
-                      x="50" y="66"
-                      fill="#FFFFFF"
-                      fontFamily="'Arial', Helvetica, sans-serif"
-                      fontSize="44"
-                      fontWeight="900"
-                      fontStyle="italic"
-                      textAnchor="middle"
-                    >hp</text>
-                  </svg>
-                )
-              },
-              {
-                name: 'Dell',
-                svg: (
-                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-dell">
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="#0076CE" strokeWidth="6" />
-                    <text
-                      x="50" y="61"
-                      fill="#0076CE"
-                      fontFamily="'Arial Black', Impact, sans-serif"
-                      fontSize="26"
-                      fontWeight="900"
-                      textAnchor="middle"
-                      letterSpacing="1.5"
-                    >DELL</text>
+                  <svg viewBox="0 0 160 50" className="brand-logo-svg brand-intel">
+                    <rect width="160" height="50" rx="3" fill="#0068B5" />
+                    <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
+                      intel
+                    </text>
                   </svg>
                 )
               }
@@ -180,72 +265,6 @@ const Home = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="section-padding container">
-        <FadeUp className="categories-header-row visible">
-          <div>
-            <span className="section-category-badge">BROWSE BY CATEGORY</span>
-            <h2 className="section-main-title">Featured Categories</h2>
-          </div>
-          <Link to="/products" className="btn btn-outline category-view-all">
-            View All Products
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </Link>
-        </FadeUp>
-
-        <div className="home-category-grid">
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/dell_wyse_1785088101397.png" alt="Dell Wyse Thin Clients" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Dell Wyse Thin Clients</h3>
-              <p>Secure, manageable and efficient solutions for virtual desktop environments.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
-
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/dell_optiplex_1785088113196.png" alt="Dell OptiPlex Mini PCs" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Dell OptiPlex Mini PCs</h3>
-              <p>Ultra-compact business desktops with versatile mounting options.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
-
-          <FadeUp className="card category-card visible">
-            <div className="category-card-img-wrapper">
-              <img src="/assets/lenovo_tiny_1785088129692.png" alt="Lenovo ThinkCentre PCs" className="category-card-img" />
-              <div className="category-card-icon-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-              </div>
-            </div>
-            <div className="category-card-body">
-              <h3>Lenovo ThinkCentre PCs</h3>
-              <p>Space-saving desktops designed for diverse business productivity.</p>
-              <Link to="/products" className="category-card-link">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-          </FadeUp>
         </div>
       </section>
 
