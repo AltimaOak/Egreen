@@ -2403,6 +2403,151 @@ textarea.form-control {
   gap: 4px;
 }
 
+/* Dual / Multi-Spec Pricing Selector */
+.pdm-tier-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.pdm-tier-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.725rem;
+}
+
+.pdm-tier-selector-label {
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pdm-tier-active-badge {
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+}
+
+.pdm-tier-pills-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pdm-tier-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.pdm-tier-pill-btn:hover {
+  border-color: #cbd5e1;
+  background: #fafaf9;
+}
+
+.pdm-tier-pill-btn.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  box-shadow: 0 0 0 1px #16a34a;
+}
+
+.pdm-tier-pill-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pdm-tier-radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.pdm-tier-radio-dot.active {
+  border-color: #16a34a;
+}
+
+.pdm-tier-radio-dot.active::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  display: block;
+}
+
+.pdm-tier-pill-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pdm-tier-pill-title {
+  font-size: 0.775rem;
+  font-weight: 750;
+  color: #111827;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdm-tier-pill-specs {
+  font-size: 0.6875rem;
+  color: #64748b;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdm-tier-pill-price-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.pdm-tier-pill-price {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #15803d;
+  line-height: 1.2;
+}
+
+.pdm-tier-pill-mrp {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+  line-height: 1.2;
+}
+
 /* Price Box */
 .pdm-price-box {
   background: #fafaf9;

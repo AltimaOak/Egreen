@@ -60,6 +60,23 @@ const INITIAL_FORM_STATE = {
   description: '',
   price: '',
   offerPrice: '',
+  warranty: '3 Years',
+  pricingTiers: [
+    {
+      id: 'tier-1',
+      name: 'Option 1 (Base Spec)',
+      specs: '8GB RAM / 256GB SSD',
+      price: '',
+      offerPrice: '',
+    },
+    {
+      id: 'tier-2',
+      name: 'Option 2 (Upgraded Spec)',
+      specs: '16GB RAM / 512GB SSD',
+      price: '',
+      offerPrice: '',
+    },
+  ],
   brand: 'Dell',
   SKU: '',
   stock: 10,
@@ -67,7 +84,12 @@ const INITIAL_FORM_STATE = {
   status: 'Active',
   featured: false,
   features: [''],
-  specifications: [{ key: '', value: '' }],
+  specifications: [
+    { key: 'Processor', value: '' },
+    { key: 'RAM', value: '' },
+    { key: 'Storage', value: '' },
+    { key: 'Warranty', value: '3 Years' },
+  ],
   seoTitle: '',
   seoDescription: '',
   image: '',
@@ -146,13 +168,58 @@ const Products = () => {
   };
 
   const openEditDrawer = (product) => {
+    const specsList = product.specifications && product.specifications.length
+      ? product.specifications
+      : [
+          { key: 'Processor', value: '' },
+          { key: 'RAM', value: '' },
+          { key: 'Storage', value: '' },
+          { key: 'Warranty', value: product.warranty || '3 Years' },
+        ];
+
+    const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
+    const warrantyVal = product.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
+
+    let pricingTiers = Array.isArray(product.pricingTiers) && product.pricingTiers.length > 0
+      ? [...product.pricingTiers]
+      : [];
+
+    if (pricingTiers.length === 0) {
+      pricingTiers = [
+        {
+          id: 'tier-1',
+          name: 'Option 1 (Base Spec)',
+          specs: product.specs || '',
+          price: product.price || '',
+          offerPrice: product.offerPrice || '',
+        },
+        {
+          id: 'tier-2',
+          name: 'Option 2 (Upgraded Spec)',
+          specs: '',
+          price: '',
+          offerPrice: '',
+        },
+      ];
+    } else if (pricingTiers.length === 1) {
+      pricingTiers.push({
+        id: 'tier-2',
+        name: 'Option 2 (Upgraded Spec)',
+        specs: '',
+        price: '',
+        offerPrice: '',
+      });
+    }
+
     setFormData({
       name: product.name || '',
       slug: product.slug || '',
       category: product.category || 'laptop',
       description: product.description || '',
-      price: product.price || '',
-      offerPrice: product.offerPrice || '',
+      price: pricingTiers[0]?.price || product.price || '',
+      offerPrice: pricingTiers[0]?.offerPrice || product.offerPrice || '',
+      warranty: warrantyVal,
+      pricingTiers: pricingTiers,
       brand: product.brand || 'Dell',
       SKU: product.SKU || '',
       stock: product.stock || 0,
@@ -160,11 +227,7 @@ const Products = () => {
       status: product.status || 'Active',
       featured: product.featured || false,
       features: product.features && product.features.length ? product.features : [''],
-      specifications: product.specifications && product.specifications.length ? product.specifications : [
-        { key: 'Processor', value: '' },
-        { key: 'RAM', value: '' },
-        { key: 'Storage', value: '' },
-      ],
+      specifications: specsList,
       seoTitle: product.seoTitle || '',
       seoDescription: product.seoDescription || '',
       image: product.image || '',
@@ -185,6 +248,35 @@ const Products = () => {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
+  };
+
+  const handlePricingTierChange = (tierIdx, field, value) => {
+    setFormData((prev) => {
+      const updatedTiers = [...(prev.pricingTiers || [])];
+      if (!updatedTiers[tierIdx]) {
+        updatedTiers[tierIdx] = { id: `tier-${tierIdx + 1}`, name: '', specs: '', price: '', offerPrice: '' };
+      }
+      updatedTiers[tierIdx] = { ...updatedTiers[tierIdx], [field]: value };
+      
+      const updates = { pricingTiers: updatedTiers };
+      if (tierIdx === 0 && (field === 'price' || field === 'offerPrice')) {
+        updates[field] = value;
+      }
+      return { ...prev, ...updates };
+    });
+  };
+
+  const handleWarrantyChange = (val) => {
+    setFormData((prev) => {
+      const updatedSpecs = [...(prev.specifications || [])];
+      const wIdx = updatedSpecs.findIndex((s) => s.key && s.key.toLowerCase() === 'warranty');
+      if (wIdx >= 0) {
+        updatedSpecs[wIdx] = { ...updatedSpecs[wIdx], value: val };
+      } else {
+        updatedSpecs.push({ key: 'Warranty', value: val });
+      }
+      return { ...prev, warranty: val, specifications: updatedSpecs };
+    });
   };
 
   useEffect(() => {
@@ -353,13 +445,32 @@ const Products = () => {
   const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    const cleanSpecs = formData.specifications.filter((s) => s.key.trim() && s.value.trim());
-    const cleanFeats = formData.features.filter((f) => f.trim());
+    const cleanSpecs = (formData.specifications || []).filter((s) => s.key && s.key.trim() && s.value && s.value.trim());
+    const cleanFeats = (formData.features || []).filter((f) => f && f.trim());
+
+    // Clean pricing tiers
+    const cleanPricingTiers = (formData.pricingTiers || []).map((t, idx) => ({
+      id: t.id || `tier-${idx + 1}`,
+      name: t.name || (idx === 0 ? 'Option 1 (Base Spec)' : 'Option 2 (Upgraded Spec)'),
+      specs: t.specs || '',
+      price: t.price !== '' && t.price != null ? parseFloat(t.price) : null,
+      offerPrice: t.offerPrice !== '' && t.offerPrice != null ? parseFloat(t.offerPrice) : null,
+    }));
+
+    const primaryPrice = cleanPricingTiers[0]?.price != null 
+      ? cleanPricingTiers[0].price 
+      : (formData.price ? parseFloat(formData.price) : 0);
+
+    const primaryOfferPrice = cleanPricingTiers[0]?.offerPrice != null 
+      ? cleanPricingTiers[0].offerPrice 
+      : (formData.offerPrice ? parseFloat(formData.offerPrice) : null);
 
     const submissionData = {
       ...formData,
-      price: parseFloat(formData.price || 0),
-      offerPrice: formData.offerPrice ? parseFloat(formData.offerPrice) : null,
+      warranty: formData.warranty || '3 Years',
+      pricingTiers: cleanPricingTiers,
+      price: primaryPrice,
+      offerPrice: primaryOfferPrice,
       stock: parseInt(formData.stock || 0),
       rating: parseFloat(formData.rating || 4.5),
       specifications: cleanSpecs,
@@ -398,14 +509,6 @@ const Products = () => {
     }
   };
 
-  const wizardStepsLabels = [
-    { num: 1, title: 'Basic Info' },
-    { num: 2, title: 'Specs & Stock' },
-    { num: 3, title: 'Media' },
-    { num: 4, title: 'Pricing' },
-    { num: 5, title: 'Publishing' },
-  ];
-
   const drawerTitle = drawerMode === 'create' ? 'Add New Product' : drawerMode === 'edit' ? `Edit: ${formData.name}` : `Product Details`;
 
   return (
@@ -413,7 +516,7 @@ const Products = () => {
       {/* Page Header */}
       <AdminPageHeader
         title="Products Catalog"
-        subtitle="Manage inventory, brand specifications, pricing, and product status."
+        subtitle="Manage inventory, brand specifications, multi-spec pricing, and warranties."
         action={
           <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openCreateDrawer}>
             Add Product
@@ -485,7 +588,7 @@ const Products = () => {
         </div>
 
         {loading ? (
-          <SkeletonTable rows={itemsPerPage} cols={7} />
+          <SkeletonTable rows={itemsPerPage} cols={8} />
         ) : (
           <>
             {paginatedProducts.length === 0 ? (
@@ -509,10 +612,10 @@ const Products = () => {
                       <th style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
                         Product {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th>Brand</th>
+                      <th>Brand & Warranty</th>
                       <th>Category</th>
                       <th style={{ cursor: 'pointer' }} onClick={() => handleSort('price')}>
-                        Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        Spec Pricing {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
                       <th style={{ cursor: 'pointer' }} onClick={() => handleSort('stock')}>
                         Stock {sortBy === 'stock' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -522,62 +625,87 @@ const Products = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedProducts.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            {p.image ? (
-                              <img src={p.image} alt={p.name} className="admin-table-img" />
+                    {paginatedProducts.map((p) => {
+                      const hasDualPricing = Array.isArray(p.pricingTiers) && p.pricingTiers.length > 1 && p.pricingTiers[1].price;
+                      return (
+                        <tr key={p.id}>
+                          <td>
+                            <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="admin-table-img" />
+                              ) : (
+                                <div className="admin-table-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-background)', color: 'var(--color-muted)', fontSize: '0.68rem', fontWeight: 600 }}>
+                                  No Image
+                                </div>
+                              )}
+                              <div>
+                                <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text)', marginBottom: 2 }}>{p.name}</strong>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>SKU: {p.SKU || '-'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text)' }}>{p.brand}</span>
+                              <span style={{ fontSize: '0.7rem', color: '#0284c7', background: '#f0f9ff', padding: '1px 6px', borderRadius: 4, width: 'fit-content', fontWeight: 600, border: '1px solid #bae6fd' }}>
+                                🛡️ {p.warranty || '3 Years'}
+                              </span>
+                            </div>
+                          </td>
+                          <td style={{ fontSize: '0.82rem', textTransform: 'capitalize' }}>
+                            {categoryOptions.find((c) => c.value === p.category)?.label || p.category}
+                          </td>
+                          <td>
+                            {hasDualPricing ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <div style={{ fontSize: '0.78rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span style={{ fontWeight: 800, color: '#15803d' }}>{formatPrice(p.pricingTiers[0].price)}</span>
+                                  <span style={{ fontSize: '0.68rem', color: '#64748b' }}>({p.pricingTiers[0].name ? p.pricingTiers[0].name.split('(')[0].trim() : 'Opt 1'})</span>
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span style={{ fontWeight: 800, color: '#2563eb' }}>{formatPrice(p.pricingTiers[1].price)}</span>
+                                  <span style={{ fontSize: '0.68rem', color: '#64748b' }}>({p.pricingTiers[1].name ? p.pricingTiers[1].name.split('(')[0].trim() : 'Opt 2'})</span>
+                                </div>
+                              </div>
                             ) : (
-                              <div className="admin-table-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-background)', color: 'var(--color-muted)', fontSize: '0.68rem', fontWeight: 600 }}>
-                                No Image
+                              <div>
+                                <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>{formatPrice(p.price)}</span>
+                                {p.offerPrice && (
+                                  <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--color-danger)', textDecoration: 'line-through' }}>{formatPrice(p.offerPrice)}</span>
+                                )}
                               </div>
                             )}
-                            <div>
-                              <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text)', marginBottom: 2 }}>{p.name}</strong>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>SKU: {p.SKU || '-'}</span>
+                          </td>
+                          <td>
+                            <span style={{ fontWeight: 600, color: p.stock === 0 ? 'var(--color-danger)' : p.stock < 5 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                              {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                              <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>{p.status}</Badge>
+                              {p.featured && <Badge variant="primary">Featured</Badge>}
                             </div>
-                          </div>
-                        </td>
-                        <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{p.brand}</td>
-                        <td style={{ fontSize: '0.82rem', textTransform: 'capitalize' }}>
-                          {categoryOptions.find((c) => c.value === p.category)?.label || p.category}
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>{formatPrice(p.price)}</span>
-                          {p.offerPrice && (
-                            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--color-danger)', textDecoration: 'line-through' }}>{formatPrice(p.offerPrice)}</span>
-                          )}
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 600, color: p.stock === 0 ? 'var(--color-danger)' : p.stock < 5 ? 'var(--color-warning)' : 'var(--color-text)' }}>
-                            {p.stock === 0 ? 'Out of stock' : `${p.stock} units`}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <Badge variant={p.status === 'Active' ? 'success' : 'warning'}>{p.status}</Badge>
-                            {p.featured && <Badge variant="primary">Featured</Badge>}
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                            <Button variant="ghost" size="sm" title="View details" onClick={() => openViewDrawer(p)}>
-                              <Eye size={13} />
-                            </Button>
-                            <Button variant="ghost" size="sm" title="Edit details" onClick={() => openEditDrawer(p)}>
-                              <Edit2 size={13} />
-                            </Button>
-                            <Button variant="ghost" size="sm" title="Delete" style={{ color: 'var(--color-danger)' }} onClick={() => handleDeleteClick(p)}>
-                              <Trash2 size={13} />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+                              <Button variant="ghost" size="sm" title="View details" onClick={() => openViewDrawer(p)}>
+                                <Eye size={13} />
+                              </Button>
+                              <Button variant="ghost" size="sm" title="Edit details" onClick={() => openEditDrawer(p)}>
+                                <Edit2 size={13} />
+                              </Button>
+                              <Button variant="ghost" size="sm" title="Delete" style={{ color: 'var(--color-danger)' }} onClick={() => handleDeleteClick(p)}>
+                                <Trash2 size={13} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -645,9 +773,10 @@ const Products = () => {
             )}
             <div>
               <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Product Name</div>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text)' }}>{formData.name}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-text)' }}>{formData.name}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div>
                 <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Brand</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{formData.brand}</div>
@@ -657,18 +786,43 @@ const Products = () => {
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', textTransform: 'capitalize' }}>{formData.category}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Price</div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatPrice(formData.price)}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Stock</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{formData.stock} units</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Warranty</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284c7' }}>🛡️ {formData.warranty || '3 Years'}</div>
               </div>
             </div>
+
+            {/* Spec Pricing Options in View Drawer */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', marginBottom: 10 }}>
+                💰 Configured Spec Pricing Options
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {(formData.pricingTiers || []).map((tier, idx) => (
+                  <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: 10 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: idx === 0 ? '#15803d' : '#2563eb', marginBottom: 2 }}>
+                      {tier.name || (idx === 0 ? 'Option 1' : 'Option 2')}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: 6 }}>
+                      {tier.specs || 'Standard specifications'}
+                    </div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#111827' }}>
+                      {tier.price ? formatPrice(tier.price) : 'Price on request'}
+                      {tier.offerPrice && (
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through', marginLeft: 6 }}>
+                          {formatPrice(tier.offerPrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div>
               <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Description</div>
               <div style={{ fontSize: '0.82rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>{formData.description}</div>
             </div>
+            
             <div style={{ display: 'flex', gap: 8, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
               <Button variant="primary" size="sm" onClick={() => openEditDrawer(formData)}>
                 Edit Product
@@ -680,7 +834,7 @@ const Products = () => {
           </div>
         ) : (
           /* Simple, User-Friendly Single-Page Form */
-          <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             
             {/* Section 1: Basic Information */}
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
@@ -690,7 +844,7 @@ const Products = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <Input
                   label="Product Name"
-                  placeholder="e.g. Dell OptiPlex 7090 Micro i5 11th Gen"
+                  placeholder="e.g. HP 400G6 SSF ProDesk"
                   value={formData.name}
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   required
@@ -722,27 +876,156 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Section 2: Pricing & Stock */}
+            {/* Section 2: Warranty Period (Editable) */}
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
-              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>💰</span> Pricing & Inventory
+              <h3 style={{ margin: '0 0 10px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>🛡️</span> Warranty Coverage (Editable)
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-muted)', marginTop: -4, marginBottom: 12 }}>
+                Specify the warranty duration to display in the product details and assurance badges.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <Input
-                  label="Price (₹)"
-                  type="number"
-                  placeholder="e.g. 28500"
-                  value={formData.price}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+                  label="Warranty Terms / Duration"
+                  placeholder="e.g. 3 Years, 2 Years, 1 Year Enterprise Warranty"
+                  value={formData.warranty}
+                  onChange={(e) => handleWarrantyChange(e.target.value)}
                   required
                 />
-                <Input
-                  label="Offer Price (₹) (Optional)"
-                  type="number"
-                  placeholder="e.g. 24999"
-                  value={formData.offerPrice}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, offerPrice: e.target.value }))}
-                />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)', fontWeight: 600 }}>Quick Presets:</span>
+                  {['3 Years', '3 Years Enterprise Warranty', '2 Years', '1 Year', '6 Months', '90 Days'].map((wPeriod) => (
+                    <button
+                      key={wPeriod}
+                      type="button"
+                      onClick={() => handleWarrantyChange(wPeriod)}
+                      style={{
+                        padding: '3px 9px',
+                        borderRadius: 99,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        background: formData.warranty === wPeriod ? '#dcfce7' : '#f1f5f9',
+                        color: formData.warranty === wPeriod ? '#15803d' : '#475569',
+                        border: formData.warranty === wPeriod ? '1px solid #86efac' : '1px solid #e2e8f0',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {formData.warranty === wPeriod ? '✓ ' : '+ '}{wPeriod}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Dual-Spec Pricing Configurations */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>💰</span> Dual-Spec Pricing Configurations
+                </h3>
+                <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700, background: '#dcfce7', padding: '2px 8px', borderRadius: 6, border: '1px solid #86efac' }}>
+                  2 Spec Tiers
+                </span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-muted)', marginBottom: 14 }}>
+                Set two distinct price options for the same product based on different specification configurations (e.g. 8GB/256GB vs 16GB/512GB).
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                
+                {/* Option 1: Base / Standard Spec */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#2563eb', color: '#fff', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>1</span>
+                      Option 1 (Base / Standard Configuration)
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#2563eb', fontWeight: 600, background: '#eff6ff', padding: '2px 7px', borderRadius: 4, border: '1px solid #bfdbfe' }}>Default Tier</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: 10, marginBottom: 10 }}>
+                    <Input
+                      label="Spec Option Label"
+                      placeholder="e.g. 8GB RAM / 256GB SSD"
+                      value={formData.pricingTiers?.[0]?.name || ''}
+                      onChange={(e) => handlePricingTierChange(0, 'name', e.target.value)}
+                      required
+                    />
+                    <Input
+                      label="Specification Summary"
+                      placeholder="e.g. Core i3, 8GB DDR4 RAM, 256GB SSD, Win 11"
+                      value={formData.pricingTiers?.[0]?.specs || ''}
+                      onChange={(e) => handlePricingTierChange(0, 'specs', e.target.value)}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <Input
+                      label="Selling Price (₹)"
+                      type="number"
+                      placeholder="e.g. 23500"
+                      value={formData.pricingTiers?.[0]?.price ?? ''}
+                      onChange={(e) => handlePricingTierChange(0, 'price', e.target.value)}
+                      required
+                    />
+                    <Input
+                      label="MRP / Original Strikethrough (₹) (Optional)"
+                      type="number"
+                      placeholder="e.g. 27730"
+                      value={formData.pricingTiers?.[0]?.offerPrice ?? ''}
+                      onChange={(e) => handlePricingTierChange(0, 'offerPrice', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Option 2: Upgraded / Alternate Spec */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#16a34a', color: '#fff', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>2</span>
+                      Option 2 (Upgraded / Alternate Configuration)
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600, background: '#f0fdf4', padding: '2px 7px', borderRadius: 4, border: '1px solid #bbf7d0' }}>Alternate Tier</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: 10, marginBottom: 10 }}>
+                    <Input
+                      label="Spec Option Label"
+                      placeholder="e.g. 16GB RAM / 512GB SSD"
+                      value={formData.pricingTiers?.[1]?.name || ''}
+                      onChange={(e) => handlePricingTierChange(1, 'name', e.target.value)}
+                    />
+                    <Input
+                      label="Specification Summary"
+                      placeholder="e.g. Core i3, 16GB DDR4 RAM, 512GB SSD, Win 11"
+                      value={formData.pricingTiers?.[1]?.specs || ''}
+                      onChange={(e) => handlePricingTierChange(1, 'specs', e.target.value)}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <Input
+                      label="Selling Price (₹)"
+                      type="number"
+                      placeholder="e.g. 28500"
+                      value={formData.pricingTiers?.[1]?.price ?? ''}
+                      onChange={(e) => handlePricingTierChange(1, 'price', e.target.value)}
+                    />
+                    <Input
+                      label="MRP / Original Strikethrough (₹) (Optional)"
+                      type="number"
+                      placeholder="e.g. 33000"
+                      value={formData.pricingTiers?.[1]?.offerPrice ?? ''}
+                      onChange={(e) => handlePricingTierChange(1, 'offerPrice', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Stock, Status & SKU Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
                 <Input
                   label="Stock Quantity"
                   type="number"
@@ -751,27 +1034,25 @@ const Products = () => {
                   onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
                   required
                 />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
                 <Select
                   label="Status"
                   options={[
-                    { value: 'Active', label: 'Active (Visible to customers on website)' },
+                    { value: 'Active', label: 'Active (Visible on website)' },
                     { value: 'Draft', label: 'Draft (Hidden from catalog)' },
                   ]}
                   value={formData.status}
                   onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
                 />
                 <Input
-                  label="SKU Identifier (Auto-generated if blank)"
-                  placeholder="e.g. EG-DELL-8921"
+                  label="SKU Identifier"
+                  placeholder="e.g. EG-HP-400G6"
                   value={formData.SKU}
                   onChange={(e) => setFormData((prev) => ({ ...prev, SKU: e.target.value }))}
                 />
               </div>
             </div>
 
-            {/* Section 3: Image Upload */}
+            {/* Section 4: Image Upload */}
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
               <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>🖼️</span> Product Photo
@@ -811,11 +1092,11 @@ const Products = () => {
               )}
             </div>
 
-            {/* Section 4: Specifications */}
+            {/* Section 5: Technical Specifications */}
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span>⚙️</span> Technical Specifications
+                  <span>⚙️</span> Technical Specifications Table
                 </h3>
                 <Button type="button" variant="ghost" size="sm" icon={<Plus size={13} />} onClick={addSpecField}>
                   Add Row
@@ -825,12 +1106,12 @@ const Products = () => {
               {/* Quick Spec Presets */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)', alignSelf: 'center', fontWeight: 600 }}>Quick Add:</span>
-                {['Processor', 'RAM', 'Storage', 'Condition', 'Display', 'Graphics'].map((keyName) => (
+                {['Processor', 'RAM', 'Storage', 'Condition', 'Display', 'Graphics', 'Operating System', 'Form Factor'].map((keyName) => (
                   <button
                     key={keyName}
                     type="button"
                     onClick={() => {
-                      if (!formData.specifications.some((s) => s.key.toLowerCase() === keyName.toLowerCase())) {
+                      if (!formData.specifications.some((s) => s.key && s.key.toLowerCase() === keyName.toLowerCase())) {
                         setFormData((prev) => ({
                           ...prev,
                           specifications: [...prev.specifications, { key: keyName, value: '' }],
@@ -853,7 +1134,7 @@ const Products = () => {
                     type="text"
                     className="admin-input"
                     style={{ flex: 1 }}
-                    placeholder="Feature (e.g. RAM)"
+                    placeholder="Feature (e.g. Processor)"
                     value={spec.key}
                     onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
                   />
@@ -861,7 +1142,7 @@ const Products = () => {
                     type="text"
                     className="admin-input"
                     style={{ flex: 2 }}
-                    placeholder="Value (e.g. 16GB DDR4)"
+                    placeholder="Value (e.g. Intel Core i3)"
                     value={spec.value}
                     onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
                   />

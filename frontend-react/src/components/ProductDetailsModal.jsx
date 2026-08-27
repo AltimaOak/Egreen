@@ -29,11 +29,41 @@ const ProductDetailsModal = ({ product, onClose }) => {
     }).format(val);
   };
 
+  const [activeTierIndex, setActiveTierIndex] = useState(0);
+
   // Derive specs key-value pairs
   const specs = product.specifications || [];
   
+  // Pricing tiers
+  const validPricingTiers = (Array.isArray(product.pricingTiers) ? product.pricingTiers : []).filter(
+    (t) => t && (t.price || t.name)
+  );
+
+  const activeTier = validPricingTiers.length > 0
+    ? (validPricingTiers[activeTierIndex] || validPricingTiers[0])
+    : null;
+
+  // Derive warranty from product or specs
+  const warrantyVal = product.warranty || (specs.find(s => s.key && s.key.toLowerCase() === 'warranty')?.value) || '3 Years';
+  
   // Extract key bullet points for quick highlights
   const getHighlight = (keyPattern) => {
+    // If active tier has specs string, search there first
+    if (activeTier && activeTier.specs) {
+      if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
+        const match = activeTier.specs.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
+        const match = activeTier.specs.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'processor') {
+        const match = activeTier.specs.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
+        if (match) return match[0];
+      }
+    }
+
     const item = specs.find(s => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase()));
     if (item) return item.value;
 
@@ -56,8 +86,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
       return match ? match[0] : null;
     }
     if (keyPattern.toLowerCase() === 'warranty') {
-      const match = raw.match(/(\d+\s*(?:Years?|Months?)\s*Warranty|\d+\s*Years?)/i);
-      return match ? match[0] : null;
+      return warrantyVal;
     }
     return null;
   };
@@ -66,16 +95,23 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const ram = getHighlight('ram') || '8 GB';
   const storage = getHighlight('storage') || 'SSD high-speed drive';
   const os = getHighlight('operating system') || 'Windows 11';
-  const warranty = getHighlight('warranty') || '3 Years';
+  const warranty = warrantyVal;
 
-  // Price calculations
-  const priceFormatted = formatCurrency(product.price);
-  const originalPrice = product.offerPrice && product.price && product.offerPrice > product.price
-    ? product.offerPrice
-    : (product.price ? Math.round(product.price * 1.18) : null);
-  const originalPriceFormatted = formatCurrency(originalPrice);
-  const discountPercent = product.price && originalPrice 
-    ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
+  // Active Price calculations based on selected tier
+  const currentActivePrice = activeTier && activeTier.price != null
+    ? activeTier.price
+    : product.price;
+
+  const currentActiveOfferPrice = activeTier && activeTier.offerPrice != null
+    ? activeTier.offerPrice
+    : (product.offerPrice && product.price && product.offerPrice > product.price
+        ? product.offerPrice
+        : (currentActivePrice ? Math.round(currentActivePrice * 1.18) : null));
+
+  const priceFormatted = formatCurrency(currentActivePrice);
+  const originalPriceFormatted = formatCurrency(currentActiveOfferPrice);
+  const discountPercent = currentActivePrice && currentActiveOfferPrice && currentActiveOfferPrice > currentActivePrice
+    ? Math.round(((currentActiveOfferPrice - currentActivePrice) / currentActiveOfferPrice) * 100)
     : 15;
 
   // Build 5 gallery images matching the reference preview
@@ -101,7 +137,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
     { key: 'Hard Drive Size', value: storage.includes('GB') || storage.includes('TB') ? storage.replace(/\s*(?:SSD|HDD|NVMe|Storage)/i, '') : '256 GB' },
     { key: 'Form Factor', value: product.categoryName || 'Desktop' },
     { key: 'Storage Type', value: storage.toLowerCase().includes('hdd') ? 'HDD' : 'SSD' },
-    { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Years` },
+    { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Warranty` },
     { key: 'Operating System', value: os },
     { key: 'Condition', value: product.condition || 'Refurbished' }
   ];
@@ -158,8 +194,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
     );
   };
 
-  const whatsappOrderMsg = `Hi, I would like to place an order for the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please share order and payment details.`;
-  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
+  const selectedTierLabel = activeTier ? ` (${activeTier.name})` : '';
+  const whatsappOrderMsg = `Hi, I would like to place an order for: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}) priced at ${priceFormatted || 'standard rate'}. Please share payment and shipping details.`;
+  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
 
   return (
     <div className="pdm-backdrop" onClick={onClose}>
@@ -244,7 +281,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
             {/* 3-Column Trust Assurance Strip */}
             <div className="pdm-trust-strip">
               
-              {/* Trust Item 1: Warranty */}
+              {/* Trust Item 1: Warranty (Dynamic / Editable) */}
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -253,8 +290,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
                   </svg>
                 </div>
                 <div className="pdm-trust-text">
-                  <strong className="pdm-trust-title">3 Years</strong>
-                  <span className="pdm-trust-sub">Warranty</span>
+                  <strong className="pdm-trust-title">{warranty.includes('Years') || warranty.includes('Warranty') || warranty.includes('Months') ? warranty : `${warranty} Warranty`}</strong>
+                  <span className="pdm-trust-sub">Coverage Included</span>
                 </div>
               </div>
 
@@ -328,6 +365,47 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 <span>Verified Wholesaler Stock</span>
               </div>
             </div>
+
+            {/* Dual / Multi-Spec Pricing Selector (When multiple spec tiers are defined) */}
+            {validPricingTiers.length > 1 && (
+              <div className="pdm-tier-selector-container">
+                <div className="pdm-tier-selector-header">
+                  <span className="pdm-tier-selector-label">Choose Configuration:</span>
+                  <span className="pdm-tier-active-badge">
+                    {validPricingTiers[activeTierIndex]?.name || `Option ${activeTierIndex + 1}`}
+                  </span>
+                </div>
+                <div className="pdm-tier-pills-row">
+                  {validPricingTiers.map((tier, tIdx) => {
+                    const isSelected = activeTierIndex === tIdx;
+                    return (
+                      <button
+                        key={tIdx}
+                        type="button"
+                        className={`pdm-tier-pill-btn ${isSelected ? 'active' : ''}`}
+                        onClick={() => setActiveTierIndex(tIdx)}
+                      >
+                        <div className="pdm-tier-pill-left">
+                          <span className={`pdm-tier-radio-dot ${isSelected ? 'active' : ''}`}></span>
+                          <div className="pdm-tier-pill-info">
+                            <strong className="pdm-tier-pill-title">{tier.name || `Option ${tIdx + 1}`}</strong>
+                            {tier.specs && (
+                              <span className="pdm-tier-pill-specs">{tier.specs}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pdm-tier-pill-price-box">
+                          <span className="pdm-tier-pill-price">{tier.price ? formatCurrency(tier.price) : 'Quote'}</span>
+                          {tier.offerPrice && (
+                            <span className="pdm-tier-pill-mrp">{formatCurrency(tier.offerPrice)}</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Price Box */}
             <div className="pdm-price-box">

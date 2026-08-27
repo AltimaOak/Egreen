@@ -50,6 +50,10 @@ function toCatalogProduct(p) {
     : (p.stock in STOCK_TO_NUMBER ? STOCK_TO_NUMBER[p.stock] : (p.stock != null ? Number(p.stock) : 10));
 
   const specsList = parseSpecs(p.specs, p.condition || 'Refurbished');
+  const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
+  const featuresObj = typeof p.features === 'object' && p.features !== null ? p.features : {};
+  const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
+  const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
 
   return {
     id: p.id,
@@ -63,7 +67,9 @@ function toCatalogProduct(p) {
     brandId: p.brandId,
     image: p.image || '',
     gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? (()=>{ try { return JSON.parse(p.gallery); } catch(e){ return []; } })() : []),
-    features: Array.isArray(p.features) ? p.features : [],
+    features: p.features,
+    warranty: warranty,
+    pricingTiers: pricingTiers,
     status: p.isActive ? 'Active' : 'Inactive',
     stock: typeof stock === 'number' && !isNaN(stock) ? stock : 10,
     condition: p.condition || 'Refurbished',
