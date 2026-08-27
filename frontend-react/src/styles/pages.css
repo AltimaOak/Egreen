@@ -1682,19 +1682,22 @@ textarea.form-control {
   align-items: center;
   background: white;
   border-radius: 50px;
-  padding: 8px 12px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 6px 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -4px rgba(0, 0, 0, 0.04);
   border: 1px solid #e2e8f0;
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
+  position: relative;
+  z-index: 30;
 }
 
 .search-input-wrapper {
   display: flex;
   align-items: center;
   flex: 1;
-  padding: 0 12px;
-  gap: 12px;
+  min-width: 180px;
+  padding: 4px 8px;
+  gap: 10px;
 }
 
 .search-input-wrapper input {
@@ -1702,8 +1705,8 @@ textarea.form-control {
   border: none;
   outline: none;
   padding: 8px 0;
-  font-size: 1rem;
-  color: #334155;
+  font-size: 0.95rem;
+  color: #1e293b;
   background: transparent;
 }
 
@@ -1711,36 +1714,51 @@ textarea.form-control {
   width: 1px;
   height: 24px;
   background-color: #e2e8f0;
-  margin: 0 12px;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.search-filters-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .custom-category-select {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 12px;
 }
 
 .custom-select-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  color: #475569;
-  font-weight: 500;
-  font-size: 0.95rem;
+  padding: 7px 10px;
+  border-radius: 9999px;
+  transition: all 0.18s ease;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.85rem;
   user-select: none;
+  white-space: nowrap;
 }
 
 .custom-select-trigger:hover {
   background: #f1f5f9;
 }
 
+.select-trigger-label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .custom-select-trigger .chevron {
   transition: transform 0.2s ease;
+  color: #94a3b8;
 }
 
 .custom-select-trigger .chevron.open {
@@ -1749,31 +1767,31 @@ textarea.form-control {
 
 .custom-select-dropdown {
   position: absolute;
-  top: calc(100% + 15px);
+  top: calc(100% + 10px);
   right: 0;
-  width: 220px;
+  min-width: 190px;
+  max-height: 280px;
+  overflow-y: auto;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
   z-index: 50;
   animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transform-origin: top center;
 }
 
 @keyframes dropdownFadeIn {
-  from { opacity: 0; transform: scaleY(0.9) translateY(-10px); }
+  from { opacity: 0; transform: scaleY(0.92) translateY(-6px); }
   to { opacity: 1; transform: scaleY(1) translateY(0); }
 }
 
 .custom-select-option {
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: #475569;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.85rem;
+  color: #334155;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid #f8fafc;
 }
 
 .custom-select-option:last-child {
@@ -1781,81 +1799,18 @@ textarea.form-control {
 }
 
 .custom-select-option:hover {
-  background: #f8fafc;
-  color: var(--primary);
-  padding-left: 20px;
+  background: #f1f5f9;
+  color: var(--primary, #0284c7);
 }
 
 .custom-select-option.active {
   background: #eff6ff;
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--primary, #0284c7);
+  font-weight: 700;
 }
 
 .text-gray-400 {
   color: #94a3b8;
-}
-
-/* Brand Tabs Strip */
-.products-brand-tabs-strip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px auto 0;
-  max-width: 900px;
-  padding: 0 12px;
-}
-
-.brand-tab-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #475569;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.brand-tab-pill:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  color: var(--primary, #0284c7);
-  transform: translateY(-1px);
-}
-
-.brand-tab-pill.active {
-  background: var(--primary, #0284c7);
-  color: #ffffff;
-  border-color: var(--primary, #0284c7);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-}
-
-.brand-count-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 9999px;
-  background: #f1f5f9;
-  color: #64748b;
-  min-width: 18px;
-  line-height: 1.2;
-  transition: all 0.2s ease;
-}
-
-.brand-tab-pill.active .brand-count-badge {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
 }
 
 /* Filter Summary Bar */
@@ -1865,16 +1820,16 @@ textarea.form-control {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .products-count-text {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #475569;
   font-weight: 600;
 }
@@ -1942,40 +1897,66 @@ textarea.form-control {
   background: #fee2e2;
 }
 
+/* Mobile & Tablet Responsiveness for Search & Filters */
 @media (max-width: 768px) {
   .unified-search-bar {
     flex-direction: column;
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 10px 12px;
+    gap: 8px;
   }
+
+  .search-input-wrapper {
+    width: 100%;
+    padding: 2px 4px;
+  }
+
   .search-divider {
     width: 100%;
     height: 1px;
-    margin: 8px 0;
+    margin: 0;
   }
-  .search-input-wrapper, 
+
+  .search-divider-inner {
+    display: none;
+  }
+
+  .search-filters-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
   .custom-category-select {
     width: 100%;
-    padding: 0;
   }
+
   .custom-select-trigger {
     width: 100%;
     justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
   }
+
+  .select-trigger-label {
+    max-width: 90px;
+  }
+
   .custom-select-dropdown {
     width: 100%;
     left: 0;
     right: 0;
+    min-width: unset;
   }
-  .products-brand-tabs-strip {
-    justify-content: flex-start;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 6px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .brand-tab-pill {
-    white-space: nowrap;
+
+  .products-filter-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 

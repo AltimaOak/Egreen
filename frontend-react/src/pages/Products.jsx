@@ -152,9 +152,9 @@ const Products = () => {
     <>
       <div className="page-header" style={{ padding: 'calc(var(--nav-height) + 1.75rem) 0 1.25rem' }}>
         <FadeUp className="container visible">
-          <h1 className="h1" style={{ marginBottom: '0.35rem' }}>Hardware Catalog</h1>
+          <h1 className="h1" style={{ marginBottom: '0.35rem' }}>Our Products</h1>
           <p style={{ fontSize: '1rem', maxWidth: '600px', margin: '0 auto', color: '#64748b' }}>
-            Genuine enterprise computers, workstations, mini PCs, and components with certified warranty.
+            Premium enterprise hardware solutions for your business needs.
           </p>
         </FadeUp>
       </div>
@@ -184,108 +184,85 @@ const Products = () => {
                 ✕
               </button>
             )}
-          </div>
+          </div>          <div className="search-divider"></div>
 
-          <div className="search-divider"></div>
-
-          <div className="custom-category-select" ref={categoryRef}>
-            <div 
-              className="custom-select-trigger" 
-              onClick={() => {
-                setIsCategoryOpen(!isCategoryOpen);
-                setIsBrandOpen(false);
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-              </svg>
-              <span>{categories.find(c => c.id.toLowerCase() === currentCategory.toLowerCase())?.label || 'All Categories'}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`chevron ${isCategoryOpen ? 'open' : ''}`}>
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-            
-            {isCategoryOpen && (
-              <div className="custom-select-dropdown">
-                {categories.map(category => (
-                  <div 
-                    key={category.id}
-                    className={`custom-select-option ${currentCategory.toLowerCase() === category.id.toLowerCase() ? 'active' : ''}`}
-                    onClick={() => handleCategoryChange(category.id)}
-                  >
-                    {category.label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="search-divider"></div>
-
-          <div className="custom-category-select" ref={brandRef}>
-            <div 
-              className="custom-select-trigger" 
-              onClick={() => {
-                setIsBrandOpen(!isBrandOpen);
-                setIsCategoryOpen(false);
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
-              <span>{currentBrand === 'all' ? 'All Brands' : currentBrand}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`chevron ${isBrandOpen ? 'open' : ''}`}>
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-            
-            {isBrandOpen && (
-              <div className="custom-select-dropdown">
-                <div 
-                  className={`custom-select-option ${currentBrand === 'all' ? 'active' : ''}`}
-                  onClick={() => handleBrandChange('all')}
-                >
-                  All Brands ({productsList.length})
-                </div>
-                {availableBrands.map(brandName => (
-                  <div 
-                    key={brandName}
-                    className={`custom-select-option ${currentBrand.toLowerCase() === brandName.toLowerCase() ? 'active' : ''}`}
-                    onClick={() => handleBrandChange(brandName)}
-                  >
-                    {brandName} ({brandCounts[brandName] || 0})
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-        </div>
-
-        <div className="products-brand-tabs-strip">
-          <button
-            type="button"
-            className={`brand-tab-pill ${currentBrand === 'all' ? 'active' : ''}`}
-            onClick={() => handleBrandChange('all')}
-          >
-            <span>All Brands</span>
-            <span className="brand-count-badge">{productsList.length}</span>
-          </button>
-          
-          {availableBrands.map(brandName => {
-            const isSelected = currentBrand.toLowerCase() === brandName.toLowerCase();
-            return (
-              <button
-                key={brandName}
-                type="button"
-                className={`brand-tab-pill ${isSelected ? 'active' : ''}`}
-                onClick={() => handleBrandChange(brandName)}
+          {/* Filter Selectors Group */}
+          <div className="search-filters-group">
+            {/* Category Dropdown */}
+            <div className="custom-category-select" ref={categoryRef}>
+              <div 
+                className="custom-select-trigger" 
+                onClick={() => {
+                  setIsCategoryOpen(!isCategoryOpen);
+                  setIsBrandOpen(false);
+                }}
               >
-                <span>{brandName}</span>
-                <span className="brand-count-badge">{brandCounts[brandName] || 0}</span>
-              </button>
-            );
-          })}
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <span className="select-trigger-label">{categories.find(c => c.id.toLowerCase() === currentCategory.toLowerCase())?.label || 'All Categories'}</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`chevron ${isCategoryOpen ? 'open' : ''}`}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              
+              {isCategoryOpen && (
+                <div className="custom-select-dropdown">
+                  {categories.map(category => (
+                    <div 
+                      key={category.id}
+                      className={`custom-select-option ${currentCategory.toLowerCase() === category.id.toLowerCase() ? 'active' : ''}`}
+                      onClick={() => handleCategoryChange(category.id)}
+                    >
+                      {category.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="search-divider search-divider-inner"></div>
+
+            {/* Brand Dropdown */}
+            <div className="custom-category-select" ref={brandRef}>
+              <div 
+                className="custom-select-trigger" 
+                onClick={() => {
+                  setIsBrandOpen(!isBrandOpen);
+                  setIsCategoryOpen(false);
+                }}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span className="select-trigger-label">{currentBrand === 'all' ? 'All Brands' : currentBrand}</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`chevron ${isBrandOpen ? 'open' : ''}`}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              
+              {isBrandOpen && (
+                <div className="custom-select-dropdown">
+                  <div 
+                    className={`custom-select-option ${currentBrand === 'all' ? 'active' : ''}`}
+                    onClick={() => handleBrandChange('all')}
+                  >
+                    All Brands ({productsList.length})
+                  </div>
+                  {availableBrands.map(brandName => (
+                    <div 
+                      key={brandName}
+                      className={`custom-select-option ${currentBrand.toLowerCase() === brandName.toLowerCase() ? 'active' : ''}`}
+                      onClick={() => handleBrandChange(brandName)}
+                    >
+                      {brandName} ({brandCounts[brandName] || 0})
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
 
       </div>
