@@ -4,6 +4,10 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose();
@@ -78,23 +82,14 @@ const ProductDetailsModal = ({ product, onClose }) => {
     ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
     : 15;
 
-  // Build 5 gallery images matching the reference preview
-  // 1: Main front, 2: Angled, 3: Rear/Ports, 4: Contextual desk, 5: Internal hardware
-  const defaultAngleImages = [
-    product.image || 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=700&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=700&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=700&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=700&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&auto=format&fit=crop&q=80'
-  ];
+  // Only use uploaded images (admin main image + admin gallery images)
+  const rawGallery = Array.isArray(product.gallery)
+    ? product.gallery
+    : (typeof product.gallery === 'string' && product.gallery.trim() ? [product.gallery.trim()] : []);
+  const allUploadedImages = [product.image, ...rawGallery].filter(Boolean);
+  const galleryList = Array.from(new Set(allUploadedImages));
 
-  const galleryList = (product.gallery && product.gallery.length > 0)
-    ? [product.image, ...product.gallery].filter(Boolean)
-    : (product.image 
-        ? [product.image, defaultAngleImages[1], defaultAngleImages[2], defaultAngleImages[3], defaultAngleImages[4]]
-        : defaultAngleImages);
-
-  const activeMainImage = galleryList[activeImageIndex] || galleryList[0];
+  const activeMainImage = galleryList[activeImageIndex] || galleryList[0] || null;
 
   // Derive specs table key-value pairs (4 cells per row: Key | Val | Key | Val)
   const baseSpecs = [
@@ -226,20 +221,22 @@ const ProductDetailsModal = ({ product, onClose }) => {
               )}
             </div>
 
-            {/* Gallery Thumbnail Strip (5 Items) */}
-            <div className="pdm-thumbnails-row">
-              {galleryList.slice(0, 5).map((imgUrl, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={`pdm-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
-                  onClick={() => setActiveImageIndex(idx)}
-                  aria-label={`View image angle ${idx + 1}`}
-                >
-                  <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="pdm-thumb-img" />
-                </button>
-              ))}
-            </div>
+            {/* Gallery Thumbnail Strip — only rendered when multiple uploaded images exist */}
+            {galleryList.length > 1 && (
+              <div className="pdm-thumbnails-row">
+                {galleryList.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`pdm-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
+                    onClick={() => setActiveImageIndex(idx)}
+                    aria-label={`View image angle ${idx + 1}`}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="pdm-thumb-img" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* 3-Column Trust Assurance Strip */}
             <div className="pdm-trust-strip">

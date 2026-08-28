@@ -2357,11 +2357,11 @@ textarea.form-control {
   font-size: 0.775rem;
 }
 
-/* 5 Gallery Thumbnails */
+/* Gallery Thumbnails */
 .pdm-thumbnails-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .pdm-thumb-btn {
@@ -2369,7 +2369,9 @@ textarea.form-control {
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   padding: 3px;
+  width: 54px;
   height: 52px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
