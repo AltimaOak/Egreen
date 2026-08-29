@@ -23,7 +23,7 @@ const About = () => {
                 We focus on quality assurance, transparent business dealings, competitive wholesale pricing, and dependable post-sales support across all transactions to build long-term relationships with our business partners.
               </p>
               <p className="about-paragraph">
-                Under the leadership of <strong>Mr. Vishal Maurya</strong>, Egreen Technology continues to expand its wholesale supply network, offering dependable computing solutions across India.
+                Under the leadership of <strong>Mr.Kishore Bhosale </strong>, Egreen Technology continues to expand its wholesale supply network, offering dependable computing solutions across India.
               </p>
             </div>
           </div>
@@ -169,11 +169,11 @@ const About = () => {
               </div>
               <div className="info-line">
                 <span className="info-key">Business Type:</span>
-                <span className="info-val">Wholesaler, Distributor & Trader</span>
+                <span className="info-val">Wholesaler, Distributor , Trader & Importer</span>
               </div>
               <div className="info-line">
                 <span className="info-key">Key Leadership:</span>
-                <span className="info-val">Mr. Vishal Maurya</span>
+                <span className="info-val">Mr.Kishore Bhosale</span>
               </div>
               <div className="info-line">
                 <span className="info-key">GSTIN:</span>
