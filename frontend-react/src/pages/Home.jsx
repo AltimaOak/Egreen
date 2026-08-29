@@ -249,38 +249,6 @@ const Home = () => {
                 )
               },
               {
-<<<<<<< HEAD
-                name: 'HP',
-                svg: (
-                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-hp">
-                    <circle cx="50" cy="50" r="48" fill="#0096D6" />
-                    <text
-                      x="50" y="66"
-                      fill="#FFFFFF"
-                      fontFamily="'Arial', Helvetica, sans-serif"
-                      fontSize="44"
-                      fontWeight="900"
-                      fontStyle="italic"
-                      textAnchor="middle"
-                    >hp</text>
-                  </svg>
-                )
-              },
-              {
-                name: 'Dell',
-                svg: (
-                  <svg viewBox="0 0 100 100" className="brand-logo-svg brand-dell">
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="#0076CE" strokeWidth="6" />
-                    <text
-                      x="50" y="61"
-                      fill="#0076CE"
-                      fontFamily="'Arial Black', Impact, sans-serif"
-                      fontSize="26"
-                      fontWeight="900"
-                      textAnchor="middle"
-                      letterSpacing="1.5"
-                    >DELL</text>
-=======
                 name: 'Intel',
                 svg: (
                   <svg viewBox="0 0 160 50" className="brand-logo-svg brand-intel">
@@ -288,7 +256,6 @@ const Home = () => {
                     <text x="45" y="34" fill="white" fontSize="28" fontWeight="bold">
                       intel
                     </text>
->>>>>>> b76888e6f789d8ae0c16c7564f86d79895a408b6
                   </svg>
                 )
               }
