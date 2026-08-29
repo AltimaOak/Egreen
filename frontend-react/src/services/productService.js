@@ -37,6 +37,16 @@ function specsToString(specifications) {
 }
 
 function toAdminProduct(p) {
+  // features JSON may be an array of strings, or an object with __variantGroups
+  const rawFeatures = p.features || [];
+  let featureStrings = [];
+  let variantGroups = [];
+  if (Array.isArray(rawFeatures)) {
+    featureStrings = rawFeatures.filter((f) => typeof f === 'string');
+  } else if (rawFeatures && typeof rawFeatures === 'object') {
+    featureStrings = rawFeatures.features || [];
+    variantGroups = rawFeatures.__variantGroups || [];
+  }
   return {
     id: p.id,
     name: p.name,
@@ -51,7 +61,8 @@ function toAdminProduct(p) {
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
     specifications: parseSpecs(p.specs),
-    features: p.features || [],
+    features: featureStrings,
+    variantGroups,
     rating: p.rating != null ? Number(p.rating) : null,
     image: p.image || '',
     imagePublicId: p.imagePublicId || '',
@@ -67,6 +78,11 @@ function toBackendPayload(form) {
   const conditionSpec = (form.specifications || []).find(
     (s) => s.key && s.key.toLowerCase() === 'condition'
   );
+  // Pack features + variantGroups into the single JSON features column
+  const hasVariants = Array.isArray(form.variantGroups) && form.variantGroups.length > 0;
+  const featuresPayload = hasVariants
+    ? { features: form.features || [], __variantGroups: form.variantGroups }
+    : (form.features || []);
   return {
     name: form.name,
     slug: form.slug || undefined,
@@ -84,7 +100,7 @@ function toBackendPayload(form) {
     imagePublicId: form.imagePublicId || null,
     seoTitle: form.seoTitle || null,
     seoDescription: form.seoDescription || null,
-    features: form.features || [],
+    features: featuresPayload,
     gallery: form.gallery || [],
     isFeatured: !!form.featured,
     isActive: form.status === 'Active',

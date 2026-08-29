@@ -30,7 +30,11 @@ const baseProductSchema = z.object({
   rating: z.number().min(0).max(5).optional().nullable(),
   seoTitle: z.string().optional().nullable(),
   seoDescription: z.string().optional().nullable(),
-  features: z.array(z.string()).optional(),
+  // features can be a plain string array OR an object containing __variantGroups
+  features: z.union([
+    z.array(z.string()),
+    z.record(z.any()),
+  ]).optional(),
   gallery: z.array(z.string()).optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),

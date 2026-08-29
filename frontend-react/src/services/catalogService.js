@@ -54,6 +54,8 @@ function toCatalogProduct(p) {
   const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
   const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
+  // Extract variant groups stored as __variantGroups inside the features JSON
+  const variantGroups = Array.isArray(featuresObj.__variantGroups) ? featuresObj.__variantGroups : [];
 
   return {
     id: p.id,
@@ -78,6 +80,7 @@ function toCatalogProduct(p) {
     price: p.price != null && !isNaN(Number(p.price)) ? Number(p.price) : null,
     offerPrice: p.offerPrice != null && !isNaN(Number(p.offerPrice)) ? Number(p.offerPrice) : null,
     rating: p.rating ? Number(p.rating) : 4.5,
+    variantGroups,
   };
 }
 

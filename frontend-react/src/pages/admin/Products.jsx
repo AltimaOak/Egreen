@@ -68,6 +68,7 @@ const INITIAL_FORM_STATE = {
   featured: false,
   features: [''],
   specifications: [{ key: '', value: '' }],
+  variantGroups: [],
   seoTitle: '',
   seoDescription: '',
   image: '',
@@ -165,6 +166,7 @@ const Products = () => {
         { key: 'RAM', value: '' },
         { key: 'Storage', value: '' },
       ],
+      variantGroups: product.variantGroups || [],
       seoTitle: product.seoTitle || '',
       seoDescription: product.seoDescription || '',
       image: product.image || '',
@@ -874,7 +876,141 @@ const Products = () => {
               ))}
             </div>
 
-            {/* Always visible Save button at the bottom of the form */}
+            {/* Section 5: Product Variants */}
+            <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>🔀</span> Product Variants
+                  <span style={{ fontSize: '0.7rem', fontWeight: 500, color: 'var(--color-muted)', marginLeft: 4 }}>(Optional — e.g. RAM, Storage)</span>
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon={<Plus size={13} />}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      variantGroups: [
+                        ...(prev.variantGroups || []),
+                        { label: '', options: [{ value: '', priceOverride: '', specsOverride: '' }] },
+                      ],
+                    }))
+                  }
+                >
+                  Add Group
+                </Button>
+              </div>
+
+              {(!formData.variantGroups || formData.variantGroups.length === 0) && (
+                <p style={{ fontSize: '0.78rem', color: 'var(--color-muted)', margin: '8px 0 0' }}>
+                  No variants added. Add groups like "RAM / Memory" or "Storage" with options, optional price override and spec changes.
+                </p>
+              )}
+
+              {(formData.variantGroups || []).map((group, gIdx) => (
+                <div key={gIdx} style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: 14, marginBottom: 12 }}>
+                  {/* Group Header */}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      style={{ flex: 1 }}
+                      placeholder="Group Label (e.g. RAM / Memory)"
+                      value={group.label}
+                      onChange={(e) => {
+                        const updated = [...formData.variantGroups];
+                        updated[gIdx] = { ...updated[gIdx], label: e.target.value };
+                        setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          variantGroups: prev.variantGroups.filter((_, i) => i !== gIdx),
+                        }));
+                      }}
+                      style={{ color: 'var(--color-danger)', flexShrink: 0 }}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+
+                  {/* Options */}
+                  {(group.options || []).map((opt, oIdx) => (
+                    <div key={oIdx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 2fr auto', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        className="admin-input"
+                        placeholder="Option (e.g. 8 GB)"
+                        value={opt.value}
+                        onChange={(e) => {
+                          const updated = [...formData.variantGroups];
+                          updated[gIdx].options[oIdx] = { ...updated[gIdx].options[oIdx], value: e.target.value };
+                          setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                        }}
+                      />
+                      <input
+                        type="number"
+                        className="admin-input"
+                        placeholder="Price ₹ (optional)"
+                        value={opt.priceOverride}
+                        onChange={(e) => {
+                          const updated = [...formData.variantGroups];
+                          updated[gIdx].options[oIdx] = { ...updated[gIdx].options[oIdx], priceOverride: e.target.value };
+                          setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="admin-input"
+                        placeholder="Spec change (e.g. RAM: 8GB DDR4)"
+                        value={opt.specsOverride}
+                        onChange={(e) => {
+                          const updated = [...formData.variantGroups];
+                          updated[gIdx].options[oIdx] = { ...updated[gIdx].options[oIdx], specsOverride: e.target.value };
+                          setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const updated = [...formData.variantGroups];
+                          updated[gIdx].options = updated[gIdx].options.filter((_, i) => i !== oIdx);
+                          setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                        }}
+                        style={{ color: 'var(--color-danger)' }}
+                      >
+                        <X size={12} />
+                      </Button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = [...formData.variantGroups];
+                      updated[gIdx].options = [...(updated[gIdx].options || []), { value: '', priceOverride: '', specsOverride: '' }];
+                      setFormData((prev) => ({ ...prev, variantGroups: updated }));
+                    }}
+                    style={{
+                      marginTop: 4, padding: '4px 10px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 600,
+                      background: 'var(--color-primary-light)', color: 'var(--color-primary)',
+                      border: '1px solid rgba(37,99,235,0.2)', cursor: 'pointer'
+                    }}
+                  >
+                    + Add Option
+                  </button>
+                </div>
+              ))}
+            </div>
+
             <div style={{ paddingTop: 8, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <Button type="button" variant="secondary" size="md" onClick={closeDrawer}>
                 Cancel

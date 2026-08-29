@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 const ProductDetailsModal = ({ product, onClose }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  // selectedVariants: { [groupLabel]: optionIndex }
+  const [selectedVariants, setSelectedVariants] = useState({});
 
   useEffect(() => {
     setActiveImageIndex(0);
+    setSelectedVariants({});
   }, [product]);
 
   useEffect(() => {
@@ -23,7 +26,58 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
   if (!product) return null;
 
-  // Format currency helper (INR)
+  // ─── Variant Groups ───────────────────────────────────────────────────────
+  const variantGroups = useMemo(() => {
+    if (!Array.isArray(product.variantGroups)) return [];
+    return product.variantGroups.filter(
+      (g) => g && g.label && Array.isArray(g.options) && g.options.length > 0
+    );
+  }, [product]);
+
+  const hasVariants = variantGroups.length > 0;
+
+  // Derive the active variant options for each group
+  const activeOptions = useMemo(() => {
+    const result = {};
+    variantGroups.forEach((g) => {
+      const idx = selectedVariants[g.label];
+      if (idx !== undefined && g.options[idx]) {
+        result[g.label] = g.options[idx];
+      }
+    });
+    return result;
+  }, [selectedVariants, variantGroups]);
+
+  // Compute effective price (override from first group that has a price override)
+  const effectivePrice = useMemo(() => {
+    for (const g of variantGroups) {
+      const opt = activeOptions[g.label];
+      if (opt && opt.priceOverride && !isNaN(Number(opt.priceOverride))) {
+        return Number(opt.priceOverride);
+      }
+    }
+    return product.price != null ? Number(product.price) : null;
+  }, [activeOptions, variantGroups, product.price]);
+
+  // Parse specsOverride strings like "RAM: 8GB DDR4, Storage: 256GB SSD"
+  const parsedOverrideSpecs = useMemo(() => {
+    const overrides = {};
+    Object.values(activeOptions).forEach((opt) => {
+      if (opt && opt.specsOverride) {
+        opt.specsOverride.split(',').forEach((part) => {
+          const idx = part.indexOf(':');
+          if (idx !== -1) {
+            const key = part.slice(0, idx).trim();
+            const val = part.slice(idx + 1).trim();
+            if (key && val) overrides[key.toLowerCase()] = { key, value: val };
+          }
+        });
+      }
+    });
+    return overrides;
+  }, [activeOptions]);
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
   const formatCurrency = (val) => {
     if (val == null || isNaN(val)) return null;
     return new Intl.NumberFormat('en-IN', {
@@ -33,25 +87,42 @@ const ProductDetailsModal = ({ product, onClose }) => {
     }).format(val);
   };
 
-  // Derive specs key-value pairs
   const specs = product.specifications || [];
-  
-  // Extract key bullet points for quick highlights
+
   const getHighlight = (keyPattern) => {
+    // Check variant spec overrides first
+    const overrideKey = Object.keys(parsedOverrideSpecs).find((k) =>
+      k.includes(keyPattern.toLowerCase())
+    );
+    if (overrideKey) return parsedOverrideSpecs[overrideKey].value;
+
     const item = specs.find(s => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase()));
     if (item) return item.value;
 
-    // Fallback search in rawSpecs or name if available
     const raw = (product.rawSpecs || '') + ' ' + (product.description || '') + ' ' + (product.name || '');
     if (keyPattern.toLowerCase() === 'processor') {
       const match = raw.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
       return match ? match[0] : null;
     }
     if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
+      // If a RAM variant is selected, reflect its label
+      const ramGroup = variantGroups.find(
+        (g) => g.label.toLowerCase().includes('ram') || g.label.toLowerCase().includes('memory')
+      );
+      if (ramGroup && selectedVariants[ramGroup.label] !== undefined) {
+        return ramGroup.options[selectedVariants[ramGroup.label]]?.value || null;
+      }
       const match = raw.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
       return match ? match[0] : null;
     }
     if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
+      // If a Storage variant is selected, reflect its label
+      const storageGroup = variantGroups.find((g) =>
+        g.label.toLowerCase().includes('storage') || g.label.toLowerCase().includes('ssd')
+      );
+      if (storageGroup && selectedVariants[storageGroup.label] !== undefined) {
+        return storageGroup.options[selectedVariants[storageGroup.label]]?.value || null;
+      }
       const match = raw.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
       return match ? match[0] : null;
     }
@@ -73,47 +144,56 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const warranty = getHighlight('warranty') || '3 Years';
 
   // Price calculations
-  const priceFormatted = formatCurrency(product.price);
+  const priceFormatted = formatCurrency(effectivePrice);
   const originalPrice = product.offerPrice && product.price && product.offerPrice > product.price
     ? product.offerPrice
     : (product.price ? Math.round(product.price * 1.18) : null);
-  const originalPriceFormatted = formatCurrency(originalPrice);
-  const discountPercent = product.price && originalPrice 
-    ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
+  const originalPriceFormatted = effectivePrice ? formatCurrency(originalPrice) : null;
+  const discountPercent = effectivePrice && originalPrice
+    ? Math.round(((originalPrice - effectivePrice) / originalPrice) * 100)
     : 15;
 
-  // Only use uploaded images (admin main image + admin gallery images)
+  // Gallery
   const rawGallery = Array.isArray(product.gallery)
     ? product.gallery
     : (typeof product.gallery === 'string' && product.gallery.trim() ? [product.gallery.trim()] : []);
   const allUploadedImages = [product.image, ...rawGallery].filter(Boolean);
   const galleryList = Array.from(new Set(allUploadedImages));
-
   const activeMainImage = galleryList[activeImageIndex] || galleryList[0] || null;
 
-  // Derive specs table key-value pairs (4 cells per row: Key | Val | Key | Val)
-  const baseSpecs = [
-    { key: 'Hard Drive Size', value: storage.includes('GB') || storage.includes('TB') ? storage.replace(/\s*(?:SSD|HDD|NVMe|Storage)/i, '') : '256 GB' },
-    { key: 'Form Factor', value: product.categoryName || 'Desktop' },
-    { key: 'Storage Type', value: storage.toLowerCase().includes('hdd') ? 'HDD' : 'SSD' },
-    { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Years` },
-    { key: 'Operating System', value: os },
-    { key: 'Condition', value: product.condition || 'Refurbished' }
-  ];
+  // Build tech specs table — apply overrides
+  const buildSpecsWithOverrides = () => {
+    const baseSpecs = [
+      { key: 'Hard Drive Size', value: storage.includes('GB') || storage.includes('TB') ? storage.replace(/\s*(?:SSD|HDD|NVMe|Storage)/i, '') : '256 GB' },
+      { key: 'Form Factor', value: product.categoryName || 'Desktop' },
+      { key: 'Storage Type', value: storage.toLowerCase().includes('hdd') ? 'HDD' : 'SSD' },
+      { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Years` },
+      { key: 'Operating System', value: os },
+      { key: 'Condition', value: product.condition || 'Refurbished' }
+    ];
 
-  // Append any extra unique specs from DB
-  const extraSpecs = specs.filter(s => 
-    !baseSpecs.some(b => b.key.toLowerCase() === s.key.toLowerCase())
-  );
-  const allTechnicalSpecs = [...baseSpecs, ...extraSpecs];
+    const extraSpecs = specs.filter(s =>
+      !baseSpecs.some(b => b.key.toLowerCase() === s.key.toLowerCase())
+    );
+    const allSpecs = [...baseSpecs, ...extraSpecs];
 
-  // Group specs into pairs of 2 for 4-column rows
+    // Apply parsedOverrideSpecs
+    return allSpecs.map((s) => {
+      const overrideKey = Object.keys(parsedOverrideSpecs).find(
+        (k) => k === s.key.toLowerCase() || s.key.toLowerCase().includes(k)
+      );
+      if (overrideKey) {
+        return { ...s, value: parsedOverrideSpecs[overrideKey].value };
+      }
+      return s;
+    });
+  };
+
+  const allTechnicalSpecs = buildSpecsWithOverrides();
+
   const specRows = [];
   for (let i = 0; i < allTechnicalSpecs.length; i += 2) {
-    specRows.push({
-      first: allTechnicalSpecs[i],
-      second: allTechnicalSpecs[i + 1] || null
-    });
+    specRows.push({ first: allTechnicalSpecs[i], second: allTechnicalSpecs[i + 1] || null });
   }
 
   // Brand Logo Helper
@@ -158,7 +238,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
   return (
     <div className="pdm-backdrop" onClick={onClose}>
-      <div 
+      <div
         className="pdm-modal-card"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -173,8 +253,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
             <span className="pdm-sep">/</span>
             <span className="pdm-active-crumb">{product.categoryName || 'Desktops'}</span>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="pdm-close-btn"
             aria-label="Close Product Details"
           >
@@ -187,10 +267,10 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
         {/* Modal Main Grid */}
         <div className="pdm-grid-container">
-          
+
           {/* Left Column: Image Showcase, Thumbnails, Trust Badges */}
           <div className="pdm-left-col">
-            
+
             {/* Main Image Showcase Card */}
             <div className="pdm-image-box">
               {/* Brand Logo Top-Left */}
@@ -221,7 +301,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
               )}
             </div>
 
-            {/* Gallery Thumbnail Strip — only rendered when multiple uploaded images exist */}
+            {/* Gallery Thumbnail Strip */}
             {galleryList.length > 1 && (
               <div className="pdm-thumbnails-row">
                 {galleryList.map((imgUrl, idx) => (
@@ -240,8 +320,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             {/* 3-Column Trust Assurance Strip */}
             <div className="pdm-trust-strip">
-              
-              {/* Trust Item 1: Warranty */}
+
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -255,7 +334,6 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 </div>
               </div>
 
-              {/* Trust Item 2: Delivery */}
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -266,12 +344,11 @@ const ProductDetailsModal = ({ product, onClose }) => {
                   </svg>
                 </div>
                 <div className="pdm-trust-text">
-                  <strong className="pdm-trust-title">Fast & Insured</strong>
+                  <strong className="pdm-trust-title">Fast &amp; Insured</strong>
                   <span className="pdm-trust-sub">Delivery</span>
                 </div>
               </div>
 
-              {/* Trust Item 3: Tested Quality */}
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -290,10 +367,10 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
           </div>
 
-          {/* Right Column: Title, Pricing, Highlights, Specs Table & Actions */}
+          {/* Right Column */}
           <div className="pdm-right-col">
-            
-            {/* Top Meta: Brand Tag, SKU & Stock Status */}
+
+            {/* Top Meta */}
             <div className="pdm-meta-top-row">
               <div className="pdm-meta-left">
                 <span className="pdm-brand-pill">{product.brand || 'HP'}</span>
@@ -302,15 +379,15 @@ const ProductDetailsModal = ({ product, onClose }) => {
               <div className="pdm-meta-right">
                 <span className="pdm-stock-pill-green">
                   <span className="pdm-stock-dot"></span>
-                  In Stock & Ready to Ship
+                  In Stock &amp; Ready to Ship
                 </span>
               </div>
             </div>
 
             {/* Product Title */}
             <h2 className="pdm-product-title">{product.name}</h2>
-            
-            {/* Amazon/Flipkart Ratings & Verified Wholesaler Stock */}
+
+            {/* Ratings */}
             <div className="pdm-rating-row">
               <div className="pdm-rating-badge">
                 <span className="pdm-star-icon">★</span>
@@ -325,6 +402,48 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 <span>Verified Wholesaler Stock</span>
               </div>
             </div>
+
+            {/* ── VARIANT SELECTOR ── */}
+            {hasVariants && (
+              <div className="pdm-variant-section">
+                <h4 className="pdm-section-heading">SELECT VARIANT</h4>
+                {variantGroups.map((group) => (
+                  <div key={group.label} className="pdm-variant-group">
+                    <div className="pdm-variant-group-label">{group.label.toUpperCase()}</div>
+                    <div className="pdm-variant-options">
+                      {group.options.map((opt, oIdx) => {
+                        const isSelected = selectedVariants[group.label] === oIdx;
+                        return (
+                          <button
+                            key={oIdx}
+                            type="button"
+                            className={`pdm-variant-btn${isSelected ? ' pdm-variant-btn--active' : ''}`}
+                            onClick={() =>
+                              setSelectedVariants((prev) => {
+                                // Toggle: clicking same option deselects
+                                if (prev[group.label] === oIdx) {
+                                  const next = { ...prev };
+                                  delete next[group.label];
+                                  return next;
+                                }
+                                return { ...prev, [group.label]: oIdx };
+                              })
+                            }
+                          >
+                            {opt.value}
+                            {opt.priceOverride && (
+                              <span className="pdm-variant-price-tag">
+                                {formatCurrency(Number(opt.priceOverride))}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Price Box */}
             <div className="pdm-price-box">
@@ -347,10 +466,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
               <p className="pdm-tax-note">Inclusive of GST. Volume discounts available for orders of 5+ units.</p>
             </div>
 
-            {/* Middle Row: Key Highlights + Built for Business Banner Card */}
+            {/* Key Highlights + Built for Business */}
             <div className="pdm-highlights-business-row">
-              
-              {/* Left Box: Key Highlights */}
+
               <div className="pdm-highlights-box">
                 <h4 className="pdm-section-heading">KEY HIGHLIGHTS</h4>
                 <div className="pdm-highlights-list">
@@ -406,11 +524,10 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 </div>
               </div>
 
-              {/* Right Box: Built for Business Card */}
+              {/* Built for Business Card */}
               <div className="pdm-built-business-card">
-                {/* Subtle luxury wave watermark backdrop */}
                 <div className="pdm-card-wave-pattern"></div>
-                
+
                 <div className="pdm-business-shield">
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -418,7 +535,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 </div>
 
                 <h5 className="pdm-business-title">Built for<br />Business.</h5>
-                
+
                 <div className="pdm-business-bullets">
                   <span>Reliable.</span>
                   <span>Secure.</span>
@@ -456,21 +573,21 @@ const ProductDetailsModal = ({ product, onClose }) => {
               </div>
             </div>
 
-            {/* Action CTAs: Order on WhatsApp & WhatsApp Enquiry */}
+            {/* Action CTAs */}
             <div className="pdm-actions-row">
-              <a 
+              <a
                 href={`https://wa.me/919867760106?text=${encodeURIComponent(whatsappOrderMsg)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="pdm-btn pdm-btn-order"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.47.123.643-.074.173-.198.742-.865.94-1.162.198-.297.396-.247.668-.148.272.099 1.73.816 2.027.964.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/>
+                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/>
                 </svg>
                 <span>Order on WhatsApp</span>
               </a>
-              
-              <a 
+
+              <a
                 href={`https://wa.me/919867760106?text=${encodeURIComponent(whatsappEnquiryMsg)}`}
                 target="_blank"
                 rel="noopener noreferrer"

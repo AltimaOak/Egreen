@@ -36,9 +36,6 @@ export function validateProduct(product) {
   if (!product.name || product.name.trim() === '') {
     errors.push('Product Name is required.');
   }
-  if (!product.SKU || product.SKU.trim() === '') {
-    errors.push('SKU is required.');
-  }
   if (!product.category || product.category === '') {
     errors.push('Category is required.');
   }
