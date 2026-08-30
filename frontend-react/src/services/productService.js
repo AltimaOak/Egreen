@@ -2,18 +2,7 @@
 import { api } from '../utils/api';
 import { activityService } from './activityService';
 
-const STOCK_TO_NUMBER = {
-  'In Stock': 100,
-  'Low Stock': 3,
-  'Out of stock': 0,
-};
 
-function numberToStock(n) {
-  const num = Number(n) || 0;
-  if (num === 0) return 'Out of stock';
-  if (num < 5) return 'Low Stock';
-  return 'In Stock';
-}
 
 // The backend stores specs as "Key: Value, Key: Value"; the admin form uses an
 // array of { key, value }.
@@ -57,7 +46,7 @@ function toAdminProduct(p) {
     brand: p.brand?.name || '',
     price: p.price != null ? Number(p.price) : 0,
     offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
-    stock: typeof p.stock === 'number' ? p.stock : (STOCK_TO_NUMBER[p.stock] ?? (parseInt(p.stock, 10) || 10)),
+    stock: typeof p.stock === 'number' ? p.stock : (parseInt(p.stock, 10) || 0),
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
     specifications: parseSpecs(p.specs),
@@ -93,7 +82,7 @@ function toBackendPayload(form) {
     price: form.price != null ? Number(form.price) : null,
     offerPrice: form.offerPrice != null ? Number(form.offerPrice) : null,
     rating: form.rating != null ? Number(form.rating) : null,
-    stock: numberToStock(form.stock),
+    stock: parseInt(form.stock, 10) || 0,
     condition: conditionSpec?.value || 'New',
     specs: specsToString(form.specifications),
     image: form.image || '',

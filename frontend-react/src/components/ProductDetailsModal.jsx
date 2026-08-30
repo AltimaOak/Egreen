@@ -59,23 +59,60 @@ const ProductDetailsModal = ({ product, onClose }) => {
     return product.price != null ? Number(product.price) : null;
   }, [activeOptions, variantGroups, product.price]);
 
-  // Parse specsOverride strings like "RAM: 8GB DDR4, Storage: 256GB SSD"
-  const parsedOverrideSpecs = useMemo(() => {
+  // Build a comprehensive overrides map from:
+  //  1. specsOverride strings the admin typed ("RAM: 8GB DDR4, Storage: 256GB SSD")
+  //  2. The selected variant option's value — auto-mapped by group label
+  const allVariantOverrides = useMemo(() => {
     const overrides = {};
-    Object.values(activeOptions).forEach((opt) => {
-      if (opt && opt.specsOverride) {
+
+    // Helper: register an override under multiple lookup keys
+    const set = (lookupKeys, specKey, value) => {
+      lookupKeys.forEach((k) => { overrides[k] = { key: specKey, value }; });
+    };
+
+    variantGroups.forEach((g) => {
+      const idx = selectedVariants[g.label];
+      if (idx === undefined) return;
+      const opt = g.options[idx];
+      if (!opt || !opt.value) return;
+      const label = g.label.toLowerCase();
+      const val = opt.value;
+
+      // — Direct group‑label → spec‑key mapping (works without specsOverride) —
+      if (label.includes('ram') || label.includes('memory')) {
+        set(['ram', 'memory', 'ram memory'], 'RAM', val);
+      } else if (label.includes('storage') || label.includes('ssd') || label.includes('hard drive') || label.includes('hdd') || label.includes('nvme')) {
+        set(['storage', 'hard drive size', 'hard drive', 'ssd'], 'Hard Drive Size', val);
+      } else if (label.includes('processor') || label.includes('cpu')) {
+        set(['processor', 'cpu'], 'Processor', val);
+      } else if (label.includes('os') || label.includes('operating system')) {
+        set(['operating system', 'os'], 'Operating System', val);
+      } else if (label.includes('warranty')) {
+        set(['warranty'], 'Warranty', val);
+      } else if (label.includes('display') || label.includes('screen')) {
+        set(['display', 'screen size'], 'Display', val);
+      } else if (label.includes('graphics') || label.includes('gpu')) {
+        set(['graphics', 'gpu', 'graphics card'], 'Graphics', val);
+      } else {
+        // Generic: use the group label itself as the spec key
+        overrides[label] = { key: g.label, value: val };
+      }
+
+      // — Also parse any explicit specsOverride strings the admin supplied —
+      if (opt.specsOverride) {
         opt.specsOverride.split(',').forEach((part) => {
-          const idx = part.indexOf(':');
-          if (idx !== -1) {
-            const key = part.slice(0, idx).trim();
-            const val = part.slice(idx + 1).trim();
-            if (key && val) overrides[key.toLowerCase()] = { key, value: val };
+          const colon = part.indexOf(':');
+          if (colon !== -1) {
+            const k = part.slice(0, colon).trim();
+            const v = part.slice(colon + 1).trim();
+            if (k && v) overrides[k.toLowerCase()] = { key: k, value: v };
           }
         });
       }
     });
+
     return overrides;
-  }, [activeOptions]);
+  }, [activeOptions, variantGroups, selectedVariants]);
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
   const formatCurrency = (val) => {
@@ -90,47 +127,35 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const specs = product.specifications || [];
 
   const getHighlight = (keyPattern) => {
-    // Check variant spec overrides first
-    const overrideKey = Object.keys(parsedOverrideSpecs).find((k) =>
-      k.includes(keyPattern.toLowerCase())
-    );
-    if (overrideKey) return parsedOverrideSpecs[overrideKey].value;
+    const lp = keyPattern.toLowerCase();
 
-    const item = specs.find(s => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase()));
+    // 1. Check allVariantOverrides first (covers both direct group mapping + specsOverride strings)
+    const overrideKey = Object.keys(allVariantOverrides).find((k) => k.includes(lp) || lp.includes(k));
+    if (overrideKey) return allVariantOverrides[overrideKey].value;
+
+    // 2. Fall back to product base specs
+    const item = specs.find(s => s.key && s.key.toLowerCase().includes(lp));
     if (item) return item.value;
 
+    // 3. Regex extraction from raw text
     const raw = (product.rawSpecs || '') + ' ' + (product.description || '') + ' ' + (product.name || '');
-    if (keyPattern.toLowerCase() === 'processor') {
+    if (lp === 'processor') {
       const match = raw.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
       return match ? match[0] : null;
     }
-    if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
-      // If a RAM variant is selected, reflect its label
-      const ramGroup = variantGroups.find(
-        (g) => g.label.toLowerCase().includes('ram') || g.label.toLowerCase().includes('memory')
-      );
-      if (ramGroup && selectedVariants[ramGroup.label] !== undefined) {
-        return ramGroup.options[selectedVariants[ramGroup.label]]?.value || null;
-      }
+    if (lp === 'ram' || lp === 'memory') {
       const match = raw.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
       return match ? match[0] : null;
     }
-    if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
-      // If a Storage variant is selected, reflect its label
-      const storageGroup = variantGroups.find((g) =>
-        g.label.toLowerCase().includes('storage') || g.label.toLowerCase().includes('ssd')
-      );
-      if (storageGroup && selectedVariants[storageGroup.label] !== undefined) {
-        return storageGroup.options[selectedVariants[storageGroup.label]]?.value || null;
-      }
+    if (lp === 'storage' || lp === 'hard drive') {
       const match = raw.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
       return match ? match[0] : null;
     }
-    if (keyPattern.toLowerCase() === 'operating system' || keyPattern.toLowerCase() === 'os') {
+    if (lp === 'operating system' || lp === 'os') {
       const match = raw.match(/(Windows\s*11(?:\s*Pro)?|Windows\s*10(?:\s*Pro)?|Ubuntu|Linux|FreeDOS)/i);
       return match ? match[0] : null;
     }
-    if (keyPattern.toLowerCase() === 'warranty') {
+    if (lp === 'warranty') {
       const match = raw.match(/(\d+\s*(?:Years?|Months?)\s*Warranty|\d+\s*Years?)/i);
       return match ? match[0] : null;
     }
@@ -177,16 +202,30 @@ const ProductDetailsModal = ({ product, onClose }) => {
     );
     const allSpecs = [...baseSpecs, ...extraSpecs];
 
-    // Apply parsedOverrideSpecs
-    return allSpecs.map((s) => {
-      const overrideKey = Object.keys(parsedOverrideSpecs).find(
-        (k) => k === s.key.toLowerCase() || s.key.toLowerCase().includes(k)
+    // Apply allVariantOverrides (covers both auto-mapped group labels + manual specsOverride strings)
+    const updatedSpecs = allSpecs.map((s) => {
+      const sk = s.key.toLowerCase();
+      const overrideKey = Object.keys(allVariantOverrides).find(
+        (k) => k === sk || sk.includes(k) || k.includes(sk)
       );
       if (overrideKey) {
-        return { ...s, value: parsedOverrideSpecs[overrideKey].value };
+        return { ...s, value: allVariantOverrides[overrideKey].value };
       }
       return s;
     });
+
+    // Also inject any variant overrides that don't match existing spec rows (add as new rows)
+    const extraVariantRows = [];
+    Object.values(allVariantOverrides).forEach((ov) => {
+      const already = updatedSpecs.some(
+        (s) => s.key.toLowerCase() === ov.key.toLowerCase()
+      );
+      if (!already) {
+        extraVariantRows.push({ key: ov.key, value: ov.value });
+      }
+    });
+
+    return [...updatedSpecs, ...extraVariantRows];
   };
 
   const allTechnicalSpecs = buildSpecsWithOverrides();
@@ -365,6 +404,85 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             </div>
 
+            {/* Key Highlights + Built for Business — below the trust strip */}
+            <div className="pdm-highlights-business-row">
+
+              <div className="pdm-highlights-box">
+                <h4 className="pdm-section-heading">KEY HIGHLIGHTS</h4>
+                <div className="pdm-highlights-list">
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Processor:</span>
+                    <span className="pdm-hl-val">{processor}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Memory:</span>
+                    <span className="pdm-hl-val">{ram} RAM for smooth multitasking</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Storage:</span>
+                    <span className="pdm-hl-val">{storage.toLowerCase().includes('ssd') || storage.toLowerCase().includes('hdd') ? storage : `${storage} high-speed drive`}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Operating System:</span>
+                    <span className="pdm-hl-val">{os.toLowerCase().includes('windows') ? `${os} Pre-installed` : os}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Warranty:</span>
+                    <span className="pdm-hl-val">{warranty.includes('Years') ? `${warranty} included` : `${warranty} Years included`}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Built for Business Card */}
+              <div className="pdm-built-business-card">
+                <div className="pdm-card-wave-pattern"></div>
+
+                <div className="pdm-business-shield">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </div>
+
+                <h5 className="pdm-business-title">Built for<br />Business.</h5>
+
+                <div className="pdm-business-bullets">
+                  <span>Reliable.</span>
+                  <span>Secure.</span>
+                  <span>Ready to perform.</span>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
           {/* Right Column */}
@@ -466,84 +584,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
               <p className="pdm-tax-note">Inclusive of GST. Volume discounts available for orders of 5+ units.</p>
             </div>
 
-            {/* Key Highlights + Built for Business */}
-            <div className="pdm-highlights-business-row">
 
-              <div className="pdm-highlights-box">
-                <h4 className="pdm-section-heading">KEY HIGHLIGHTS</h4>
-                <div className="pdm-highlights-list">
-                  <div className="pdm-hl-item">
-                    <div className="pdm-check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="pdm-hl-label">Processor:</span>
-                    <span className="pdm-hl-val">{processor}</span>
-                  </div>
-
-                  <div className="pdm-hl-item">
-                    <div className="pdm-check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="pdm-hl-label">Memory:</span>
-                    <span className="pdm-hl-val">{ram} RAM for smooth multitasking</span>
-                  </div>
-
-                  <div className="pdm-hl-item">
-                    <div className="pdm-check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="pdm-hl-label">Storage:</span>
-                    <span className="pdm-hl-val">{storage.toLowerCase().includes('ssd') || storage.toLowerCase().includes('hdd') ? storage : `${storage} high-speed drive`}</span>
-                  </div>
-
-                  <div className="pdm-hl-item">
-                    <div className="pdm-check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="pdm-hl-label">Operating System:</span>
-                    <span className="pdm-hl-val">{os.toLowerCase().includes('windows') ? `${os} Pre-installed` : os}</span>
-                  </div>
-
-                  <div className="pdm-hl-item">
-                    <div className="pdm-check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="pdm-hl-label">Warranty:</span>
-                    <span className="pdm-hl-val">{warranty.includes('Years') ? `${warranty} included` : `${warranty} Years included`}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Built for Business Card */}
-              <div className="pdm-built-business-card">
-                <div className="pdm-card-wave-pattern"></div>
-
-                <div className="pdm-business-shield">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  </svg>
-                </div>
-
-                <h5 className="pdm-business-title">Built for<br />Business.</h5>
-
-                <div className="pdm-business-bullets">
-                  <span>Reliable.</span>
-                  <span>Secure.</span>
-                  <span>Ready to perform.</span>
-                </div>
-              </div>
-
-            </div>
 
             {/* Technical Specifications Section */}
             <div className="pdm-specs-section">
