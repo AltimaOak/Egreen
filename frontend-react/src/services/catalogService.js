@@ -51,7 +51,24 @@ function toCatalogProduct(p) {
 
   const specsList = parseSpecs(p.specs, p.condition || 'Refurbished');
   const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
-  const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
+
+  // Safely parse features — may be a plain object, a JSON string, an array, or null
+  let featuresObj = {};
+  let featuresArray = [];
+  const rawFeatures = p.features;
+  if (rawFeatures) {
+    let parsed = rawFeatures;
+    if (typeof rawFeatures === 'string') {
+      try { parsed = JSON.parse(rawFeatures); } catch (_) { parsed = null; }
+    }
+    if (Array.isArray(parsed)) {
+      featuresArray = parsed.filter((f) => typeof f === 'string');
+    } else if (parsed && typeof parsed === 'object') {
+      featuresObj = parsed;
+      featuresArray = Array.isArray(parsed.features) ? parsed.features : [];
+    }
+  }
+
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
   const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
   // Extract variant groups stored as __variantGroups inside the features JSON
@@ -69,7 +86,7 @@ function toCatalogProduct(p) {
     brandId: p.brandId,
     image: p.image || '',
     gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? (()=>{ try { return JSON.parse(p.gallery); } catch(e){ return []; } })() : []),
-    features: Array.isArray(p.features) ? p.features : (featuresObj.bulletFeatures || []),
+    features: featuresArray.length > 0 ? featuresArray : (featuresObj.bulletFeatures || []),
     warranty: warranty,
     pricingTiers: pricingTiers,
     status: p.isActive ? 'Active' : 'Inactive',

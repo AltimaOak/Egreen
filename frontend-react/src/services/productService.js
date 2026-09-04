@@ -26,15 +26,22 @@ function specsToString(specifications) {
 }
 
 function toAdminProduct(p) {
-  // features JSON may be an array of strings, or an object with __variantGroups
-  const rawFeatures = p.features || [];
+  // features JSON may be an array of strings, or an object with __variantGroups,
+  // or (in some DB/API setups) a JSON-encoded string.
   let featureStrings = [];
   let variantGroups = [];
-  if (Array.isArray(rawFeatures)) {
-    featureStrings = rawFeatures.filter((f) => typeof f === 'string');
-  } else if (rawFeatures && typeof rawFeatures === 'object') {
-    featureStrings = rawFeatures.features || [];
-    variantGroups = rawFeatures.__variantGroups || [];
+  const rawFeatures = p.features;
+  if (rawFeatures) {
+    let parsed = rawFeatures;
+    if (typeof rawFeatures === 'string') {
+      try { parsed = JSON.parse(rawFeatures); } catch (_) { parsed = null; }
+    }
+    if (Array.isArray(parsed)) {
+      featureStrings = parsed.filter((f) => typeof f === 'string');
+    } else if (parsed && typeof parsed === 'object') {
+      featureStrings = parsed.features || [];
+      variantGroups = parsed.__variantGroups || [];
+    }
   }
   return {
     id: p.id,
@@ -67,10 +74,20 @@ function toBackendPayload(form) {
   const conditionSpec = (form.specifications || []).find(
     (s) => s.key && s.key.toLowerCase() === 'condition'
   );
-  // Pack features + variantGroups into the single JSON features column
-  const hasVariants = Array.isArray(form.variantGroups) && form.variantGroups.length > 0;
+  // Clean and pack features + variantGroups into the single JSON features column
+  // Filter out incomplete groups (empty label) and empty options (no value) before saving
+  const cleanedVariantGroups = (form.variantGroups || [])
+    .filter((g) => g && g.label && g.label.trim())
+    .map((g) => ({
+      ...g,
+      label: g.label.trim(),
+      options: (g.options || []).filter((o) => o && o.value && o.value.trim()),
+    }))
+    .filter((g) => g.options.length > 0);
+
+  const hasVariants = cleanedVariantGroups.length > 0;
   const featuresPayload = hasVariants
-    ? { features: form.features || [], __variantGroups: form.variantGroups }
+    ? { features: form.features || [], __variantGroups: cleanedVariantGroups }
     : (form.features || []);
   return {
     name: form.name,
@@ -131,39 +148,21 @@ export const productService = {
   },
 
   async createProduct(productData) {
-    try {
-      const data = await api.post('/api/products', toBackendPayload(productData));
-      await activityService.logActivity(
-        'Product Created',
-        `Product "${data.product?.name || productData.name}" (SKU: ${productData.SKU || '-'}) created.`
-      );
-      return data.product ? toAdminProduct(data.product) : productData;
-    } catch (err) {
-      console.warn('Backend creation error, performing local save:', err.message);
-      const newProduct = {
-        id: Date.now(),
-        ...productData,
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString(),
-      };
-      await activityService.logActivity('Product Created', `Product "${productData.name}" created (Offline).`);
-      return newProduct;
-    }
+    const data = await api.post('/api/products', toBackendPayload(productData));
+    await activityService.logActivity(
+      'Product Created',
+      `Product "${data.product?.name || productData.name}" (SKU: ${productData.SKU || '-'}) created.`
+    );
+    return data.product ? toAdminProduct(data.product) : productData;
   },
 
   async updateProduct(id, productData) {
-    try {
-      const data = await api.put(`/api/products/${id}`, toBackendPayload(productData));
-      await activityService.logActivity(
-        'Product Updated',
-        `Product "${data.product?.name || productData.name}" modified.`
-      );
-      return data.product ? toAdminProduct(data.product) : productData;
-    } catch (err) {
-      console.warn('Backend update error, performing local update:', err.message);
-      await activityService.logActivity('Product Updated', `Product "${productData.name}" updated (Offline).`);
-      return { id, ...productData, updatedDate: new Date().toISOString() };
-    }
+    const data = await api.put(`/api/products/${id}`, toBackendPayload(productData));
+    await activityService.logActivity(
+      'Product Updated',
+      `Product "${data.product?.name || productData.name}" modified.`
+    );
+    return data.product ? toAdminProduct(data.product) : productData;
   },
 
   async deleteProduct(id) {

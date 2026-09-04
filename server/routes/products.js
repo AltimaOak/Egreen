@@ -21,7 +21,7 @@ const baseProductSchema = z.object({
   categorySlug: z.string().min(1, 'Category is required'),
   brandName: z.string().optional().nullable(),
   condition: z.string().optional(),
-  stock: z.string().optional(),
+  stock: z.union([z.number().int().nonnegative(), z.string()]).optional(),
   specs: z.string().optional(),
   image: z.string().optional(),
   imagePublicId: z.string().optional().nullable(),
@@ -31,10 +31,7 @@ const baseProductSchema = z.object({
   seoTitle: z.string().optional().nullable(),
   seoDescription: z.string().optional().nullable(),
   // features can be a plain string array OR an object containing __variantGroups
-  features: z.union([
-    z.array(z.string()),
-    z.record(z.any()),
-  ]).optional(),
+  features: z.any().optional(),
   gallery: z.array(z.string()).optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
