@@ -12,10 +12,12 @@ try {
 
 module.exports = (req, res) => {
   if (initError) {
+    console.error('Serverless function init error:', initError.stack || initError);
     return res.status(500).json({
-      error: 'Vercel Serverless Function Init Failed',
-      message: initError.message,
-      stack: initError.stack,
+      error: {
+        message: 'Serverless initialization failed',
+        code: 'INITIALIZATION_FAILED',
+      },
     });
   }
   return app(req, res);
