@@ -26,6 +26,7 @@ const upload = catchAsync(async (req, res) => {
     throw new AppError('Uploaded file is not a valid image', 400);
   }
 
+  // TODO: Offload image upload, compression, and Cloudinary streaming to a background job queue (e.g. BullMQ/Redis)
   const { url, publicId } = await uploadImage(req.file.buffer);
   res.status(201).json({ url, publicId });
 });
