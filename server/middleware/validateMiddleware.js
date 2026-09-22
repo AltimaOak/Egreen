@@ -4,15 +4,7 @@ const validate = (schema) => (req, res, next) => {
     req.body = parsed;
     next();
   } catch (error) {
-    const details = error.issues?.map((issue) => ({
-      field: issue.path.join('.'),
-      message: issue.message,
-    })) || [{ message: error.message }];
-
-    return res.status(400).json({
-      error: 'VALIDATION_ERROR',
-      details,
-    });
+    next(error);
   }
 };
 
@@ -22,15 +14,7 @@ const validateParams = (schema) => (req, res, next) => {
     req.params = parsed;
     next();
   } catch (error) {
-    const details = error.issues?.map((issue) => ({
-      field: issue.path.join('.'),
-      message: issue.message,
-    })) || [{ message: error.message }];
-
-    return res.status(400).json({
-      error: 'VALIDATION_ERROR',
-      details,
-    });
+    next(error);
   }
 };
 
