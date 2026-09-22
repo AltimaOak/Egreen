@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { protect, optionalUser } = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/requireAdmin');
 const validate = require('../middleware/validateMiddleware');
+const { productListLimiter } = require('../middleware/rateLimiter');
 const {
   list,
   getById,
@@ -56,10 +57,10 @@ const variantParamsSchema = z.object({
   variantId: z.coerce.number().int().positive(),
 });
 
-// Public routes. Authenticated admins can pass `?includeInactive=true` to see
-// draft/inactive products too (enforced in the controller via optionalUser).
-router.get('/', optionalUser, list);
-router.get('/:id', optionalUser, validate.validateParams(productIdSchema), getById);
+// Public routes with rate limiting to prevent enumeration and scraping.
+// Authenticated admins can pass `?includeInactive=true` to see draft/inactive products.
+router.get('/', productListLimiter, optionalUser, list);
+router.get('/:id', productListLimiter, optionalUser, validate.validateParams(productIdSchema), getById);
 
 // Admin routes
 router.post('/', protect, requireAdmin, validate(baseProductSchema), create);
