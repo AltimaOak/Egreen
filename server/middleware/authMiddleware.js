@@ -16,11 +16,6 @@ const protect = catchAsync(async (req, res, next) => {
     return next(new AppError('Authentication token required', 401, 'UNAUTHORIZED'));
   }
 
-  if (token === 'demo-admin-token') {
-    req.user = { id: 1, email: 'admin@egreen.com', name: 'Admin', role: 'admin' };
-    return next();
-  }
-
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
