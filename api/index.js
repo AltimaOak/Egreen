@@ -12,13 +12,8 @@ try {
 
 module.exports = (req, res) => {
   if (initError) {
-    console.error('Serverless function init error:', initError.stack || initError);
-    return res.status(500).json({
-      error: {
-        message: 'Serverless initialization failed',
-        code: 'INITIALIZATION_FAILED',
-      },
-    });
+    console.error('Serverless init failed:', initError);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
   return app(req, res);
 };
