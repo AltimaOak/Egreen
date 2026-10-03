@@ -24,6 +24,32 @@ function specsToString(specifications) {
 }
 
 function toAdminProduct(p) {
+  const specsList = parseSpecs(p.specs);
+  const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
+  const featuresObj = typeof p.features === 'object' && p.features !== null ? p.features : {};
+  const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
+  
+  // Extract or initialize dual pricing tiers
+  let pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
+  if (pricingTiers.length === 0) {
+    pricingTiers = [
+      {
+        id: 'tier-1',
+        name: 'Standard Configuration',
+        specs: p.specs || '',
+        price: p.price != null ? Number(p.price) : 0,
+        offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
+      },
+      {
+        id: 'tier-2',
+        name: 'Upgraded Configuration',
+        specs: '',
+        price: '',
+        offerPrice: '',
+      },
+    ];
+  }
+
   return {
     id: p.id,
     name: p.name,
@@ -34,11 +60,13 @@ function toAdminProduct(p) {
     brand: p.brand?.name || '',
     price: p.price != null ? Number(p.price) : 0,
     offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
+    warranty: warranty,
+    pricingTiers: pricingTiers,
     stock: typeof p.stock === 'number' ? p.stock : (STOCK_TO_NUMBER[p.stock] ?? (parseInt(p.stock, 10) || 10)),
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
-    specifications: parseSpecs(p.specs),
-    features: p.features || [],
+    specifications: specsList,
+    features: Array.isArray(featuresObj.bulletFeatures) ? featuresObj.bulletFeatures : (Array.isArray(p.features) ? p.features : []),
     rating: p.rating != null ? Number(p.rating) : null,
     image: p.image || '',
     imagePublicId: p.imagePublicId || '',
@@ -51,9 +79,47 @@ function toAdminProduct(p) {
 }
 
 function toBackendPayload(form) {
-  const conditionSpec = (form.specifications || []).find(
+  const specs = [...(form.specifications || [])];
+  
+  // Ensure Warranty is explicitly saved in specifications
+  if (form.warranty) {
+    const wIdx = specs.findIndex((s) => s.key && s.key.toLowerCase() === 'warranty');
+    if (wIdx >= 0) {
+      specs[wIdx].value = form.warranty;
+    } else {
+      specs.push({ key: 'Warranty', value: form.warranty });
+    }
+  }
+
+  const conditionSpec = specs.find(
     (s) => s.key && s.key.toLowerCase() === 'condition'
   );
+
+  // Clean pricing tiers
+  const cleanPricingTiers = (form.pricingTiers || []).filter(
+    (t) => t && (t.name || t.price || t.specs)
+  ).map((t, idx) => ({
+    id: t.id || `tier-${idx + 1}`,
+    name: t.name || (idx === 0 ? 'Standard Configuration' : 'Upgraded Configuration'),
+    specs: t.specs || '',
+    price: t.price !== '' && t.price != null ? Number(t.price) : null,
+    offerPrice: t.offerPrice !== '' && t.offerPrice != null ? Number(t.offerPrice) : null,
+  }));
+
+  const mainPrice = cleanPricingTiers.length > 0 && cleanPricingTiers[0].price != null
+    ? cleanPricingTiers[0].price
+    : (form.price != null && form.price !== '' ? Number(form.price) : null);
+
+  const mainOfferPrice = cleanPricingTiers.length > 0 && cleanPricingTiers[0].offerPrice != null
+    ? cleanPricingTiers[0].offerPrice
+    : (form.offerPrice != null && form.offerPrice !== '' ? Number(form.offerPrice) : null);
+
+  const featuresPayload = {
+    warranty: form.warranty || '3 Years',
+    pricingTiers: cleanPricingTiers,
+    bulletFeatures: Array.isArray(form.features) ? form.features : [],
+  };
+
   return {
     name: form.name,
     slug: form.slug || undefined,
@@ -61,17 +127,17 @@ function toBackendPayload(form) {
     description: form.description || null,
     categorySlug: form.category,
     brandName: form.brand || null,
-    price: form.price != null ? Number(form.price) : null,
-    offerPrice: form.offerPrice != null ? Number(form.offerPrice) : null,
+    price: mainPrice,
+    offerPrice: mainOfferPrice,
     rating: form.rating != null ? Number(form.rating) : null,
-    stock: form.stock != null ? Number(form.stock) : 0,
-    condition: conditionSpec?.value || 'New',
-    specs: specsToString(form.specifications),
+    stock: numberToStock(form.stock),
+    condition: conditionSpec?.value || form.condition || 'Refurbished',
+    specs: specsToString(specs),
     image: form.image || '',
     imagePublicId: form.imagePublicId || null,
     seoTitle: form.seoTitle || null,
     seoDescription: form.seoDescription || null,
-    features: form.features || [],
+    features: featuresPayload,
     gallery: form.gallery || [],
     isFeatured: !!form.featured,
     isActive: form.status === 'Active',

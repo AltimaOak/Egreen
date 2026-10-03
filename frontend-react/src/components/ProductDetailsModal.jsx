@@ -1,43 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 
 const ProductDetailsModal = ({ product, onClose }) => {
-  const gridRef = useRef(null);
-  const [showScrollHint, setShowScrollHint] = useState(false);
-
-  const variants = product?.variants || [];
-  const hasVariants = variants.length > 0;
-
-  // Extract distinct RAM and Storage options across variants
-  const distinctRams = Array.from(
-    new Set(variants.map((v) => v.ram).filter(Boolean))
-  );
-  const distinctStorages = Array.from(
-    new Set(variants.map((v) => v.storage).filter(Boolean))
-  );
-
-  const ramVaries = distinctRams.length > 1;
-  const storageVaries = distinctStorages.length > 1;
-
-  // Only show a picker when there is an actual choice to make
-  const hasSelectableVariants = variants.length > 1 && (ramVaries || storageVaries);
-
-  // Initialize selected RAM & Storage based on isDefault or first variant
-  const defaultVariant = variants.find((v) => v.isDefault) || variants[0] || null;
-  const [selectedRam, setSelectedRam] = useState(defaultVariant?.ram || '');
-  const [selectedStorage, setSelectedStorage] = useState(defaultVariant?.storage || '');
-
-  // Keep state in sync when product prop changes
-  useEffect(() => {
-    if (hasVariants) {
-      const def = variants.find((v) => v.isDefault) || variants[0];
-      setSelectedRam(def?.ram || '');
-      setSelectedStorage(def?.storage || '');
-    } else {
-      setSelectedRam('');
-      setSelectedStorage('');
-    }
-  }, [product]);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -76,62 +40,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
   if (!product) return null;
 
-  // Find matching variant based on current RAM and Storage selection
-  const matchingVariant = hasVariants
-    ? variants.find(
-        (v) =>
-          (v.ram || '') === (selectedRam || '') &&
-          (v.storage || '') === (selectedStorage || '')
-      ) ||
-      variants.find((v) => (v.ram || '') === (selectedRam || '')) ||
-      variants[0]
-    : null;
-
-  const handleRamChange = (ramVal) => {
-    const exactMatch = variants.find((v) => v.ram === ramVal && v.storage === selectedStorage);
-    if (exactMatch) {
-      setSelectedRam(ramVal);
-    } else {
-      const validCombo = variants.find((v) => v.ram === ramVal);
-      setSelectedRam(ramVal);
-      if (validCombo) {
-        setSelectedStorage(validCombo.storage || '');
-      }
-    }
-  };
-
-  const handleStorageChange = (storageVal) => {
-    const exactMatch = variants.find((v) => v.storage === storageVal && v.ram === selectedRam);
-    if (exactMatch) {
-      setSelectedStorage(storageVal);
-    } else {
-      const validCombo = variants.find((v) => v.storage === storageVal);
-      setSelectedStorage(storageVal);
-      if (validCombo) {
-        setSelectedRam(validCombo.ram || '');
-      }
-    }
-  };
-
-  // Resolve active price, offerPrice, and stock
-  const currentPrice =
-    matchingVariant && matchingVariant.price != null
-      ? Number(matchingVariant.price)
-      : product.price != null
-      ? Number(product.price)
-      : null;
-
-  const currentStock =
-    matchingVariant && matchingVariant.stock != null
-      ? matchingVariant.stock
-      : typeof product.stock === 'number'
-      ? product.stock
-      : parseInt(product.stock, 10) || 0;
-
-  const currentSku =
-    matchingVariant?.sku || product.sku || `EG-${product.id}`;
-
-  // Format currency helper
+  // Format currency helper (INR)
   const formatCurrency = (val) => {
     if (val == null || isNaN(val)) return null;
     return new Intl.NumberFormat('en-IN', {
@@ -141,88 +50,174 @@ const ProductDetailsModal = ({ product, onClose }) => {
     }).format(val);
   };
 
-  // Derive specs key-value pairs and filter out duplicate Condition row
+  const [activeTierIndex, setActiveTierIndex] = useState(0);
+
+  // Derive specs key-value pairs
   const specs = product.specifications || [];
-  const filteredSpecs = specs.filter(
-    (s) => s.key && s.key.toLowerCase().trim() !== 'condition'
+  
+  // Pricing tiers
+  const validPricingTiers = (Array.isArray(product.pricingTiers) ? product.pricingTiers : []).filter(
+    (t) => t && (t.price || t.name)
   );
 
+  const activeTier = validPricingTiers.length > 0
+    ? (validPricingTiers[activeTierIndex] || validPricingTiers[0])
+    : null;
+
+  // Derive warranty from product or specs
+  const warrantyVal = product.warranty || (specs.find(s => s.key && s.key.toLowerCase() === 'warranty')?.value) || '3 Years';
+  
   // Extract key bullet points for quick highlights
   const getHighlight = (keyPattern) => {
-    const item = specs.find(
-      (s) => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase())
-    );
-    return item ? item.value : null;
+    // If active tier has specs string, search there first
+    if (activeTier && activeTier.specs) {
+      if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
+        const match = activeTier.specs.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
+        const match = activeTier.specs.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'processor') {
+        const match = activeTier.specs.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
+        if (match) return match[0];
+      }
+    }
+
+    const item = specs.find(s => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase()));
+    if (item) return item.value;
+
+    // Fallback search in rawSpecs or name if available
+    const raw = (product.rawSpecs || '') + ' ' + (product.description || '') + ' ' + (product.name || '');
+    if (keyPattern.toLowerCase() === 'processor') {
+      const match = raw.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
+      return match ? match[0] : null;
+    }
+    if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
+      const match = raw.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
+      return match ? match[0] : null;
+    }
+    if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
+      const match = raw.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
+      return match ? match[0] : null;
+    }
+    if (keyPattern.toLowerCase() === 'operating system' || keyPattern.toLowerCase() === 'os') {
+      const match = raw.match(/(Windows\s*11(?:\s*Pro)?|Windows\s*10(?:\s*Pro)?|Ubuntu|Linux|FreeDOS)/i);
+      return match ? match[0] : null;
+    }
+    if (keyPattern.toLowerCase() === 'warranty') {
+      return warrantyVal;
+    }
+    return null;
   };
 
-  const processor = getHighlight('processor');
-  const os = getHighlight('operating system') || getHighlight('os');
-  const warranty = getHighlight('warranty');
+  const processor = getHighlight('processor') || 'Intel Core i3';
+  const ram = getHighlight('ram') || '8 GB';
+  const storage = getHighlight('storage') || 'SSD high-speed drive';
+  const os = getHighlight('operating system') || 'Windows 11';
+  const warranty = warrantyVal;
 
-  const ramHighlight = hasVariants
-    ? (matchingVariant?.ram || selectedRam || getHighlight('ram'))
-    : getHighlight('ram');
-  const storageHighlight = hasVariants
-    ? (matchingVariant?.storage || selectedStorage || getHighlight('storage') || getHighlight('hard drive'))
-    : (getHighlight('storage') || getHighlight('hard drive'));
+  // Active Price calculations based on selected tier
+  const currentActivePrice = activeTier && activeTier.price != null
+    ? activeTier.price
+    : product.price;
 
-  // Technical Specifications table: override RAM/Storage rows with the
-  // currently selected variant so the table never disagrees with the
-  // highlights or the price/stock shown above it.
-  const specsForTable = hasVariants
-    ? filteredSpecs.map((s) => {
-        const keyLower = (s.key || '').toLowerCase();
-        if (keyLower.includes('ram') && ramHighlight) {
-          return { ...s, value: ramHighlight };
-        }
-        if ((keyLower.includes('storage') || keyLower.includes('hard drive')) && storageHighlight) {
-          return { ...s, value: storageHighlight };
-        }
-        return s;
-      })
-    : filteredSpecs;
+  const currentActiveOfferPrice = activeTier && activeTier.offerPrice != null
+    ? activeTier.offerPrice
+    : (product.offerPrice && product.price && product.offerPrice > product.price
+        ? product.offerPrice
+        : (currentActivePrice ? Math.round(currentActivePrice * 1.18) : null));
 
-  // If the base spec never had a RAM/Storage row at all but variants do,
-  // add them so the table still reflects the current selection.
-  const tableHasRam = specsForTable.some((s) => (s.key || '').toLowerCase().includes('ram'));
-  const tableHasStorage = specsForTable.some((s) => {
-    const k = (s.key || '').toLowerCase();
-    return k.includes('storage') || k.includes('hard drive');
-  });
-  const extraSpecRows = [];
-  if (hasVariants && ramHighlight && !tableHasRam) {
-    extraSpecRows.push({ key: 'RAM', value: ramHighlight });
+  const priceFormatted = formatCurrency(currentActivePrice);
+  const originalPriceFormatted = formatCurrency(currentActiveOfferPrice);
+  const discountPercent = currentActivePrice && currentActiveOfferPrice && currentActiveOfferPrice > currentActivePrice
+    ? Math.round(((currentActiveOfferPrice - currentActivePrice) / currentActiveOfferPrice) * 100)
+    : 15;
+
+  // Build 5 gallery images matching the reference preview
+  // 1: Main front, 2: Angled, 3: Rear/Ports, 4: Contextual desk, 5: Internal hardware
+  const defaultAngleImages = [
+    product.image || 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=700&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=700&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=700&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=700&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=700&auto=format&fit=crop&q=80'
+  ];
+
+  const galleryList = (product.gallery && product.gallery.length > 0)
+    ? [product.image, ...product.gallery].filter(Boolean)
+    : (product.image 
+        ? [product.image, defaultAngleImages[1], defaultAngleImages[2], defaultAngleImages[3], defaultAngleImages[4]]
+        : defaultAngleImages);
+
+  const activeMainImage = galleryList[activeImageIndex] || galleryList[0];
+
+  // Derive specs table key-value pairs (4 cells per row: Key | Val | Key | Val)
+  const baseSpecs = [
+    { key: 'Hard Drive Size', value: storage.includes('GB') || storage.includes('TB') ? storage.replace(/\s*(?:SSD|HDD|NVMe|Storage)/i, '') : '256 GB' },
+    { key: 'Form Factor', value: product.categoryName || 'Desktop' },
+    { key: 'Storage Type', value: storage.toLowerCase().includes('hdd') ? 'HDD' : 'SSD' },
+    { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Warranty` },
+    { key: 'Operating System', value: os },
+    { key: 'Condition', value: product.condition || 'Refurbished' }
+  ];
+
+  // Append any extra unique specs from DB
+  const extraSpecs = specs.filter(s => 
+    !baseSpecs.some(b => b.key.toLowerCase() === s.key.toLowerCase())
+  );
+  const allTechnicalSpecs = [...baseSpecs, ...extraSpecs];
+
+  // Group specs into pairs of 2 for 4-column rows
+  const specRows = [];
+  for (let i = 0; i < allTechnicalSpecs.length; i += 2) {
+    specRows.push({
+      first: allTechnicalSpecs[i],
+      second: allTechnicalSpecs[i + 1] || null
+    });
   }
-  if (hasVariants && storageHighlight && !tableHasStorage) {
-    extraSpecRows.push({ key: 'Storage', value: storageHighlight });
-  }
-  const finalSpecsForTable = [...specsForTable, ...extraSpecRows];
 
-  const highlightsList = [
-    processor && { type: 'processor', label: 'CPU', val: processor, color: 'blue', icon: '⚡' },
-    ramHighlight && { type: 'ram', label: 'RAM', val: ramHighlight, color: 'green', icon: '💾' },
-    storageHighlight && { type: 'storage', label: 'Storage', val: storageHighlight, color: 'purple', icon: '💽' },
-    os && { type: 'os', label: 'OS', val: os, color: 'amber', icon: '🖥️' },
-    warranty && { type: 'warranty', label: 'Warranty', val: warranty, color: 'cyan', icon: '🛡️' },
-  ].filter(Boolean);
+  // Brand Logo Helper
+  const renderBrandLogo = (brandName = '') => {
+    const b = (brandName || '').toLowerCase();
+    if (b.includes('hp')) {
+      return (
+        <div className="pdm-brand-logo-circle hp-logo" title="HP">
+          <svg viewBox="0 0 100 100" width="40" height="40">
+            <circle cx="50" cy="50" r="48" fill="#0096d6" />
+            <path d="M42 22 L32 78 M56 22 L46 78 M24 45 L50 45 M38 55 L64 55" stroke="#ffffff" strokeWidth="7" strokeLinecap="round" />
+          </svg>
+        </div>
+      );
+    }
+    if (b.includes('dell')) {
+      return (
+        <div className="pdm-brand-logo-circle dell-logo" title="Dell">
+          <svg viewBox="0 0 100 100" width="40" height="40">
+            <circle cx="50" cy="50" r="48" fill="#007db8" />
+            <text x="50%" y="58%" dominantBaseline="middle" textAnchor="middle" fill="#ffffff" fontWeight="900" fontSize="22" fontFamily="sans-serif">DELL</text>
+          </svg>
+        </div>
+      );
+    }
+    if (b.includes('lenovo')) {
+      return (
+        <div className="pdm-brand-logo-pill lenovo-logo" title="Lenovo">
+          <span>Lenovo</span>
+        </div>
+      );
+    }
+    return (
+      <div className="pdm-brand-logo-pill generic-logo" title={product.brand || 'Enterprise'}>
+        <span>{product.brand || 'Enterprise'}</span>
+      </div>
+    );
+  };
 
-  const priceFormatted = formatCurrency(currentPrice);
-  const originalPrice = currentPrice ? Math.round(currentPrice * 1.18) : null;
-  const originalPriceFormatted = formatCurrency(originalPrice);
-  const discountPercent = currentPrice ? 15 : null;
-
-  const variantDetails = [];
-  if (selectedRam) variantDetails.push(`RAM: ${selectedRam}`);
-  if (selectedStorage) variantDetails.push(`Storage: ${selectedStorage}`);
-  const variantSuffix = variantDetails.length > 0 ? ` (${variantDetails.join(', ')})` : '';
-
-  const orderWaUrl = `https://wa.me/919867760106?text=${encodeURIComponent(
-    `Hi, I would like to place an order for the product: ${product.name}${variantSuffix}. Please share order and payment details.`
-  )}`;
-
-  const enquiryWaUrl = `https://wa.me/919867760106?text=${encodeURIComponent(
-    `Hi, I have an enquiry regarding the product: ${product.name}${variantSuffix}. Please provide more details.`
-  )}`;
+  const selectedTierLabel = activeTier ? ` (${activeTier.name})` : '';
+  const whatsappOrderMsg = `Hi, I would like to place an order for: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}) priced at ${priceFormatted || 'standard rate'}. Please share payment and shipping details.`;
+  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
 
   return (
     <div className="pdm-backdrop" onClick={onClose}>
@@ -232,264 +227,364 @@ const ProductDetailsModal = ({ product, onClose }) => {
         role="dialog"
         aria-modal="true"
       >
+        {/* Top Header Bar with Breadcrumb and Close Button */}
         <div className="pdm-header-bar">
           <div className="pdm-breadcrumb">
-            <span>Hardware Catalog</span>
+            <span className="pdm-crumb-muted">Hardware Catalog</span>
             <span className="pdm-sep">/</span>
-            <span>{product.brand || 'Enterprise'}</span>
+            <span className="pdm-crumb-muted">{product.brand || 'HP'}</span>
             <span className="pdm-sep">/</span>
-            <span className="pdm-active-crumb">{product.categoryName || 'Products'}</span>
+            <span className="pdm-active-crumb">{product.categoryName || 'Desktops'}</span>
           </div>
           <button
             onClick={onClose}
             className="pdm-close-btn"
             aria-label="Close Product Details"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
         </div>
 
-        <div className="pdm-grid-container" ref={gridRef}>
-          <div className="pdm-top-row">
-            <div className="pdm-left-col">
-              <div className="pdm-image-box">
-                {product.image ? (
-                  <img src={product.image} alt={product.name} className="pdm-main-image" />
-                ) : (
-                  <div className="pdm-no-image">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                      <line x1="8" y1="21" x2="16" y2="21"></line>
-                      <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                    <span>Enterprise Product Image</span>
-                  </div>
-                )}
-                <div className="pdm-image-badges">
-                  <span className="pdm-badge pdm-badge-brand">{product.brand}</span>
-                  <span className="pdm-badge pdm-badge-condition">{product.condition || 'Refurbished'}</span>
-                </div>
+        {/* Modal Main Grid */}
+        <div className="pdm-grid-container">
+          
+          {/* Left Column: Image Showcase, Thumbnails, Trust Badges */}
+          <div className="pdm-left-col">
+            
+            {/* Main Image Showcase Card */}
+            <div className="pdm-image-box">
+              {/* Brand Logo Top-Left */}
+              <div className="pdm-brand-watermark">
+                {renderBrandLogo(product.brand)}
               </div>
 
-              <div className="pdm-trust-strip">
-                <div className="pdm-trust-item">
-                  <span className="pdm-trust-icon">🛡️</span>
-                  <div><strong>{warranty || '3 Years Warranty'}</strong></div>
-                </div>
-                <div className="pdm-trust-item">
-                  <span className="pdm-trust-icon">🚚</span>
-                  <div><strong>Fast Insured Delivery</strong></div>
-                </div>
-                <div className="pdm-trust-item">
-                  <span className="pdm-trust-icon">⚡</span>
-                  <div><strong>100% Tested</strong></div>
-                </div>
+              {/* Condition Badge Top-Right */}
+              <div className="pdm-top-badge-right">
+                <span className="pdm-pill-badge-blue">
+                  <span className="pdm-badge-dot"></span>
+                  {product.condition?.toUpperCase() === 'NEW' ? 'NEW' : 'REFURBISHED'}
+                </span>
               </div>
 
-              {/* Only render if there is more than one real option */}
-              {hasSelectableVariants && (
-                <div className="pdm-left-variants-section">
-                  <div className="pdm-left-variants-header">
-                    <span className="pdm-left-variants-title">Available Configurations</span>
-                    <span className="pdm-left-variants-count">{variants.length} Options</span>
-                  </div>
-                  <div className="pdm-variant-cards-row">
-                    {variants.map((v, idx) => {
-                      const isSelected = matchingVariant?.id
-                        ? matchingVariant.id === v.id
-                        : (v.ram === selectedRam && v.storage === selectedStorage);
-
-                      let diffLabel = '';
-                      if (ramVaries && storageVaries) {
-                        diffLabel = `${v.ram || ''} • ${v.storage || ''}`;
-                      } else if (ramVaries) {
-                        diffLabel = v.ram || `Option ${idx + 1}`;
-                      } else if (storageVaries) {
-                        diffLabel = v.storage || `Option ${idx + 1}`;
-                      } else {
-                        diffLabel = `${v.ram || ''} ${v.storage || ''}`.trim() || `Option ${idx + 1}`;
-                      }
-
-                      const vPrice = v.price != null ? formatCurrency(Number(v.price)) : null;
-
-                      return (
-                        <button
-                          key={v.id || idx}
-                          type="button"
-                          className={`pdm-variant-card ${isSelected ? 'pdm-variant-card-active' : ''}`}
-                          onClick={() => {
-                            setSelectedRam(v.ram || '');
-                            setSelectedStorage(v.storage || '');
-                          }}
-                        >
-                          <span className="pdm-variant-card-label">{diffLabel}</span>
-                          {vPrice && <span className="pdm-variant-card-price">{vPrice}</span>}
-                          {v.stock === 0 && <span className="pdm-variant-card-stock-out">Out of stock</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* Main Product Image */}
+              {activeMainImage ? (
+                <img src={activeMainImage} alt={product.name} className="pdm-main-image" />
+              ) : (
+                <div className="pdm-no-image">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                  <span>Enterprise Hardware</span>
                 </div>
               )}
             </div>
 
-            <div className="pdm-right-col">
-              <div className="pdm-title-section">
-                <div className="pdm-meta-row">
-                  <span className="pdm-brand-tag">{product.brand}</span>
-                  <span className="pdm-sku-tag">SKU: {currentSku}</span>
-                  <span className={`pdm-stock-tag ${currentStock > 0 ? 'in-stock' : 'out-stock'}`}>
-                    {currentStock > 0 ? '● In Stock & Ready to Ship' : '○ Out of Stock'}
-                  </span>
-                </div>
-                <h2 className="pdm-product-title">{product.name}</h2>
-                <div className="pdm-rating-row">
-                  <div className="pdm-stars-pill"><span>★ {product.rating || '4.5'}</span></div>
-                  <span className="pdm-rating-count">128 Verified Enterprise Buyers</span>
-                  <span className="pdm-dot-divider">•</span>
-                  <span className="pdm-verified-badge">✓ Verified Wholesaler Stock</span>
-                </div>
-              </div>
-
-              {/* Amazon/Flipkart style swatches — only when there's an actual choice */}
-              {hasSelectableVariants && (
-                <div className="pdm-variant-box">
-                  {ramVaries && (
-                    <div className="pdm-variant-group">
-                      <span className="pdm-variant-label">RAM</span>
-                      <div className="pdm-variant-pills">
-                        {distinctRams.map((r) => {
-                          const isDisabled = selectedStorage
-                            ? !variants.some((v) => v.ram === r && v.storage === selectedStorage)
-                            : false;
-                          const isActive = selectedRam === r;
-                          return (
-                            <button
-                              key={r}
-                              type="button"
-                              className={`pdm-variant-pill ${isActive ? 'pdm-variant-pill-active' : ''} ${isDisabled ? 'pdm-variant-pill-disabled' : ''}`}
-                              onClick={() => !isDisabled && handleRamChange(r)}
-                              disabled={isDisabled}
-                            >
-                              {r}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  {storageVaries && (
-                    <div className="pdm-variant-group">
-                      <span className="pdm-variant-label">Storage</span>
-                      <div className="pdm-variant-pills">
-                        {distinctStorages.map((s) => {
-                          const isDisabled = selectedRam
-                            ? !variants.some((v) => v.storage === s && v.ram === selectedRam)
-                            : false;
-                          const isActive = selectedStorage === s;
-                          return (
-                            <button
-                              key={s}
-                              type="button"
-                              className={`pdm-variant-pill ${isActive ? 'pdm-variant-pill-active' : ''} ${isDisabled ? 'pdm-variant-pill-disabled' : ''}`}
-                              onClick={() => !isDisabled && handleStorageChange(s)}
-                              disabled={isDisabled}
-                            >
-                              {s}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="pdm-price-box">
-                {priceFormatted ? (
-                  <div className="pdm-price-row">
-                    <span className="pdm-curr-price">{priceFormatted}</span>
-                    {originalPriceFormatted && <span className="pdm-mrp-price">{originalPriceFormatted}</span>}
-                    {discountPercent && <span className="pdm-discount-pill">{discountPercent}% OFF</span>}
-                  </div>
-                ) : (
-                  <div className="pdm-price-row">
-                    <span className="pdm-curr-price pdm-quote-price">Price on Request</span>
-                    <span className="pdm-discount-pill pdm-b2b-pill">Wholesale Bulk Rate</span>
-                  </div>
-                )}
-                <p className="pdm-tax-note">Inclusive of GST. Volume discounts available for orders of 5+ units.</p>
-              </div>
-
-              {highlightsList.length > 0 && (
-                <div className="pdm-chips-section">
-                  <span className="pdm-chips-title">Key Highlights</span>
-                  <div className="pdm-chips-row">
-                    {highlightsList.map((chip, idx) => (
-                      <div key={idx} className={`pdm-highlight-chip pdm-chip-${chip.color}`}>
-                        <span className="pdm-chip-icon">{chip.icon}</span>
-                        <div className="pdm-chip-text">
-                          <span className="pdm-chip-label">{chip.label}</span>
-                          <span className="pdm-chip-val" title={chip.val}>{chip.val}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="pdm-actions-row">
-                <a href={orderWaUrl} target="_blank" rel="noopener noreferrer" className="pdm-btn pdm-btn-primary">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.47.123.643-.074.173-.198.742-.865.94-1.162.198-.297.396-.247.668-.148.272.099 1.73.816 2.027.964.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/></svg>
-                  Order on WhatsApp
-                </a>
-                <a href={enquiryWaUrl} target="_blank" rel="noopener noreferrer" className="pdm-btn pdm-btn-secondary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.47.123.643-.074.173-.198.742-.865.94-1.162.198-.297.396-.247.668-.148.272.099 1.73.816 2.027.964.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/></svg>
-                  WhatsApp Enquiry
-                </a>
-              </div>
+            {/* Gallery Thumbnail Strip (5 Items) */}
+            <div className="pdm-thumbnails-row">
+              {galleryList.slice(0, 5).map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={`pdm-thumb-btn ${activeImageIndex === idx ? 'active' : ''}`}
+                  onClick={() => setActiveImageIndex(idx)}
+                  aria-label={`View image angle ${idx + 1}`}
+                >
+                  <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="pdm-thumb-img" />
+                </button>
+              ))}
             </div>
+
+            {/* 3-Column Trust Assurance Strip */}
+            <div className="pdm-trust-strip">
+              
+              {/* Trust Item 1: Warranty (Dynamic / Editable) */}
+              <div className="pdm-trust-card">
+                <div className="pdm-trust-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <path d="M9 12l2 2 4-4"></path>
+                  </svg>
+                </div>
+                <div className="pdm-trust-text">
+                  <strong className="pdm-trust-title">{warranty.includes('Years') || warranty.includes('Warranty') || warranty.includes('Months') ? warranty : `${warranty} Warranty`}</strong>
+                  <span className="pdm-trust-sub">Coverage Included</span>
+                </div>
+              </div>
+
+              {/* Trust Item 2: Delivery */}
+              <div className="pdm-trust-card">
+                <div className="pdm-trust-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="3" width="15" height="13"></rect>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                  </svg>
+                </div>
+                <div className="pdm-trust-text">
+                  <strong className="pdm-trust-title">Fast & Insured</strong>
+                  <span className="pdm-trust-sub">Delivery</span>
+                </div>
+              </div>
+
+              {/* Trust Item 3: Tested Quality */}
+              <div className="pdm-trust-card">
+                <div className="pdm-trust-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="7"></circle>
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                    <path d="M9 8l2 2 4-4"></path>
+                  </svg>
+                </div>
+                <div className="pdm-trust-text">
+                  <strong className="pdm-trust-title">100% Tested</strong>
+                  <span className="pdm-trust-sub">Quality Assured</span>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
-          <div className="pdm-bottom-section">
-            <h4 className="pdm-section-heading">Technical Specifications</h4>
-            <div className="pdm-specs-table-wrapper">
-              <table className="pdm-specs-table">
-                <tbody>
-                  <tr>
-                    <td className="pdm-spec-key">Model / Name</td>
-                    <td className="pdm-spec-val">{product.name}</td>
-                  </tr>
-                  <tr>
-                    <td className="pdm-spec-key">Brand</td>
-                    <td className="pdm-spec-val">{product.brand}</td>
-                  </tr>
-                  <tr>
-                    <td className="pdm-spec-key">Category</td>
-                    <td className="pdm-spec-val">{product.categoryName || 'Enterprise IT'}</td>
-                  </tr>
-                  <tr>
-                    <td className="pdm-spec-key">Condition</td>
-                    <td className="pdm-spec-val">{product.condition || 'Refurbished'}</td>
-                  </tr>
-                  {finalSpecsForTable.map((s, idx) => (
-                    <tr key={idx}>
-                      <td className="pdm-spec-key">{s.key}</td>
-                      <td className="pdm-spec-val">{s.value}</td>
-                    </tr>
-                  ))}
-                  {finalSpecsForTable.length === 0 && product.rawSpecs && (
-                    <tr>
-                      <td className="pdm-spec-key">Specifications</td>
-                      <td className="pdm-spec-val">{product.rawSpecs}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {/* Right Column: Title, Pricing, Highlights, Specs Table & Actions */}
+          <div className="pdm-right-col">
+            
+            {/* Top Meta: Brand Tag, SKU & Stock Status */}
+            <div className="pdm-meta-top-row">
+              <div className="pdm-meta-left">
+                <span className="pdm-brand-pill">{product.brand || 'HP'}</span>
+                <span className="pdm-sku-text">SKU: EG-{product.sku || product.id || '71'}</span>
+              </div>
+              <div className="pdm-meta-right">
+                <span className="pdm-stock-pill-green">
+                  <span className="pdm-stock-dot"></span>
+                  In Stock & Ready to Ship
+                </span>
+              </div>
             </div>
+
+            {/* Product Title */}
+            <h2 className="pdm-product-title">{product.name}</h2>
+            
+            {/* Amazon/Flipkart Ratings & Verified Wholesaler Stock */}
+            <div className="pdm-rating-row">
+              <div className="pdm-rating-badge">
+                <span className="pdm-star-icon">★</span>
+                <span>{product.rating || '4.5'}</span>
+              </div>
+              <span className="pdm-rating-count">128 Verified Enterprise Buyers</span>
+              <span className="pdm-dot-sep">•</span>
+              <div className="pdm-verified-stock">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Verified Wholesaler Stock</span>
+              </div>
+            </div>
+
+            {/* Dual / Multi-Spec Pricing Selector (When multiple spec tiers are defined) */}
+            {validPricingTiers.length > 1 && (
+              <div className="pdm-tier-selector-container">
+                <div className="pdm-tier-selector-header">
+                  <span className="pdm-tier-selector-label">Choose Configuration:</span>
+                  <span className="pdm-tier-active-badge">
+                    {validPricingTiers[activeTierIndex]?.name || `Option ${activeTierIndex + 1}`}
+                  </span>
+                </div>
+                <div className="pdm-tier-pills-row">
+                  {validPricingTiers.map((tier, tIdx) => {
+                    const isSelected = activeTierIndex === tIdx;
+                    return (
+                      <button
+                        key={tIdx}
+                        type="button"
+                        className={`pdm-tier-pill-btn ${isSelected ? 'active' : ''}`}
+                        onClick={() => setActiveTierIndex(tIdx)}
+                      >
+                        <div className="pdm-tier-pill-left">
+                          <span className={`pdm-tier-radio-dot ${isSelected ? 'active' : ''}`}></span>
+                          <div className="pdm-tier-pill-info">
+                            <strong className="pdm-tier-pill-title">{tier.name || `Option ${tIdx + 1}`}</strong>
+                            {tier.specs && (
+                              <span className="pdm-tier-pill-specs">{tier.specs}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pdm-tier-pill-price-box">
+                          <span className="pdm-tier-pill-price">{tier.price ? formatCurrency(tier.price) : 'Quote'}</span>
+                          {tier.offerPrice && (
+                            <span className="pdm-tier-pill-mrp">{formatCurrency(tier.offerPrice)}</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Price Box */}
+            <div className="pdm-price-box">
+              {priceFormatted ? (
+                <div className="pdm-price-main-row">
+                  <span className="pdm-curr-price">{priceFormatted}</span>
+                  {originalPriceFormatted && (
+                    <span className="pdm-mrp-price">{originalPriceFormatted}</span>
+                  )}
+                  {discountPercent && (
+                    <span className="pdm-discount-pill">{discountPercent}% OFF</span>
+                  )}
+                </div>
+              ) : (
+                <div className="pdm-price-main-row">
+                  <span className="pdm-curr-price pdm-quote-price">Price on Request</span>
+                  <span className="pdm-discount-pill pdm-b2b-pill">Wholesale Bulk Rate</span>
+                </div>
+              )}
+              <p className="pdm-tax-note">Inclusive of GST. Volume discounts available for orders of 5+ units.</p>
+            </div>
+
+            {/* Middle Row: Key Highlights + Built for Business Banner Card */}
+            <div className="pdm-highlights-business-row">
+              
+              {/* Left Box: Key Highlights */}
+              <div className="pdm-highlights-box">
+                <h4 className="pdm-section-heading">KEY HIGHLIGHTS</h4>
+                <div className="pdm-highlights-list">
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Processor:</span>
+                    <span className="pdm-hl-val">{processor}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Memory:</span>
+                    <span className="pdm-hl-val">{ram} RAM for smooth multitasking</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Storage:</span>
+                    <span className="pdm-hl-val">{storage.toLowerCase().includes('ssd') || storage.toLowerCase().includes('hdd') ? storage : `${storage} high-speed drive`}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Operating System:</span>
+                    <span className="pdm-hl-val">{os.toLowerCase().includes('windows') ? `${os} Pre-installed` : os}</span>
+                  </div>
+
+                  <div className="pdm-hl-item">
+                    <div className="pdm-check-circle">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="pdm-hl-label">Warranty:</span>
+                    <span className="pdm-hl-val">{warranty.includes('Years') ? `${warranty} included` : `${warranty} Years included`}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Box: Built for Business Card */}
+              <div className="pdm-built-business-card">
+                {/* Subtle luxury wave watermark backdrop */}
+                <div className="pdm-card-wave-pattern"></div>
+                
+                <div className="pdm-business-shield">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </div>
+
+                <h5 className="pdm-business-title">Built for<br />Business.</h5>
+                
+                <div className="pdm-business-bullets">
+                  <span>Reliable.</span>
+                  <span>Secure.</span>
+                  <span>Ready to perform.</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Technical Specifications Section */}
+            <div className="pdm-specs-section">
+              <h4 className="pdm-section-heading">TECHNICAL SPECIFICATIONS</h4>
+              <div className="pdm-specs-table-container">
+                <table className="pdm-specs-grid-table">
+                  <tbody>
+                    {specRows.map((row, rIdx) => (
+                      <tr key={rIdx}>
+                        <td className="pdm-spec-key">{row.first.key}</td>
+                        <td className="pdm-spec-val">{row.first.value}</td>
+                        {row.second ? (
+                          <>
+                            <td className="pdm-spec-key">{row.second.key}</td>
+                            <td className="pdm-spec-val">{row.second.value}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="pdm-spec-key"></td>
+                            <td className="pdm-spec-val"></td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Action CTAs: Order on WhatsApp & WhatsApp Enquiry */}
+            <div className="pdm-actions-row">
+              <a 
+                href={`https://wa.me/919867760106?text=${encodeURIComponent(whatsappOrderMsg)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pdm-btn pdm-btn-order"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.47.123.643-.074.173-.198.742-.865.94-1.162.198-.297.396-.247.668-.148.272.099 1.73.816 2.027.964.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/>
+                </svg>
+                <span>Order on WhatsApp</span>
+              </a>
+              
+              <a 
+                href={`https://wa.me/919867760106?text=${encodeURIComponent(whatsappEnquiryMsg)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pdm-btn pdm-btn-enquiry"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.233-1.237a9.96 9.96 0 004.779 1.217h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.669-1.038-5.176-2.925-7.062A9.923 9.923 0 0012.012 2zm5.82 14.364c-.244.686-1.42 1.309-1.956 1.391-.502.076-1.144.109-1.841-.115-.427-.137-.978-.315-1.693-.625-2.986-1.293-4.93-4.321-5.08-4.52-.148-.2-1.218-1.621-1.218-3.091 0-1.47.77-2.194 1.042-2.494.272-.3.593-.375.79-.375.198 0 .395.002.567.01.183.008.428-.069.669.51.244.58.837 2.046.91 2.194.074.148.123.324.025.52-.099.196-.148.318-.296.491-.148.173-.312.387-.446.52-.148.148-.303.309-.13.606.173.297.77 1.272 1.652 2.057 1.134 1.01 2.091 1.323 2.388 1.47.297.148.495.222.568.346.074.124.074.717-.17 1.403z"/>
+                </svg>
+                <span>WhatsApp Enquiry</span>
+              </a>
+            </div>
+
           </div>
         </div>
 
