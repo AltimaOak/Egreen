@@ -16,7 +16,7 @@ const createEnquirySchema = z.object({
   message: z.string().min(1, 'Message is required').max(5000),
 });
 
-router.post('/', protect, enquiryLimiter, validate(createEnquirySchema), create);
+router.post('/', enquiryLimiter, validate(createEnquirySchema), create);
 router.get('/mine', protect, listMine);
 
 module.exports = router;
