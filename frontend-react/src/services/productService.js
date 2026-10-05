@@ -26,7 +26,11 @@ function specsToString(specifications) {
 function toAdminProduct(p) {
   const specsList = parseSpecs(p.specs);
   const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
-  const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
+  let parsedFeatures = p.features;
+  if (typeof parsedFeatures === 'string') {
+    try { parsedFeatures = JSON.parse(parsedFeatures); } catch (_) { parsedFeatures = null; }
+  }
+  const featuresObj = parsedFeatures && typeof parsedFeatures === 'object' && !Array.isArray(parsedFeatures) ? parsedFeatures : {};
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
   let pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
   if (pricingTiers.length === 0) {
@@ -47,14 +51,13 @@ function toAdminProduct(p) {
       },
     ];
   }
-  const rawFeatures = p.features || [];
-  const featureStrings = Array.isArray(rawFeatures)
-    ? rawFeatures.filter((feature) => typeof feature === 'string')
+  const featureStrings = Array.isArray(parsedFeatures)
+    ? parsedFeatures.filter((feature) => typeof feature === 'string')
     : (Array.isArray(featuresObj.bulletFeatures)
         ? featuresObj.bulletFeatures
         : (Array.isArray(featuresObj.features) ? featuresObj.features : []));
   const variantGroups = Array.isArray(featuresObj.__variantGroups) ? featuresObj.__variantGroups : [];
-  const stock = Number(p.stock);
+  const stock = p.stock == null ? 10 : Number(p.stock);
 
   return {
     id: p.id,
@@ -68,12 +71,12 @@ function toAdminProduct(p) {
     offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
     warranty: warranty,
     pricingTiers: pricingTiers,
-  stock: Number.isFinite(stock) ? stock : 10,
+    stock: Number.isFinite(stock) ? stock : 10,
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
     specifications: specsList,
-  features: featureStrings,
-  variantGroups,
+    features: featureStrings,
+    variantGroups,
     rating: p.rating != null ? Number(p.rating) : null,
     image: p.image || '',
     imagePublicId: p.imagePublicId || '',
@@ -120,11 +123,21 @@ function toBackendPayload(form) {
     ? cleanPricingTiers[0].offerPrice
     : (form.offerPrice != null && form.offerPrice !== '' ? Number(form.offerPrice) : null);
 
+  // Discard incomplete variant groups before saving them alongside pricing tiers.
+  const cleanedVariantGroups = (form.variantGroups || [])
+    .filter((group) => group && group.label && group.label.trim())
+    .map((group) => ({
+      ...group,
+      label: group.label.trim(),
+      options: (group.options || []).filter((option) => option && option.value && option.value.trim()),
+    }))
+    .filter((group) => group.options.length > 0);
+
   const featuresPayload = {
     warranty: form.warranty || '3 Years',
     pricingTiers: cleanPricingTiers,
     bulletFeatures: Array.isArray(form.features) ? form.features : [],
-    __variantGroups: Array.isArray(form.variantGroups) ? form.variantGroups : [],
+    __variantGroups: cleanedVariantGroups,
   };
   return {
     name: form.name,
@@ -136,7 +149,7 @@ function toBackendPayload(form) {
     price: mainPrice,
     offerPrice: mainOfferPrice,
     rating: form.rating != null ? Number(form.rating) : null,
-  stock: Number.parseInt(form.stock, 10) || 0,
+    stock: Number.parseInt(form.stock, 10) || 0,
     condition: conditionSpec?.value || form.condition || 'Refurbished',
     specs: specsToString(specs),
     image: form.image || '',
@@ -185,39 +198,21 @@ export const productService = {
   },
 
   async createProduct(productData) {
-    try {
-      const data = await api.post('/api/products', toBackendPayload(productData));
-      await activityService.logActivity(
-        'Product Created',
-        `Product "${data.product?.name || productData.name}" (SKU: ${productData.SKU || '-'}) created.`
-      );
-      return data.product ? toAdminProduct(data.product) : productData;
-    } catch (err) {
-      console.warn('Backend creation error, performing local save:', err.message);
-      const newProduct = {
-        id: Date.now(),
-        ...productData,
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString(),
-      };
-      await activityService.logActivity('Product Created', `Product "${productData.name}" created (Offline).`);
-      return newProduct;
-    }
+    const data = await api.post('/api/products', toBackendPayload(productData));
+    await activityService.logActivity(
+      'Product Created',
+      `Product "${data.product?.name || productData.name}" (SKU: ${productData.SKU || '-'}) created.`
+    );
+    return data.product ? toAdminProduct(data.product) : productData;
   },
 
   async updateProduct(id, productData) {
-    try {
-      const data = await api.put(`/api/products/${id}`, toBackendPayload(productData));
-      await activityService.logActivity(
-        'Product Updated',
-        `Product "${data.product?.name || productData.name}" modified.`
-      );
-      return data.product ? toAdminProduct(data.product) : productData;
-    } catch (err) {
-      console.warn('Backend update error, performing local update:', err.message);
-      await activityService.logActivity('Product Updated', `Product "${productData.name}" updated (Offline).`);
-      return { id, ...productData, updatedDate: new Date().toISOString() };
-    }
+    const data = await api.put(`/api/products/${id}`, toBackendPayload(productData));
+    await activityService.logActivity(
+      'Product Updated',
+      `Product "${data.product?.name || productData.name}" modified.`
+    );
+    return data.product ? toAdminProduct(data.product) : productData;
   },
 
   async deleteProduct(id) {

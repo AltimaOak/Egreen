@@ -506,8 +506,9 @@ const Products = () => {
       }
       fetchProducts();
       setDrawerOpen(false);
-    } catch {
-      showToast('Failed to save product configurations.', 'error');
+    } catch (err) {
+      const detail = err?.details?.[0]?.message || err?.message || 'Failed to save product.';
+      showToast(`Save failed: ${detail}`, 'error');
     }
   };
 

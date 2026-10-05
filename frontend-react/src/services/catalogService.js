@@ -40,12 +40,30 @@ function parseSpecs(specsRaw, condition) {
  * @param {object} p - Product from GET /api/products
  */
 function toCatalogProduct(p) {
-  const parsedStock = Number(p.stock);
-  const stock = Number.isFinite(parsedStock) ? parsedStock : 10;
+  const stockLabels = { 'In Stock': 100, 'Low Stock': 3, 'Out of stock': 0 };
+  const parsedStock = p.stock == null ? 10 : Number(p.stock);
+  const stock = Number.isFinite(parsedStock) ? parsedStock : (stockLabels[p.stock] ?? 10);
 
   const specsList = parseSpecs(p.specs, p.condition || 'Refurbished');
   const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
-  const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
+
+  // Safely parse features — may be a plain object, a JSON string, an array, or null
+  let featuresObj = {};
+  let featuresArray = [];
+  const rawFeatures = p.features;
+  if (rawFeatures) {
+    let parsed = rawFeatures;
+    if (typeof rawFeatures === 'string') {
+      try { parsed = JSON.parse(rawFeatures); } catch (_) { parsed = null; }
+    }
+    if (Array.isArray(parsed)) {
+      featuresArray = parsed.filter((f) => typeof f === 'string');
+    } else if (parsed && typeof parsed === 'object') {
+      featuresObj = parsed;
+      featuresArray = Array.isArray(parsed.features) ? parsed.features : [];
+    }
+  }
+
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
   const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
   const variantGroups = Array.isArray(featuresObj.__variantGroups) ? featuresObj.__variantGroups : [];
@@ -62,11 +80,11 @@ function toCatalogProduct(p) {
     brandId: p.brandId,
     image: p.image || '',
     gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? (()=>{ try { return JSON.parse(p.gallery); } catch(e){ return []; } })() : []),
-  features: Array.isArray(p.features)
-    ? p.features
-    : (Array.isArray(featuresObj.bulletFeatures)
-      ? featuresObj.bulletFeatures
-      : (Array.isArray(featuresObj.features) ? featuresObj.features : [])),
+    features: featuresArray.length > 0
+      ? featuresArray
+      : (Array.isArray(featuresObj.bulletFeatures)
+          ? featuresObj.bulletFeatures
+          : (Array.isArray(featuresObj.features) ? featuresObj.features : [])),
     warranty: warranty,
     pricingTiers: pricingTiers,
     status: p.isActive ? 'Active' : 'Inactive',
@@ -78,7 +96,7 @@ function toCatalogProduct(p) {
     offerPrice: p.offerPrice != null && !isNaN(Number(p.offerPrice)) ? Number(p.offerPrice) : null,
     rating: p.rating ? Number(p.rating) : 4.5,
     variantGroups,
-  variants: Array.isArray(p.variants) ? p.variants : [],
+    variants: Array.isArray(p.variants) ? p.variants : [],
   };
 }
 
