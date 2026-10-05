@@ -40,6 +40,7 @@ app.use(helmet({
 // CORS — support local dev, configured CLIENT_URL, and Vercel deployments
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://egreen-technology.vercel.app',
   ...(process.env.NODE_ENV !== 'production'
     ? ['http://localhost:5173', 'http://localhost:3000']
     : []),
