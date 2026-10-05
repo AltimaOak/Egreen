@@ -98,6 +98,7 @@ const Products = () => {
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [imageUploading, setImageUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null); // e.g. '2/5'
   const [wizardStep, setWizardStep] = useState(0);
 
   // Delete modal state
@@ -291,21 +292,84 @@ const Products = () => {
     }
   };
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // Build flat gallery list: [{ url, publicId }, ...] — first is main image
+  const buildImageSlots = (data) => {
+    const slots = [];
+    if (data.image) slots.push({ url: data.image, publicId: data.imagePublicId || '' });
+    const gal = Array.isArray(data.gallery) ? data.gallery : [];
+    gal.forEach((g) => {
+      if (g && g.url) slots.push({ url: g.url, publicId: g.publicId || '' });
+      else if (typeof g === 'string' && g) slots.push({ url: g, publicId: '' });
+    });
+    return slots;
+  };
+
+  // Sync image slots back to formData
+  const applyImageSlots = (slots) => {
+    if (slots.length === 0) {
+      setFormData((prev) => ({ ...prev, image: '', imagePublicId: '', gallery: [] }));
+    } else {
+      const [main, ...rest] = slots;
+      setFormData((prev) => ({
+        ...prev,
+        image: main.url,
+        imagePublicId: main.publicId || '',
+        gallery: rest.map((s) => ({ url: s.url, publicId: s.publicId || '' })),
+      }));
+    }
+  };
+
+  const handleImagesChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const existing = buildImageSlots(formData);
+    const remaining = 5 - existing.length;
+    if (remaining <= 0) {
+      showToast('Maximum 5 images already uploaded. Remove one to add more.', 'error');
+      return;
+    }
+    const toUpload = files.slice(0, remaining);
 
     try {
       setImageUploading(true);
-      showToast('Uploading image...', 'loading');
-      const { url, publicId } = await imageService.uploadImage(file);
-      setFormData((prev) => ({ ...prev, image: url, imagePublicId: publicId }));
-      showToast('Image uploaded successfully', 'success');
+      setUploadProgress(`0/${toUpload.length}`);
+      showToast(`Uploading ${toUpload.length} image${toUpload.length > 1 ? 's' : ''}...`, 'loading');
+
+      const results = [];
+      for (let i = 0; i < toUpload.length; i++) {
+        const { url, publicId } = await imageService.uploadImage(toUpload[i]);
+        results.push({ url, publicId });
+        setUploadProgress(`${i + 1}/${toUpload.length}`);
+      }
+
+      const newSlots = [...existing, ...results];
+      applyImageSlots(newSlots);
+      showToast(`${toUpload.length} image${toUpload.length > 1 ? 's' : ''} uploaded successfully`, 'success');
     } catch {
-      showToast('Image upload failed.', 'error');
+      showToast('One or more image uploads failed.', 'error');
     } finally {
       setImageUploading(false);
+      setUploadProgress(null);
     }
+    // Reset file input
+    e.target.value = '';
+  };
+
+  const handleRemoveSlot = (idx) => {
+    const slots = buildImageSlots(formData);
+    const removed = slots[idx];
+    if (removed?.publicId) imageService.deleteImage(removed.publicId);
+    slots.splice(idx, 1);
+    applyImageSlots(slots);
+  };
+
+  const handleSetMain = (idx) => {
+    if (idx === 0) return;
+    const slots = buildImageSlots(formData);
+    const [chosen] = slots.splice(idx, 1);
+    slots.unshift(chosen);
+    applyImageSlots(slots);
   };
 
   const addSpecField = () => {
@@ -774,43 +838,134 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Section 3: Image Upload */}
+            {/* Section 3: Image Upload — Multi-image (up to 5) */}
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
-              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>🖼️</span> Product Photo
-              </h3>
-              {formData.image ? (
-                <div style={{ position: 'relative', width: '100%', maxWidth: 300, height: 180, borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid var(--color-border)', background: '#fff' }}>
-                  <img src={formData.image} alt="Product Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (formData.imagePublicId) {
-                        imageService.deleteImage(formData.imagePublicId);
-                      }
-                      setFormData((prev) => ({ ...prev, image: '', imagePublicId: '' }));
-                    }}
-                    style={{
-                      position: 'absolute', top: 8, right: 8, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                    }}
-                    title="Remove Photo"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <label className="admin-image-upload-zone" style={{ padding: '24px 16px' }}>
-                  <Upload size={28} color="var(--color-muted)" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginTop: 8 }}>Click to Select or Drag Image File</span>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>PNG, JPG, WebP image up to 5MB</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>🖼️</span> Product Photos
+                </h3>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-muted)', background: 'rgba(107,114,128,0.1)', padding: '3px 10px', borderRadius: 99 }}>
+                  {buildImageSlots(formData).length} / 5 Photos
+                </span>
+              </div>
+
+              {/* Image Grid — 5 slots */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+                {Array.from({ length: 5 }).map((_, idx) => {
+                  const slots = buildImageSlots(formData);
+                  const slot = slots[idx];
+                  const isMain = idx === 0;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        position: 'relative', borderRadius: 10, overflow: 'hidden',
+                        border: slot ? (isMain ? '2px solid var(--color-primary)' : '1px solid var(--color-border)') : '2px dashed var(--color-border)',
+                        background: slot ? '#fff' : 'rgba(107,114,128,0.04)',
+                        aspectRatio: '1 / 1',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexDirection: 'column', gap: 4,
+                      }}
+                    >
+                      {slot ? (
+                        <>
+                          <img
+                            src={slot.url}
+                            alt={`Photo ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                          />
+                          {/* Main badge */}
+                          {isMain && (
+                            <div style={{
+                              position: 'absolute', top: 5, left: 5,
+                              background: 'var(--color-primary)', color: '#fff',
+                              fontSize: '0.58rem', fontWeight: 800, padding: '2px 6px', borderRadius: 99,
+                              letterSpacing: '0.04em',
+                            }}>MAIN</div>
+                          )}
+                          {/* Action buttons overlay */}
+                          <div style={{
+                            position: 'absolute', bottom: 4, left: 0, right: 0,
+                            display: 'flex', justifyContent: 'center', gap: 4,
+                          }}>
+                            {!isMain && (
+                              <button
+                                type="button"
+                                title="Set as Main Photo"
+                                onClick={() => handleSetMain(idx)}
+                                style={{
+                                  background: 'rgba(37,99,235,0.9)', color: '#fff', border: 'none',
+                                  borderRadius: 99, padding: '3px 7px', fontSize: '0.62rem', fontWeight: 700,
+                                  cursor: 'pointer', whiteSpace: 'nowrap',
+                                }}
+                              >
+                                ★ Main
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              title="Remove Photo"
+                              onClick={() => handleRemoveSlot(idx)}
+                              style={{
+                                background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none',
+                                borderRadius: '50%', width: 20, height: 20,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', flexShrink: 0,
+                              }}
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '6px 4px' }}>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--color-muted)', fontWeight: 600, marginBottom: 2 }}>
+                            {isMain ? 'MAIN' : `Photo ${idx + 1}`}
+                          </div>
+                          <div style={{ fontSize: '0.55rem', color: 'var(--color-muted)', opacity: 0.7 }}>Empty</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Upload Button / Drop zone */}
+              {buildImageSlots(formData).length < 5 && (
+                <label
+                  className="admin-image-upload-zone"
+                  style={{ marginTop: 14, padding: '16px', cursor: imageUploading ? 'not-allowed' : 'pointer', opacity: imageUploading ? 0.6 : 1 }}
+                >
+                  {imageUploading ? (
+                    <>
+                      <Upload size={22} color="var(--color-primary)" />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-primary)', marginTop: 6 }}>
+                        Uploading{uploadProgress ? ` ${uploadProgress}` : ''}…
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={22} color="var(--color-muted)" />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)', marginTop: 6 }}>
+                        Click to Select Up to {5 - buildImageSlots(formData).length} More Image{5 - buildImageSlots(formData).length !== 1 ? 's' : ''}
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--color-muted)' }}>PNG, JPG, WebP · Max 5MB each · Select multiple at once</span>
+                    </>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     hidden
                     disabled={imageUploading}
-                    onChange={handleImageChange}
+                    onChange={handleImagesChange}
                   />
                 </label>
+              )}
+              {buildImageSlots(formData).length >= 5 && (
+                <p style={{ margin: '12px 0 0', fontSize: '0.75rem', color: 'var(--color-muted)', textAlign: 'center' }}>
+                  Maximum 5 photos uploaded. Remove one to replace.
+                </p>
               )}
             </div>
 

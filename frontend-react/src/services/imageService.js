@@ -27,6 +27,17 @@ export const imageService = {
   },
 
   /**
+   * Upload multiple image files (up to 5) concurrently.
+   * @param {File[]} files - Array of image File objects
+   * @returns {Promise<Array<{ url: string, publicId: string }>>}
+   */
+  async uploadImages(files) {
+    if (!files || files.length === 0) return [];
+    const limited = Array.from(files).slice(0, 5);
+    return Promise.all(limited.map((file) => this.uploadImage(file)));
+  },
+
+  /**
    * Delete an image from Cloudinary by its public_id.
    * @param {string} publicId
    * @returns {Promise<boolean>}

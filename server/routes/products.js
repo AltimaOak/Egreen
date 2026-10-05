@@ -32,7 +32,7 @@ const baseProductSchema = z.object({
   seoDescription: z.string().optional().nullable(),
   // features can be a plain string array OR an object containing __variantGroups
   features: z.any().optional(),
-  gallery: z.array(z.string()).optional(),
+  gallery: z.array(z.any()).optional(), // can be strings or { url, publicId } objects
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });

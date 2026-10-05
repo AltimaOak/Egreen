@@ -2,18 +2,24 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 const ProductDetailsModal = ({ product, onClose }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   // selectedVariants: { [groupLabel]: optionIndex }
   const [selectedVariants, setSelectedVariants] = useState({});
 
   useEffect(() => {
     setActiveImageIndex(0);
     setSelectedVariants({});
+    setLightboxOpen(false);
   }, [product]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        onClose();
+        if (lightboxOpen) {
+          setLightboxOpen(false);
+        } else {
+          onClose();
+        }
       }
     };
     document.body.style.overflow = 'hidden';
@@ -22,7 +28,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
       document.body.style.overflow = 'auto';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, [onClose, lightboxOpen]);
 
   if (!product) return null;
 
@@ -181,6 +187,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
   // Gallery
   const rawGallery = Array.isArray(product.gallery)
     ? product.gallery
+        .map((g) => (g && typeof g === 'object' ? g.url : g))
+        .filter(Boolean)
     : (typeof product.gallery === 'string' && product.gallery.trim() ? [product.gallery.trim()] : []);
   const allUploadedImages = [product.image, ...rawGallery].filter(Boolean);
   const galleryList = Array.from(new Set(allUploadedImages));
@@ -276,6 +284,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const whatsappEnquiryMsg = `Hi, I have an enquiry regarding the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
 
   return (
+    <>
     <div className="pdm-backdrop" onClick={onClose}>
       <div
         className="pdm-modal-card"
@@ -327,7 +336,13 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
               {/* Main Product Image */}
               {activeMainImage ? (
-                <img src={activeMainImage} alt={product.name} className="pdm-main-image" />
+                <img
+                  src={activeMainImage}
+                  alt={product.name}
+                  className="pdm-main-image"
+                  onClick={() => setLightboxOpen(true)}
+                  title="Click to view full size"
+                />
               ) : (
                 <div className="pdm-no-image">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5">
@@ -645,6 +660,30 @@ const ProductDetailsModal = ({ product, onClose }) => {
         </div>
       </div>
     </div>
+
+    {/* ── Full-Screen Lightbox ───────────────────────────────────────── */}
+    {lightboxOpen && activeMainImage && (
+      <div
+        className="pdm-lightbox-backdrop"
+        onClick={() => setLightboxOpen(false)}
+      >
+        <button
+          className="pdm-lightbox-close"
+          onClick={(e) => { e.stopPropagation(); setLightboxOpen(false); }}
+          aria-label="Close full-size image"
+        >
+          ✕
+        </button>
+        <img
+          src={activeMainImage}
+          alt={product.name}
+          className="pdm-lightbox-img"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <span className="pdm-lightbox-hint">Click outside or press Esc to close</span>
+      </div>
+    )}
+  </>
   );
 };
 
