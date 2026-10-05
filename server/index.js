@@ -38,18 +38,22 @@ app.use(helmet({
 }));
 
 // CORS — support local dev, configured CLIENT_URL, and Vercel deployments
+const isDev = process.env.NODE_ENV !== 'production';
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://egreen-technology.vercel.app',
-  ...(process.env.NODE_ENV !== 'production'
-    ? ['http://localhost:5173', 'http://localhost:3000']
-    : []),
 ].filter(Boolean);
+
+// In development, Vite picks a new port when 5173 is busy. Accept any
+// localhost or 127.0.0.1 origin with any port.
+const isLocalhostOrigin = (origin) =>
+  /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (isDev && isLocalhostOrigin(origin)) return callback(null, true);
     return callback(new Error(`CORS: origin not allowed: ${origin}`));
   },
   credentials: true,
