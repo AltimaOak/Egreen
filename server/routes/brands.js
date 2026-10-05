@@ -13,9 +13,11 @@ const brandSchema = z.object({
   logoUrl: z.string().optional().nullable(),
 });
 
+const brandIdSchema = z.object({ id: z.coerce.number().int().positive() });
+
 // Public routes
 router.get('/', list);
-router.get('/:id', getById);
+router.get('/:id', validate.validateParams(brandIdSchema), getById);
 
 // Admin routes
 router.post('/', protect, requireAdmin, validate(brandSchema), create);

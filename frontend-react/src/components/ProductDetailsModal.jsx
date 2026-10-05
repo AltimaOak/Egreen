@@ -5,11 +5,12 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   // selectedVariants: { [groupLabel]: optionIndex }
   const [selectedVariants, setSelectedVariants] = useState({});
+  const [activeTierIndex, setActiveTierIndex] = useState(0);
 
   useEffect(() => {
     setActiveImageIndex(0);
     setSelectedVariants({});
-    setLightboxOpen(false);
+    setActiveTierIndex(0);
   }, [product]);
 
   useEffect(() => {
@@ -30,17 +31,40 @@ const ProductDetailsModal = ({ product, onClose }) => {
     };
   }, [onClose, lightboxOpen]);
 
-  if (!product) return null;
+  // Scroll listener for bottom affordance gradient
+  const checkScroll = () => {
+    const el = gridRef.current;
+    if (!el) return;
+    const isScrollable = el.scrollHeight > el.clientHeight + 10;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 24;
+    setShowScrollHint(isScrollable && !isNearBottom);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = gridRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [product, selectedRam, selectedStorage]);
 
   // ─── Variant Groups ───────────────────────────────────────────────────────
   const variantGroups = useMemo(() => {
-    if (!Array.isArray(product.variantGroups)) return [];
+    if (!product || !Array.isArray(product.variantGroups)) return [];
     return product.variantGroups.filter(
       (g) => g && g.label && Array.isArray(g.options) && g.options.length > 0
     );
   }, [product]);
 
   const hasVariants = variantGroups.length > 0;
+
+  const validPricingTiers = (Array.isArray(product?.pricingTiers) ? product.pricingTiers : [])
+    .filter((tier) => tier && (tier.price || tier.name));
+  const activeTier = validPricingTiers[activeTierIndex] || validPricingTiers[0] || null;
 
   // Derive the active variant options for each group
   const activeOptions = useMemo(() => {
@@ -62,8 +86,11 @@ const ProductDetailsModal = ({ product, onClose }) => {
         return Number(opt.priceOverride);
       }
     }
-    return product.price != null ? Number(product.price) : null;
-  }, [activeOptions, variantGroups, product.price]);
+    if (activeTier && activeTier.price != null && activeTier.price !== '') {
+      return Number(activeTier.price);
+    }
+    return product?.price != null ? Number(product.price) : null;
+  }, [activeOptions, variantGroups, activeTier, product.price]);
 
   // Build a comprehensive overrides map from:
   //  1. specsOverride strings the admin typed ("RAM: 8GB DDR4, Storage: 256GB SSD")
@@ -120,6 +147,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
     return overrides;
   }, [activeOptions, variantGroups, selectedVariants]);
 
+  if (!product) return null;
+
   // ─── Helpers ─────────────────────────────────────────────────────────────
   const formatCurrency = (val) => {
     if (val == null || isNaN(val)) return null;
@@ -131,6 +160,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
   };
 
   const specs = product.specifications || [];
+  const warrantyVal = product.warranty || (specs.find((spec) => spec.key && spec.key.toLowerCase() === 'warranty')?.value) || '3 Years';
 
   const getHighlight = (keyPattern) => {
     const lp = keyPattern.toLowerCase();
@@ -139,12 +169,26 @@ const ProductDetailsModal = ({ product, onClose }) => {
     const overrideKey = Object.keys(allVariantOverrides).find((k) => k.includes(lp) || lp.includes(k));
     if (overrideKey) return allVariantOverrides[overrideKey].value;
 
+    const tierSpecs = activeTier?.specs || '';
+    if (lp === 'processor') {
+      const match = tierSpecs.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
+      if (match) return match[0];
+    }
+    if (lp === 'ram' || lp === 'memory') {
+      const match = tierSpecs.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
+      if (match) return match[0];
+    }
+    if (lp === 'storage' || lp === 'hard drive') {
+      const match = tierSpecs.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
+      if (match) return match[0];
+    }
+
     // 2. Fall back to product base specs
     const item = specs.find(s => s.key && s.key.toLowerCase().includes(lp));
     if (item) return item.value;
 
     // 3. Regex extraction from raw text
-    const raw = (product.rawSpecs || '') + ' ' + (product.description || '') + ' ' + (product.name || '');
+    const raw = tierSpecs + ' ' + (product.rawSpecs || '') + ' ' + (product.description || '') + ' ' + (product.name || '');
     if (lp === 'processor') {
       const match = raw.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
       return match ? match[0] : null;
@@ -172,13 +216,16 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const ram = getHighlight('ram') || '8 GB';
   const storage = getHighlight('storage') || 'SSD high-speed drive';
   const os = getHighlight('operating system') || 'Windows 11';
-  const warranty = getHighlight('warranty') || '3 Years';
+  const warranty = warrantyVal;
 
   // Price calculations
   const priceFormatted = formatCurrency(effectivePrice);
-  const originalPrice = product.offerPrice && product.price && product.offerPrice > product.price
-    ? product.offerPrice
-    : (product.price ? Math.round(product.price * 1.18) : null);
+  const tierOfferPrice = activeTier?.offerPrice != null && activeTier.offerPrice !== ''
+    ? Number(activeTier.offerPrice)
+    : null;
+  const originalPrice = tierOfferPrice || (product.offerPrice && effectivePrice && product.offerPrice > effectivePrice
+    ? Number(product.offerPrice)
+    : (effectivePrice ? Math.round(effectivePrice * 1.18) : null));
   const originalPriceFormatted = effectivePrice ? formatCurrency(originalPrice) : null;
   const discountPercent = effectivePrice && originalPrice
     ? Math.round(((originalPrice - effectivePrice) / originalPrice) * 100)
@@ -280,8 +327,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
     );
   };
 
-  const whatsappOrderMsg = `Hi, I would like to place an order for the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please share order and payment details.`;
-  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
+  const selectedTierLabel = activeTier ? ` (${activeTier.name})` : '';
+  const whatsappOrderMsg = `Hi, I would like to place an order for: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}) priced at ${priceFormatted || 'standard rate'}. Please share payment and shipping details.`;
+  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
 
   return (
     <>
@@ -374,7 +422,6 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             {/* 3-Column Trust Assurance Strip */}
             <div className="pdm-trust-strip">
-
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -383,8 +430,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
                   </svg>
                 </div>
                 <div className="pdm-trust-text">
-                  <strong className="pdm-trust-title">3 Years</strong>
-                  <span className="pdm-trust-sub">Warranty</span>
+                  <strong className="pdm-trust-title">{warranty.includes('Years') || warranty.includes('Warranty') || warranty.includes('Months') ? warranty : `${warranty} Warranty`}</strong>
+                  <span className="pdm-trust-sub">Coverage Included</span>
                 </div>
               </div>
 
@@ -536,6 +583,40 @@ const ProductDetailsModal = ({ product, onClose }) => {
               </div>
             </div>
 
+            {validPricingTiers.length > 1 && (
+              <div className="pdm-tier-selector-container">
+                <div className="pdm-tier-selector-header">
+                  <span className="pdm-tier-selector-label">Choose Configuration:</span>
+                  <span className="pdm-tier-active-badge">{activeTier?.name || `Option ${activeTierIndex + 1}`}</span>
+                </div>
+                <div className="pdm-tier-pills-row">
+                  {validPricingTiers.map((tier, tierIndex) => {
+                    const isSelected = activeTierIndex === tierIndex;
+                    return (
+                      <button
+                        key={tier.id || tierIndex}
+                        type="button"
+                        className={`pdm-tier-pill-btn ${isSelected ? 'active' : ''}`}
+                        onClick={() => setActiveTierIndex(tierIndex)}
+                      >
+                        <div className="pdm-tier-pill-left">
+                          <span className={`pdm-tier-radio-dot ${isSelected ? 'active' : ''}`}></span>
+                          <div className="pdm-tier-pill-info">
+                            <strong className="pdm-tier-pill-title">{tier.name || `Option ${tierIndex + 1}`}</strong>
+                            {tier.specs && <span className="pdm-tier-pill-specs">{tier.specs}</span>}
+                          </div>
+                        </div>
+                        <div className="pdm-tier-pill-price-box">
+                          <span className="pdm-tier-pill-price">{tier.price ? formatCurrency(tier.price) : 'Quote'}</span>
+                          {tier.offerPrice && <span className="pdm-tier-pill-mrp">{formatCurrency(tier.offerPrice)}</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* ── VARIANT SELECTOR ── */}
             {hasVariants && (
               <div className="pdm-variant-section">
@@ -658,6 +739,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
           </div>
         </div>
+
+        <div className={`pdm-scroll-hint ${showScrollHint ? 'pdm-scroll-hint-visible' : ''}`} aria-hidden="true" />
       </div>
     </div>
 

@@ -10,7 +10,7 @@ const categories = [
   { id: 'thin-client', label: 'Thin Clients' },
   { id: 'desktop', label: 'Desktops' },
   { id: 'laptop', label: 'Laptops' },
-  { id: 'processors', label: 'Processors' },
+  { id: 'monitors', label: 'Monitors' },
   { id: 'components', label: 'Components & SSDs' }
 ];
 

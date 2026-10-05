@@ -23,7 +23,10 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       const result = await login(email, password);
-      if (!result.success) setFormError(result.error || 'Invalid credentials.');
+      if (!result.success) {
+        const errorMessage = typeof result.error === 'string' ? result.error : result.error?.message;
+        setFormError(errorMessage || 'Invalid credentials.');
+      }
       else navigate('/admin', { replace: true });
     } catch { 
       setFormError('An unexpected error occurred. Please try again.'); 

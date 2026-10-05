@@ -74,9 +74,28 @@ model Product {
 
   category   Category     @relation(fields: [categoryId], references: [id])
   brand      Brand?       @relation(fields: [brandId], references: [id])
+  variants   ProductVariant[]
   cartItems  CartItem[]
   orderItems OrderItem[]
   enquiries  Enquiry[]
+}
+
+model ProductVariant {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  ram         String?
+  storage     String?
+  price       Decimal? @db.Decimal(10, 2)
+  offerPrice  Decimal? @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  sku         String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, ram, storage])
 }
 
 model Cart {

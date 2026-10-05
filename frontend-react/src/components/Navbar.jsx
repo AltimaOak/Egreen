@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+// Admin Panel link is only rendered on the admin subdomain and in local dev.
+// This is cosmetic — the backend role check is the real gate. Do not rely on
+// this for security.
+const ADMIN_HOSTS = [
+  'admin.egreentechnology.co.in',
+  'localhost',
+  '127.0.0.1',
+];
+const isAdminHost = ADMIN_HOSTS.includes(window.location.hostname);
+
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -8,11 +18,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -35,11 +41,15 @@ const Navbar = () => {
           <Link to="/products" className={location.pathname === '/products' ? 'active' : ''} onClick={closeMenu}>Products</Link>
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''} onClick={closeMenu}>Contact</Link>
           <a href="https://wa.me/919867760106" target="_blank" rel="noreferrer" className="nav-mobile-link" onClick={closeMenu}>Get Quote</a>
-          <Link to="/admin" className="nav-mobile-link" onClick={closeMenu}>Admin Panel</Link>
+          {isAdminHost && (
+            <Link to="/admin" className="nav-mobile-link" onClick={closeMenu}>Admin Panel</Link>
+          )}
         </div>
         <div className="nav-actions">
           <a href="https://wa.me/919867760106" target="_blank" rel="noreferrer" className="btn btn-primary">Get Quote</a>
-          <Link to="/admin" className="btn btn-outline" onClick={closeMenu}>Admin Panel</Link>
+          {isAdminHost && (
+            <Link to="/admin" className="btn btn-outline" onClick={closeMenu}>Admin Panel</Link>
+          )}
         </div>
         <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

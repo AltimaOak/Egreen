@@ -13,6 +13,7 @@ const getBrandById = async (id) => {
     where: { id },
     include: {
       products: {
+        where: { isActive: true },
         include: {
           category: { select: { id: true, name: true, slug: true } },
         },

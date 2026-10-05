@@ -16,6 +16,7 @@ const getCategoryBySlug = async (slug) => {
     where: { slug },
     include: {
       products: {
+        where: { isActive: true },
         include: {
           brand: { select: { id: true, name: true, slug: true } },
         },

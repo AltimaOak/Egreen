@@ -38,6 +38,7 @@ const createEnquiry = async (data, userId) => {
     },
   });
 
+  // TODO: Offload enquiry confirmation email and staff notifications to a background worker (e.g. BullMQ/Redis)
   return enquiry;
 };
 

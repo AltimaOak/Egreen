@@ -4,16 +4,19 @@ const validate = (schema) => (req, res, next) => {
     req.body = parsed;
     next();
   } catch (error) {
-    const details = error.issues?.map((issue) => ({
-      field: issue.path.join('.'),
-      message: issue.message,
-    })) || [{ message: error.message }];
+    next(error);
+  }
+};
 
-    return res.status(400).json({
-      error: 'VALIDATION_ERROR',
-      details,
-    });
+const validateParams = (schema) => (req, res, next) => {
+  try {
+    const parsed = schema.parse(req.params);
+    req.params = parsed;
+    next();
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = validate;
+module.exports.validateParams = validateParams;

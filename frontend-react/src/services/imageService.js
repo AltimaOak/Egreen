@@ -1,5 +1,13 @@
-// Image Upload & Management Service — uploads to Cloudinary via the backend
+// Image Upload & Management Service — uploads to Cloudinary via the backend.
+// The upload endpoints require an authenticated admin, so include the token.
+import { getAuthToken } from '../utils/api';
+
 const UPLOAD_URL = '/api/upload';
+
+function authHeaders(headers = {}) {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}`, ...headers } : headers;
+}
 
 export const imageService = {
   /**
@@ -16,7 +24,11 @@ export const imageService = {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+    const response = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    });
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -47,6 +59,7 @@ export const imageService = {
 
     const response = await fetch(`${UPLOAD_URL}/${encodeURIComponent(publicId)}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     });
 
     return response.ok;

@@ -4,6 +4,7 @@ const AppError = require('../utils/AppError');
 const productInclude = {
   category: { select: { id: true, name: true, slug: true } },
   brand: { select: { id: true, name: true, slug: true } },
+  variants: true,
 };
 
 const slugify = (name) =>
@@ -85,8 +86,14 @@ const buildProductData = async (input, existing) => {
   return data;
 };
 
-const listProducts = async ({ category, brand, search, page = 1, limit = 20 }) => {
+const listProducts = async ({ category, brand, search, page = 1, limit = 20, includeInactive = false }) => {
   const where = {};
+
+  // Public feed only shows active products. `includeInactive` is only ever
+  // true for authenticated admins (set by the controller).
+  if (!includeInactive) {
+    where.isActive = true;
+  }
 
   if (category && category !== 'all') {
     where.category = { slug: category };
@@ -130,9 +137,9 @@ const listProducts = async ({ category, brand, search, page = 1, limit = 20 }) =
   };
 };
 
-const getProductById = async (id) => {
-  const product = await prisma.product.findUnique({
-    where: { id },
+const getProductById = async (id, includeInactive = false) => {
+  const product = await prisma.product.findFirst({
+    where: includeInactive ? { id } : { id, isActive: true },
     include: productInclude,
   });
 
@@ -177,10 +184,93 @@ const deleteProduct = async (id) => {
   }
 };
 
+const createVariant = async (productId, input) => {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) {
+    throw new AppError('Product not found', 404);
+  }
+
+  if (input.isDefault) {
+    await prisma.productVariant.updateMany({
+      where: { productId },
+      data: { isDefault: false },
+    });
+  }
+
+  return prisma.productVariant.create({
+    data: {
+      productId,
+      ram: input.ram !== undefined ? input.ram : null,
+      storage: input.storage !== undefined ? input.storage : null,
+      price: input.price !== undefined ? input.price : null,
+      offerPrice: input.offerPrice !== undefined ? input.offerPrice : null,
+      stock: input.stock !== undefined ? (parseInt(input.stock, 10) || 0) : 0,
+      sku: input.sku !== undefined ? input.sku : null,
+      isDefault: input.isDefault ?? false,
+    },
+  });
+};
+
+const updateVariant = async (productId, variantId, input) => {
+  const existing = await prisma.productVariant.findFirst({
+    where: { id: variantId, productId },
+  });
+  if (!existing) {
+    throw new AppError('Product variant not found', 404);
+  }
+
+  if (input.isDefault) {
+    await prisma.productVariant.updateMany({
+      where: { productId, id: { not: variantId } },
+      data: { isDefault: false },
+    });
+  }
+
+  const data = {};
+  if (input.ram !== undefined) data.ram = input.ram;
+  if (input.storage !== undefined) data.storage = input.storage;
+  if (input.price !== undefined) data.price = input.price;
+  if (input.offerPrice !== undefined) data.offerPrice = input.offerPrice;
+  if (input.stock !== undefined) data.stock = parseInt(input.stock, 10) || 0;
+  if (input.sku !== undefined) data.sku = input.sku;
+  if (input.isDefault !== undefined) data.isDefault = input.isDefault;
+
+  return prisma.productVariant.update({
+    where: { id: variantId },
+    data,
+  });
+};
+
+const deleteVariant = async (productId, variantId) => {
+  const existing = await prisma.productVariant.findFirst({
+    where: { id: variantId, productId },
+  });
+  if (!existing) {
+    throw new AppError('Product variant not found', 404);
+  }
+
+  await prisma.productVariant.delete({
+    where: { id: variantId },
+  });
+
+  return { deleted: true };
+};
+
+const getVariantsByProductId = async (productId) => {
+  return prisma.productVariant.findMany({
+    where: { productId },
+    orderBy: { id: 'asc' },
+  });
+};
+
 module.exports = {
   listProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  getVariantsByProductId,
+  createVariant,
+  updateVariant,
+  deleteVariant,
 };

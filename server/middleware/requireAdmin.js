@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 // users with the 'admin' role.
 const requireAdmin = catchAsync(async (req, res, next) => {
   if (req.user?.role !== 'admin') {
-    return next(new AppError('Admin access required', 403));
+    return next(new AppError('Admin access required', 403, 'FORBIDDEN'));
   }
   next();
 });

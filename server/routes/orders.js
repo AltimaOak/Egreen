@@ -10,10 +10,12 @@ const placeOrderSchema = z.object({
   notes: z.string().optional(),
 });
 
+const orderIdSchema = z.object({ id: z.coerce.number().int().positive() });
+
 router.use(protect);
 
 router.post('/', validate(placeOrderSchema), placeOrder);
 router.get('/', listOrders);
-router.get('/:id', getOrder);
+router.get('/:id', validate.validateParams(orderIdSchema), getOrder);
 
 module.exports = router;

@@ -21,12 +21,34 @@ const placeOrder = async (userId, notes) => {
 
   // Execute everything as a transaction
   const order = await prisma.$transaction(async (tx) => {
-    // Decrement stock for each product
+    // Single findMany query using where: { id: { in: productIds } } to eliminate N+1 queries
+    const productIds = cart.items.map((item) => item.productId);
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds } },
+    });
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    // Validate availability and decrement stock for each product atomically
     for (const item of cart.items) {
-      await tx.product.update({
-        where: { id: item.productId },
-        data: { stock: 'Low Stock' },
+      const product = productMap.get(item.productId);
+
+      if (!product || !product.isActive) {
+        throw new AppError(`"${item.product?.name || 'Product'}" is no longer available`, 400, 'PRODUCT_UNAVAILABLE');
+      }
+
+      // Guard the decrement so two concurrent orders cannot oversell the same
+      // unit — if stock is now short, count is 0 and the order is rejected.
+      const res = await tx.product.updateMany({
+        where: { id: item.productId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
       });
+      if (res.count === 0) {
+        throw new AppError(
+          `Only ${product.stock} unit(s) of "${product.name}" are in stock`,
+          400,
+          'INSUFFICIENT_STOCK'
+        );
+      }
     }
 
     // Create order with items
@@ -57,7 +79,7 @@ const placeOrder = async (userId, notes) => {
     // Clear the cart
     await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
-    // Create invoice skeleton
+    // TODO: Offload PDF invoice generation and customer confirmation email sending to a background queue (e.g. BullMQ/Redis)
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(newOrder.id).padStart(4, '0')}`;
     await tx.invoice.create({
       data: {
