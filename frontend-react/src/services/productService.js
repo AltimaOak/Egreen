@@ -2,11 +2,6 @@
 import { api } from '../utils/api';
 import { activityService } from './activityService';
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
 // The backend stores specs as "Key: Value, Key: Value"; the admin form uses an
 // array of { key, value }.
 function parseSpecs(specs) {
@@ -29,24 +24,10 @@ function specsToString(specifications) {
 }
 
 function toAdminProduct(p) {
-<<<<<<< HEAD
-  // features JSON may be an array of strings, or an object with __variantGroups
-  const rawFeatures = p.features || [];
-  let featureStrings = [];
-  let variantGroups = [];
-  if (Array.isArray(rawFeatures)) {
-    featureStrings = rawFeatures.filter((f) => typeof f === 'string');
-  } else if (rawFeatures && typeof rawFeatures === 'object') {
-    featureStrings = rawFeatures.features || [];
-    variantGroups = rawFeatures.__variantGroups || [];
-  }
-=======
   const specsList = parseSpecs(p.specs);
   const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
-  const featuresObj = typeof p.features === 'object' && p.features !== null ? p.features : {};
+  const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
-  
-  // Extract or initialize dual pricing tiers
   let pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
   if (pricingTiers.length === 0) {
     pricingTiers = [
@@ -66,8 +47,15 @@ function toAdminProduct(p) {
       },
     ];
   }
+  const rawFeatures = p.features || [];
+  const featureStrings = Array.isArray(rawFeatures)
+    ? rawFeatures.filter((feature) => typeof feature === 'string')
+    : (Array.isArray(featuresObj.bulletFeatures)
+        ? featuresObj.bulletFeatures
+        : (Array.isArray(featuresObj.features) ? featuresObj.features : []));
+  const variantGroups = Array.isArray(featuresObj.__variantGroups) ? featuresObj.__variantGroups : [];
+  const stock = Number(p.stock);
 
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
   return {
     id: p.id,
     name: p.name,
@@ -78,22 +66,14 @@ function toAdminProduct(p) {
     brand: p.brand?.name || '',
     price: p.price != null ? Number(p.price) : 0,
     offerPrice: p.offerPrice != null ? Number(p.offerPrice) : null,
-<<<<<<< HEAD
-    stock: typeof p.stock === 'number' ? p.stock : (parseInt(p.stock, 10) || 0),
-    status: p.isActive ? 'Active' : 'Inactive',
-    featured: p.isFeatured,
-    specifications: parseSpecs(p.specs),
-    features: featureStrings,
-    variantGroups,
-=======
     warranty: warranty,
     pricingTiers: pricingTiers,
-    stock: typeof p.stock === 'number' ? p.stock : (STOCK_TO_NUMBER[p.stock] ?? (parseInt(p.stock, 10) || 10)),
+  stock: Number.isFinite(stock) ? stock : 10,
     status: p.isActive ? 'Active' : 'Inactive',
     featured: p.isFeatured,
     specifications: specsList,
-    features: Array.isArray(featuresObj.bulletFeatures) ? featuresObj.bulletFeatures : (Array.isArray(p.features) ? p.features : []),
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
+  features: featureStrings,
+  variantGroups,
     rating: p.rating != null ? Number(p.rating) : null,
     image: p.image || '',
     imagePublicId: p.imagePublicId || '',
@@ -106,7 +86,7 @@ function toAdminProduct(p) {
 }
 
 function toBackendPayload(form) {
-  const specs = [...(form.specifications || [])];
+  const specs = (form.specifications || []).map((spec) => ({ ...spec }));
   
   // Ensure Warranty is explicitly saved in specifications
   if (form.warranty) {
@@ -121,14 +101,6 @@ function toBackendPayload(form) {
   const conditionSpec = specs.find(
     (s) => s.key && s.key.toLowerCase() === 'condition'
   );
-<<<<<<< HEAD
-  // Pack features + variantGroups into the single JSON features column
-  const hasVariants = Array.isArray(form.variantGroups) && form.variantGroups.length > 0;
-  const featuresPayload = hasVariants
-    ? { features: form.features || [], __variantGroups: form.variantGroups }
-    : (form.features || []);
-=======
-
   // Clean pricing tiers
   const cleanPricingTiers = (form.pricingTiers || []).filter(
     (t) => t && (t.name || t.price || t.specs)
@@ -152,9 +124,8 @@ function toBackendPayload(form) {
     warranty: form.warranty || '3 Years',
     pricingTiers: cleanPricingTiers,
     bulletFeatures: Array.isArray(form.features) ? form.features : [],
+    __variantGroups: Array.isArray(form.variantGroups) ? form.variantGroups : [],
   };
-
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
   return {
     name: form.name,
     slug: form.slug || undefined,
@@ -165,15 +136,9 @@ function toBackendPayload(form) {
     price: mainPrice,
     offerPrice: mainOfferPrice,
     rating: form.rating != null ? Number(form.rating) : null,
-<<<<<<< HEAD
-    stock: parseInt(form.stock, 10) || 0,
-    condition: conditionSpec?.value || 'New',
-    specs: specsToString(form.specifications),
-=======
-    stock: numberToStock(form.stock),
+  stock: Number.parseInt(form.stock, 10) || 0,
     condition: conditionSpec?.value || form.condition || 'Refurbished',
     specs: specsToString(specs),
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
     image: form.image || '',
     imagePublicId: form.imagePublicId || null,
     seoTitle: form.seoTitle || null,

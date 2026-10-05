@@ -40,23 +40,15 @@ function parseSpecs(specsRaw, condition) {
  * @param {object} p - Product from GET /api/products
  */
 function toCatalogProduct(p) {
-  const stock = typeof p.stock === 'number'
-    ? p.stock
-    : (p.stock in STOCK_TO_NUMBER ? STOCK_TO_NUMBER[p.stock] : (p.stock != null ? Number(p.stock) : 10));
+  const parsedStock = Number(p.stock);
+  const stock = Number.isFinite(parsedStock) ? parsedStock : 10;
 
   const specsList = parseSpecs(p.specs, p.condition || 'Refurbished');
   const warrantySpec = specsList.find((s) => s.key && s.key.toLowerCase() === 'warranty');
-<<<<<<< HEAD
   const featuresObj = typeof p.features === 'object' && p.features !== null && !Array.isArray(p.features) ? p.features : {};
   const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
   const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
-  // Extract variant groups stored as __variantGroups inside the features JSON
   const variantGroups = Array.isArray(featuresObj.__variantGroups) ? featuresObj.__variantGroups : [];
-=======
-  const featuresObj = typeof p.features === 'object' && p.features !== null ? p.features : {};
-  const warranty = featuresObj.warranty || (warrantySpec ? warrantySpec.value : '3 Years');
-  const pricingTiers = Array.isArray(featuresObj.pricingTiers) ? featuresObj.pricingTiers : [];
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
 
   return {
     id: p.id,
@@ -70,11 +62,11 @@ function toCatalogProduct(p) {
     brandId: p.brandId,
     image: p.image || '',
     gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? (()=>{ try { return JSON.parse(p.gallery); } catch(e){ return []; } })() : []),
-<<<<<<< HEAD
-    features: Array.isArray(p.features) ? p.features : (featuresObj.bulletFeatures || []),
-=======
-    features: p.features,
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
+  features: Array.isArray(p.features)
+    ? p.features
+    : (Array.isArray(featuresObj.bulletFeatures)
+      ? featuresObj.bulletFeatures
+      : (Array.isArray(featuresObj.features) ? featuresObj.features : [])),
     warranty: warranty,
     pricingTiers: pricingTiers,
     status: p.isActive ? 'Active' : 'Inactive',
@@ -85,11 +77,8 @@ function toCatalogProduct(p) {
     price: p.price != null && !isNaN(Number(p.price)) ? Number(p.price) : null,
     offerPrice: p.offerPrice != null && !isNaN(Number(p.offerPrice)) ? Number(p.offerPrice) : null,
     rating: p.rating ? Number(p.rating) : 4.5,
-<<<<<<< HEAD
     variantGroups,
-=======
-    variants: Array.isArray(p.variants) ? p.variants : [],
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
+  variants: Array.isArray(p.variants) ? p.variants : [],
   };
 }
 

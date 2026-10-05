@@ -84,17 +84,13 @@ const INITIAL_FORM_STATE = {
   status: 'Active',
   featured: false,
   features: [''],
-<<<<<<< HEAD
-  specifications: [{ key: '', value: '' }],
-  variantGroups: [],
-=======
   specifications: [
     { key: 'Processor', value: '' },
     { key: 'RAM', value: '' },
     { key: 'Storage', value: '' },
     { key: 'Warranty', value: '3 Years' },
   ],
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
+  variantGroups: [],
   seoTitle: '',
   seoDescription: '',
   image: '',
@@ -232,16 +228,8 @@ const Products = () => {
       status: product.status || 'Active',
       featured: product.featured || false,
       features: product.features && product.features.length ? product.features : [''],
-<<<<<<< HEAD
-      specifications: product.specifications && product.specifications.length ? product.specifications : [
-        { key: 'Processor', value: '' },
-        { key: 'RAM', value: '' },
-        { key: 'Storage', value: '' },
-      ],
+  specifications: specsList,
       variantGroups: product.variantGroups || [],
-=======
-      specifications: specsList,
->>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
       seoTitle: product.seoTitle || '',
       seoDescription: product.seoDescription || '',
       image: product.image || '',
