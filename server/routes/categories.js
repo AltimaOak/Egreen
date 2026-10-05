@@ -19,9 +19,11 @@ const categorySchema = z.object({
   parentId: z.number().int().positive().optional().nullable(),
 });
 
+const categorySlugSchema = z.object({ slug: z.string().min(1) });
+
 // Public routes
 router.get('/', list);
-router.get('/:slug', getBySlug);
+router.get('/:slug', validate.validateParams(categorySlugSchema), getBySlug);
 
 // Admin routes
 router.post('/', protect, requireAdmin, validate(categorySchema), create);

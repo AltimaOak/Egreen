@@ -24,6 +24,27 @@ const ProductDetailsModal = ({ product, onClose }) => {
     };
   }, [onClose]);
 
+  // Scroll listener for bottom affordance gradient
+  const checkScroll = () => {
+    const el = gridRef.current;
+    if (!el) return;
+    const isScrollable = el.scrollHeight > el.clientHeight + 10;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 24;
+    setShowScrollHint(isScrollable && !isNearBottom);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = gridRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [product, selectedRam, selectedStorage]);
+
   if (!product) return null;
 
   // ─── Variant Groups ───────────────────────────────────────────────────────
@@ -124,6 +145,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
     }).format(val);
   };
 
+<<<<<<< HEAD
   const specs = product.specifications || [];
 
   const getHighlight = (keyPattern) => {
@@ -135,6 +157,44 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
     // 2. Fall back to product base specs
     const item = specs.find(s => s.key && s.key.toLowerCase().includes(lp));
+=======
+  const [activeTierIndex, setActiveTierIndex] = useState(0);
+
+  // Derive specs key-value pairs
+  const specs = product.specifications || [];
+  
+  // Pricing tiers
+  const validPricingTiers = (Array.isArray(product.pricingTiers) ? product.pricingTiers : []).filter(
+    (t) => t && (t.price || t.name)
+  );
+
+  const activeTier = validPricingTiers.length > 0
+    ? (validPricingTiers[activeTierIndex] || validPricingTiers[0])
+    : null;
+
+  // Derive warranty from product or specs
+  const warrantyVal = product.warranty || (specs.find(s => s.key && s.key.toLowerCase() === 'warranty')?.value) || '3 Years';
+  
+  // Extract key bullet points for quick highlights
+  const getHighlight = (keyPattern) => {
+    // If active tier has specs string, search there first
+    if (activeTier && activeTier.specs) {
+      if (keyPattern.toLowerCase() === 'ram' || keyPattern.toLowerCase() === 'memory') {
+        const match = activeTier.specs.match(/(\d+\s*GB\s*(?:DDR\d+)?\s*RAM|\d+\s*GB\s*RAM|\d+\s*GB(?=\s*(?:DDR|Memory)))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'storage' || keyPattern.toLowerCase() === 'hard drive') {
+        const match = activeTier.specs.match(/(\d+\s*(?:GB|TB)\s*(?:SSD|NVMe|HDD|Storage))/i);
+        if (match) return match[0];
+      }
+      if (keyPattern.toLowerCase() === 'processor') {
+        const match = activeTier.specs.match(/(Intel Core i[3579][\w\s-]*|AMD Ryzen [\w\s-]+|Core 2 Duo|Xeon [\w\s-]+)/i);
+        if (match) return match[0];
+      }
+    }
+
+    const item = specs.find(s => s.key && s.key.toLowerCase().includes(keyPattern.toLowerCase()));
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
     if (item) return item.value;
 
     // 3. Regex extraction from raw text
@@ -155,9 +215,14 @@ const ProductDetailsModal = ({ product, onClose }) => {
       const match = raw.match(/(Windows\s*11(?:\s*Pro)?|Windows\s*10(?:\s*Pro)?|Ubuntu|Linux|FreeDOS)/i);
       return match ? match[0] : null;
     }
+<<<<<<< HEAD
     if (lp === 'warranty') {
       const match = raw.match(/(\d+\s*(?:Years?|Months?)\s*Warranty|\d+\s*Years?)/i);
       return match ? match[0] : null;
+=======
+    if (keyPattern.toLowerCase() === 'warranty') {
+      return warrantyVal;
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
     }
     return null;
   };
@@ -166,8 +231,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const ram = getHighlight('ram') || '8 GB';
   const storage = getHighlight('storage') || 'SSD high-speed drive';
   const os = getHighlight('operating system') || 'Windows 11';
-  const warranty = getHighlight('warranty') || '3 Years';
+  const warranty = warrantyVal;
 
+<<<<<<< HEAD
   // Price calculations
   const priceFormatted = formatCurrency(effectivePrice);
   const originalPrice = product.offerPrice && product.price && product.offerPrice > product.price
@@ -176,6 +242,23 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const originalPriceFormatted = effectivePrice ? formatCurrency(originalPrice) : null;
   const discountPercent = effectivePrice && originalPrice
     ? Math.round(((originalPrice - effectivePrice) / originalPrice) * 100)
+=======
+  // Active Price calculations based on selected tier
+  const currentActivePrice = activeTier && activeTier.price != null
+    ? activeTier.price
+    : product.price;
+
+  const currentActiveOfferPrice = activeTier && activeTier.offerPrice != null
+    ? activeTier.offerPrice
+    : (product.offerPrice && product.price && product.offerPrice > product.price
+        ? product.offerPrice
+        : (currentActivePrice ? Math.round(currentActivePrice * 1.18) : null));
+
+  const priceFormatted = formatCurrency(currentActivePrice);
+  const originalPriceFormatted = formatCurrency(currentActiveOfferPrice);
+  const discountPercent = currentActivePrice && currentActiveOfferPrice && currentActiveOfferPrice > currentActivePrice
+    ? Math.round(((currentActiveOfferPrice - currentActivePrice) / currentActiveOfferPrice) * 100)
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
     : 15;
 
   // Gallery
@@ -202,6 +285,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
     );
     const allSpecs = [...baseSpecs, ...extraSpecs];
 
+<<<<<<< HEAD
     // Apply allVariantOverrides (covers both auto-mapped group labels + manual specsOverride strings)
     const updatedSpecs = allSpecs.map((s) => {
       const sk = s.key.toLowerCase();
@@ -213,6 +297,17 @@ const ProductDetailsModal = ({ product, onClose }) => {
       }
       return s;
     });
+=======
+  // Derive specs table key-value pairs (4 cells per row: Key | Val | Key | Val)
+  const baseSpecs = [
+    { key: 'Hard Drive Size', value: storage.includes('GB') || storage.includes('TB') ? storage.replace(/\s*(?:SSD|HDD|NVMe|Storage)/i, '') : '256 GB' },
+    { key: 'Form Factor', value: product.categoryName || 'Desktop' },
+    { key: 'Storage Type', value: storage.toLowerCase().includes('hdd') ? 'HDD' : 'SSD' },
+    { key: 'Warranty', value: warranty.includes('Warranty') ? warranty : `${warranty} Warranty` },
+    { key: 'Operating System', value: os },
+    { key: 'Condition', value: product.condition || 'Refurbished' }
+  ];
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
 
     // Also inject any variant overrides that don't match existing spec rows (add as new rows)
     const extraVariantRows = [];
@@ -272,8 +367,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
     );
   };
 
-  const whatsappOrderMsg = `Hi, I would like to place an order for the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please share order and payment details.`;
-  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding the product: ${product.name} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
+  const selectedTierLabel = activeTier ? ` (${activeTier.name})` : '';
+  const whatsappOrderMsg = `Hi, I would like to place an order for: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}) priced at ${priceFormatted || 'standard rate'}. Please share payment and shipping details.`;
+  const whatsappEnquiryMsg = `Hi, I have an enquiry regarding: ${product.name}${selectedTierLabel} (SKU: EG-${product.sku || product.id}). Please provide more details.`;
 
   return (
     <div className="pdm-backdrop" onClick={onClose}>
@@ -359,7 +455,12 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             {/* 3-Column Trust Assurance Strip */}
             <div className="pdm-trust-strip">
+<<<<<<< HEAD
 
+=======
+              
+              {/* Trust Item 1: Warranty (Dynamic / Editable) */}
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
               <div className="pdm-trust-card">
                 <div className="pdm-trust-icon-box">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -368,8 +469,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
                   </svg>
                 </div>
                 <div className="pdm-trust-text">
-                  <strong className="pdm-trust-title">3 Years</strong>
-                  <span className="pdm-trust-sub">Warranty</span>
+                  <strong className="pdm-trust-title">{warranty.includes('Years') || warranty.includes('Warranty') || warranty.includes('Months') ? warranty : `${warranty} Warranty`}</strong>
+                  <span className="pdm-trust-sub">Coverage Included</span>
                 </div>
               </div>
 
@@ -404,7 +505,111 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             </div>
 
+<<<<<<< HEAD
             {/* Key Highlights + Built for Business — below the trust strip */}
+=======
+          </div>
+
+          {/* Right Column: Title, Pricing, Highlights, Specs Table & Actions */}
+          <div className="pdm-right-col">
+            
+            {/* Top Meta: Brand Tag, SKU & Stock Status */}
+            <div className="pdm-meta-top-row">
+              <div className="pdm-meta-left">
+                <span className="pdm-brand-pill">{product.brand || 'HP'}</span>
+                <span className="pdm-sku-text">SKU: EG-{product.sku || product.id || '71'}</span>
+              </div>
+              <div className="pdm-meta-right">
+                <span className="pdm-stock-pill-green">
+                  <span className="pdm-stock-dot"></span>
+                  In Stock & Ready to Ship
+                </span>
+              </div>
+            </div>
+
+            {/* Product Title */}
+            <h2 className="pdm-product-title">{product.name}</h2>
+            
+            {/* Amazon/Flipkart Ratings & Verified Wholesaler Stock */}
+            <div className="pdm-rating-row">
+              <div className="pdm-rating-badge">
+                <span className="pdm-star-icon">★</span>
+                <span>{product.rating || '4.5'}</span>
+              </div>
+              <span className="pdm-rating-count">128 Verified Enterprise Buyers</span>
+              <span className="pdm-dot-sep">•</span>
+              <div className="pdm-verified-stock">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Verified Wholesaler Stock</span>
+              </div>
+            </div>
+
+            {/* Dual / Multi-Spec Pricing Selector (When multiple spec tiers are defined) */}
+            {validPricingTiers.length > 1 && (
+              <div className="pdm-tier-selector-container">
+                <div className="pdm-tier-selector-header">
+                  <span className="pdm-tier-selector-label">Choose Configuration:</span>
+                  <span className="pdm-tier-active-badge">
+                    {validPricingTiers[activeTierIndex]?.name || `Option ${activeTierIndex + 1}`}
+                  </span>
+                </div>
+                <div className="pdm-tier-pills-row">
+                  {validPricingTiers.map((tier, tIdx) => {
+                    const isSelected = activeTierIndex === tIdx;
+                    return (
+                      <button
+                        key={tIdx}
+                        type="button"
+                        className={`pdm-tier-pill-btn ${isSelected ? 'active' : ''}`}
+                        onClick={() => setActiveTierIndex(tIdx)}
+                      >
+                        <div className="pdm-tier-pill-left">
+                          <span className={`pdm-tier-radio-dot ${isSelected ? 'active' : ''}`}></span>
+                          <div className="pdm-tier-pill-info">
+                            <strong className="pdm-tier-pill-title">{tier.name || `Option ${tIdx + 1}`}</strong>
+                            {tier.specs && (
+                              <span className="pdm-tier-pill-specs">{tier.specs}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pdm-tier-pill-price-box">
+                          <span className="pdm-tier-pill-price">{tier.price ? formatCurrency(tier.price) : 'Quote'}</span>
+                          {tier.offerPrice && (
+                            <span className="pdm-tier-pill-mrp">{formatCurrency(tier.offerPrice)}</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Price Box */}
+            <div className="pdm-price-box">
+              {priceFormatted ? (
+                <div className="pdm-price-main-row">
+                  <span className="pdm-curr-price">{priceFormatted}</span>
+                  {originalPriceFormatted && (
+                    <span className="pdm-mrp-price">{originalPriceFormatted}</span>
+                  )}
+                  {discountPercent && (
+                    <span className="pdm-discount-pill">{discountPercent}% OFF</span>
+                  )}
+                </div>
+              ) : (
+                <div className="pdm-price-main-row">
+                  <span className="pdm-curr-price pdm-quote-price">Price on Request</span>
+                  <span className="pdm-discount-pill pdm-b2b-pill">Wholesale Bulk Rate</span>
+                </div>
+              )}
+              <p className="pdm-tax-note">Inclusive of GST. Volume discounts available for orders of 5+ units.</p>
+            </div>
+
+            {/* Middle Row: Key Highlights + Built for Business Banner Card */}
+>>>>>>> 5bb09e4a3d3ec739ad7c4a23ad1cd12c551b65b7
             <div className="pdm-highlights-business-row">
 
               <div className="pdm-highlights-box">
@@ -643,6 +848,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
           </div>
         </div>
+
+        <div className={`pdm-scroll-hint ${showScrollHint ? 'pdm-scroll-hint-visible' : ''}`} aria-hidden="true" />
       </div>
     </div>
   );

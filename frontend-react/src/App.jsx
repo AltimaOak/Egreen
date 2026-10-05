@@ -18,6 +18,7 @@ import AdminLayout from './components/admin/AdminLayout';
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
+import ProductVariants from './pages/admin/ProductVariants';
 import Settings from './pages/admin/Settings';
 import NotFound from './pages/admin/NotFound';
 import Orders from './pages/admin/Orders';
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: "products", element: <AdminProducts /> },
+      { path: "products/:id/variants", element: <ProductVariants /> },
       { path: "orders", element: <Orders /> },
       { path: "categories", element: <Categories /> },
       { path: "customers", element: <Customers /> },

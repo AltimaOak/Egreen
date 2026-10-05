@@ -60,7 +60,8 @@ const Footer = () => {
               <Link to="/products?category=thin-client">Dell &amp; HP Thin Clients</Link>
               <Link to="/products?category=mini-pc">Mini PCs &amp; Micro Towers</Link>
               <Link to="/products?category=desktop">Enterprise Desktop PCs</Link>
-              <Link to="/products?category=processors">Intel Processors &amp; SSDs</Link>
+              <Link to="/products?category=monitors">Enterprise Monitors</Link>
+              <Link to="/products?category=components">Components &amp; SSDs</Link>
             </div>
           </div>
 

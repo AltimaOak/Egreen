@@ -2189,6 +2189,48 @@ textarea.form-control {
   overflow: hidden;
   animation: pdmFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.pdm-modal-card::-webkit-scrollbar,
+.pdm-grid-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdm-modal-card::-webkit-scrollbar-track,
+.pdm-grid-container::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.pdm-modal-card::-webkit-scrollbar-thumb,
+.pdm-grid-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.pdm-modal-card::-webkit-scrollbar-thumb:hover,
+.pdm-grid-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.pdm-scroll-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.pdm-scroll-hint.pdm-scroll-hint-visible {
+  opacity: 1;
 }
 
 /* Header Bar */
@@ -2244,7 +2286,7 @@ textarea.form-control {
   transform: scale(1.05);
 }
 
-/* Main Grid */
+/* Main Scrollable Grid Container */
 .pdm-grid-container {
   display: grid;
   grid-template-columns: 370px 1fr;
@@ -2440,6 +2482,177 @@ textarea.form-control {
   white-space: nowrap;
 }
 
+/* Left Column Variant Cards Section */
+.pdm-left-variants-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 4px;
+}
+
+.pdm-left-variants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pdm-left-variants-title {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pdm-left-variants-count {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.pdm-variant-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pdm-variant-card {
+  flex: 1 1 calc(33.333% - 6px);
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  outline: none;
+}
+
+.pdm-variant-card:hover {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  transform: translateY(-1px);
+}
+
+.pdm-variant-card-active {
+  background: #f0fdf4;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px #16a34a;
+}
+
+.pdm-variant-card-label {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.pdm-variant-card-active .pdm-variant-card-label {
+  color: #15803d;
+}
+
+.pdm-variant-card-price {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.pdm-variant-card-active .pdm-variant-card-price {
+  color: #166534;
+}
+
+.pdm-variant-card-stock-out {
+  font-size: 0.6rem;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Variant Detail Inline Panel */
+.pdm-variant-detail-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.pdm-vdetail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 4px;
+}
+
+.pdm-vdetail-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pdm-vdetail-default-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.pdm-vdetail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 6px 10px;
+}
+
+.pdm-vdetail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdm-vdetail-k {
+  font-size: 0.625rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pdm-vdetail-v {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pdm-vdetail-v.in-stock {
+  color: #15803d;
+}
+
+.pdm-vdetail-v.out-stock {
+  color: #dc2626;
+}
+
+.pdm-vdetail-offer {
+  color: #dc2626;
+}
+
 /* Right Column */
 .pdm-right-col {
   display: flex;
@@ -2551,6 +2764,151 @@ textarea.form-control {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Dual / Multi-Spec Pricing Selector */
+.pdm-tier-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.pdm-tier-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.725rem;
+}
+
+.pdm-tier-selector-label {
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pdm-tier-active-badge {
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+}
+
+.pdm-tier-pills-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pdm-tier-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.pdm-tier-pill-btn:hover {
+  border-color: #cbd5e1;
+  background: #fafaf9;
+}
+
+.pdm-tier-pill-btn.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  box-shadow: 0 0 0 1px #16a34a;
+}
+
+.pdm-tier-pill-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pdm-tier-radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.pdm-tier-radio-dot.active {
+  border-color: #16a34a;
+}
+
+.pdm-tier-radio-dot.active::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  display: block;
+}
+
+.pdm-tier-pill-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pdm-tier-pill-title {
+  font-size: 0.775rem;
+  font-weight: 750;
+  color: #111827;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdm-tier-pill-specs {
+  font-size: 0.6875rem;
+  color: #64748b;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdm-tier-pill-price-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.pdm-tier-pill-price {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #15803d;
+  line-height: 1.2;
+}
+
+.pdm-tier-pill-mrp {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+  line-height: 1.2;
 }
 
 /* Price Box */
@@ -2753,6 +3111,9 @@ textarea.form-control {
   background-color: #f9fafb;
   border-right: 1px solid #f1f5f9;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .pdm-spec-val {
@@ -2898,8 +3259,6 @@ textarea.form-control {
     border-radius: 14px;
   }
   .pdm-grid-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
     padding: 1rem;
     max-height: calc(95vh - 52px);
   }

@@ -18,8 +18,10 @@ const orderStatusSchema = z.object({
   status: z.string().min(1, 'Status is required'),
 });
 
+const orderIdSchema = z.object({ id: z.coerce.number().int().positive() });
+
 router.get('/orders', listOrders);
-router.patch('/orders/:id/status', validate(orderStatusSchema), updateOrderStatus);
+router.patch('/orders/:id/status', validate.validateParams(orderIdSchema), validate(orderStatusSchema), updateOrderStatus);
 router.get('/users', listUsers);
 
 module.exports = router;

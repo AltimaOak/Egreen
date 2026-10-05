@@ -1,22 +1,72 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import FadeUp from '../components/FadeUp';
+import { api } from '../utils/api';
 
 const Contact = () => {
   const [searchParams] = useSearchParams();
-  const [productInterest, setProductInterest] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    companyName: '',
+    phoneNumber: '',
+    emailAddress: '',
+    productInterest: '',
+    message: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
 
   useEffect(() => {
     const productParam = searchParams.get('product');
     if (productParam) {
-      setProductInterest('Quote for: ' + productParam);
+      setFormData((prev) => ({ ...prev, productInterest: 'Quote for: ' + productParam }));
     }
   }, [searchParams]);
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    alert('Thank you for your request. Our team will contact you shortly.');
+    setSubmitStatus(null);
+    setSubmitting(true);
+
+    const productInterest = formData.productInterest.trim();
+    const messageBody = productInterest
+      ? `Product Interest: ${productInterest}\n\n${formData.message}`
+      : formData.message;
+
+    try {
+      await api.post('/api/enquiries', {
+        name: formData.fullName,
+        email: formData.emailAddress,
+        phone: formData.phoneNumber || undefined,
+        companyName: formData.companyName || undefined,
+        message: messageBody,
+      });
+      setSubmitStatus({
+        type: 'success',
+        text: 'Thank you. Our team will contact you shortly.',
+      });
+      setFormData({
+        fullName: '',
+        companyName: '',
+        phoneNumber: '',
+        emailAddress: '',
+        productInterest: '',
+        message: '',
+      });
+    } catch (err) {
+      const errMsg =
+        err?.error?.details?.[0]?.message ||
+        err?.error?.message ||
+        'Something went wrong. Please try again or contact us on WhatsApp.';
+      setSubmitStatus({ type: 'error', text: errMsg });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -78,30 +128,49 @@ const Contact = () => {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="fullName">Full Name</label>
-              <input type="text" id="fullName" name="fullName" className="form-control" placeholder="Enter name" required />
+              <input type="text" id="fullName" name="fullName" className="form-control" placeholder="Enter name" required value={formData.fullName} onChange={handleChange} disabled={submitting} />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="companyName">Company Name</label>
-              <input type="text" id="companyName" name="companyName" className="form-control" placeholder="Enter Company Name" />
+              <input type="text" id="companyName" name="companyName" className="form-control" placeholder="Enter Company Name" value={formData.companyName} onChange={handleChange} disabled={submitting} />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="phoneNumber">Phone Number</label>
-              <input type="tel" id="phoneNumber" name="phoneNumber" className="form-control" placeholder="Enter Phone Number" required />
+              <input type="tel" id="phoneNumber" name="phoneNumber" className="form-control" placeholder="Enter Phone Number" required value={formData.phoneNumber} onChange={handleChange} disabled={submitting} />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="emailAddress">Email Address</label>
-              <input type="email" id="emailAddress" name="emailAddress" className="form-control" placeholder="Enter Email Address" required />
+              <input type="email" id="emailAddress" name="emailAddress" className="form-control" placeholder="Enter Email Address" required value={formData.emailAddress} onChange={handleChange} disabled={submitting} />
             </div>
             <div className="form-group full">
-              <label className="form-label" htmlFor="product-interest">Product Interest</label>
-              <input type="text" id="product-interest" name="productInterest" className="form-control" placeholder="Enter Product Name" value={productInterest} onChange={(e) => setProductInterest(e.target.value)} />
+              <label className="form-label" htmlFor="productInterest">Product Interest</label>
+              <input type="text" id="productInterest" name="productInterest" className="form-control" placeholder="Enter Product Name" value={formData.productInterest} onChange={handleChange} disabled={submitting} />
             </div>
             <div className="form-group full">
               <label className="form-label" htmlFor="message">Message</label>
-              <textarea id="message" name="message" className="form-control" placeholder="Please describe your requirements..." required></textarea>
+              <textarea id="message" name="message" className="form-control" placeholder="Please describe your requirements..." required value={formData.message} onChange={handleChange} disabled={submitting}></textarea>
             </div>
+            {submitStatus && (
+              <div
+                className="form-group full"
+                role="status"
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  background: submitStatus.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  color: submitStatus.type === 'success' ? '#16a34a' : '#dc2626',
+                  border: `1px solid ${submitStatus.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                }}
+              >
+                {submitStatus.text}
+              </div>
+            )}
             <div className="form-group full">
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Submit Request</button>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
+                {submitting ? 'Submitting…' : 'Submit Request'}
+              </button>
             </div>
           </form>
         </FadeUp>

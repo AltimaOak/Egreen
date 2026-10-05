@@ -32,3 +32,8 @@ server/uploads/*
 # Claude AI configuration
 .claude/
 .vercel
+
+/graphify-out/
+
+# Ignore CLAUDE documentation
+CLAUDE.md

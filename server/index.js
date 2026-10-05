@@ -5,6 +5,12 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const validateEnv = require('./utils/validateEnv');
+validateEnv();
+
+const logger = require('./utils/logger');
+const AppError = require('./utils/AppError');
+const asyncHandler = require('./utils/catchAsync');
 const errorHandler = require('./middleware/errorMiddleware');
 
 // Route imports
@@ -34,16 +40,16 @@ app.use(helmet({
 // CORS — support local dev, configured CLIENT_URL, and Vercel deployments
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'http://localhost:5173',
-  'http://localhost:3000',
+  ...(process.env.NODE_ENV !== 'production'
+    ? ['http://localhost:5173', 'http://localhost:3000']
+    : []),
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-    return callback(null, true);
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS: origin not allowed: ${origin}`));
   },
   credentials: true,
 }));
@@ -58,10 +64,15 @@ app.use(morgan('dev'));
 // Global rate limit
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
+  message: {
+    error: {
+      message: 'Too many requests, please try again later',
+      code: 'TOO_MANY_REQUESTS',
+    },
+  },
 }));
 
 // Routes
@@ -77,25 +88,25 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Root & Health check
-app.get('/', (req, res) => {
+app.get('/', asyncHandler(async (req, res) => {
   res.json({ status: 'ok', message: 'Egreen Technology API Server', version: '1.0.0' });
-});
+}));
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', asyncHandler(async (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+}));
+
+// 404 handler passes AppError to centralized errorHandler
+app.use((req, res, next) => {
+  next(new AppError('Route not found', 404, 'NOT_FOUND'));
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Error handler
+// Centralized error handler
 app.use(errorHandler);
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    logger.info(`Server running on port ${PORT}`);
   });
 }
 
