@@ -52,8 +52,11 @@ export const authService = {
       await activityService.logActivity('Admin Login', `Admin '${email}' logged in successfully.`);
       return { success: true };
     } catch (err) {
-      const message =
-        err?.details?.[0]?.message || err?.error || 'Unable to connect to server.';
+      const apiError = err?.error;
+      const message = err?.details?.[0]?.message
+        || (typeof apiError === 'string' ? apiError : apiError?.message)
+        || (typeof err?.message === 'string' ? err.message : null)
+        || 'Unable to connect to server.';
       return { success: false, error: message };
     }
   },

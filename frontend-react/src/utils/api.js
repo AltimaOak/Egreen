@@ -15,9 +15,11 @@ function getAuthToken() {
 
 class ApiError extends Error {
   constructor({ error, details, status }) {
-    super(error || 'Request failed');
+    const message = typeof error === 'string' ? error : error?.message;
+    super(message || 'Request failed');
     this.name = 'ApiError';
-    this.error = error;
+    this.error = message || 'Request failed';
+    this.code = error && typeof error === 'object' ? error.code : undefined;
     this.details = details || [];
     this.status = status;
   }
