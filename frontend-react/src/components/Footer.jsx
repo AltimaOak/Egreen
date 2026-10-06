@@ -89,7 +89,15 @@ const Footer = () => {
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Egreen Technology. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <span>Wholesale IT Hardware Supplier</span>
+            <Link to="/terms">Terms</Link>
+            <span className="footer-dot-sep">·</span>
+            <Link to="/privacy">Privacy</Link>
+            <span className="footer-dot-sep">·</span>
+            <Link to="/refund">Refunds</Link>
+            <span className="footer-dot-sep">·</span>
+            <Link to="/shipping">Shipping</Link>
+            <span className="footer-dot-sep">·</span>
+            <Link to="/warranty">Warranty</Link>
           </div>
         </div>
       </div>

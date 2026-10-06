@@ -7,6 +7,11 @@ import About from './pages/About';
 import Services from './pages/Services';
 import Products from './pages/Products';
 import Contact from './pages/Contact';
+import Terms from './pages/legal/Terms';
+import Privacy from './pages/legal/Privacy';
+import Refund from './pages/legal/Refund';
+import Shipping from './pages/legal/Shipping';
+import Warranty from './pages/legal/Warranty';
 
 // Admin Components
 import { AdminProvider } from './contexts/AdminContext';
@@ -37,6 +42,11 @@ const router = createBrowserRouter([
       { path: "services", element: <Services /> },
       { path: "products", element: <Products /> },
       { path: "contact", element: <Contact /> },
+      { path: "terms", element: <Terms /> },
+      { path: "privacy", element: <Privacy /> },
+      { path: "refund", element: <Refund /> },
+      { path: "shipping", element: <Shipping /> },
+      { path: "warranty", element: <Warranty /> },
     ]
   },
 
