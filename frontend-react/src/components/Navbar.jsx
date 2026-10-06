@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-// Admin Panel link is only rendered on the admin subdomain and in local dev.
+// Admin Panel link is only rendered on the admin subdomain.
 // This is cosmetic — the backend role check is the real gate. Do not rely on
 // this for security.
 const ADMIN_HOSTS = [
   'admin.egreentechnology.co.in',
-  'localhost',
-  '127.0.0.1',
 ];
 const isAdminHost = ADMIN_HOSTS.includes(window.location.hostname);
 
