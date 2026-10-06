@@ -1119,11 +1119,7 @@ const Products = () => {
               </div>
             </div>
 
-<<<<<<< HEAD
-            {/* Section 3: Image Upload — Multi-image (up to 5) */}
-=======
             {/* Section 4: Image Upload */}
->>>>>>> 39feba1b074c8cf9ec07946477d571a7d48a5e52
             <div style={{ background: '#ffffff', padding: 18, borderRadius: 'var(--radius-card)', border: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
