@@ -81,6 +81,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <Input
             id="email"
+            name="email"
             label="Email"
             type="email"
             icon={<User />}
@@ -93,6 +94,7 @@ const Login = () => {
           />
           <Input
             id="password"
+            name="password"
             label="Password"
             type={showPassword ? 'text' : 'password'}
             icon={<Lock />}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 const ProductDetailsModal = ({ product, onClose }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -6,11 +6,14 @@ const ProductDetailsModal = ({ product, onClose }) => {
   // selectedVariants: { [groupLabel]: optionIndex }
   const [selectedVariants, setSelectedVariants] = useState({});
   const [activeTierIndex, setActiveTierIndex] = useState(0);
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  const gridRef = useRef(null);
 
   useEffect(() => {
     setActiveImageIndex(0);
     setSelectedVariants({});
     setActiveTierIndex(0);
+    setShowScrollHint(false);
   }, [product]);
 
   useEffect(() => {
@@ -50,7 +53,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
       el.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
     };
-  }, [product, selectedRam, selectedStorage]);
+  }, [product, selectedVariants, activeTierIndex]);
 
   // ─── Variant Groups ───────────────────────────────────────────────────────
   const variantGroups = useMemo(() => {
@@ -362,7 +365,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
         </div>
 
         {/* Modal Main Grid */}
-        <div className="pdm-grid-container">
+        <div className="pdm-grid-container" ref={gridRef}>
 
           {/* Left Column: Image Showcase, Thumbnails, Trust Badges */}
           <div className="pdm-left-col">

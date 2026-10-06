@@ -228,8 +228,8 @@ const Categories = () => {
         }
       >
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <Input label="Category Name" placeholder="e.g. Asus" value={catName} onChange={e => setCatName(e.target.value)} required />
-          <Textarea label="Sub-components (comma-separated)" placeholder="Laptops, Monitors, Keyboards" value={catSub} onChange={e => setCatSub(e.target.value)} rows={3} />
+          <Input id="category_name" name="category_name" label="Category Name" placeholder="e.g. Asus" value={catName} onChange={e => setCatName(e.target.value)} required />
+          <Textarea id="category_subcomponents" name="category_subcomponents" label="Sub-components (comma-separated)" placeholder="Laptops, Monitors, Keyboards" value={catSub} onChange={e => setCatSub(e.target.value)} rows={3} />
         </form>
       </Modal>
 

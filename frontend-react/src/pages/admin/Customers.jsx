@@ -87,8 +87,10 @@ const Customers = () => {
       <Card>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-          <Input placeholder="Search by name, email, phone…" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={<Search />} />
+          <Input id="customer_search" name="customer_search" placeholder="Search by name, email, phone…" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={<Search />} />
           <Select
+            id="customer_sort"
+            name="customer_sort"
             value={`${sortBy}-${sortOrder}`}
             onChange={e => { const [f, o] = e.target.value.split('-'); setSortBy(f); setSortOrder(o); }}
             options={[

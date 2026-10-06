@@ -170,6 +170,8 @@ const Products = () => {
             </svg>
             <input
               type="text"
+              id="catalog_search_input"
+              name="search"
               placeholder="Search by model, brand, or specs..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
