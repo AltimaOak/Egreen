@@ -227,27 +227,7 @@ const Home = () => {
                   </svg>
                 )
               },
-              {
-                name: 'Intel',
-                svg: (
-                  <svg viewBox="0 0 120 60" className="brand-logo-svg brand-intel">
-                    {/* Intel blue elliptical swoosh */}
-                    <ellipse cx="60" cy="30" rx="58" ry="28" fill="none" stroke="#0068B5" strokeWidth="4.5"/>
-                    {/* intel wordmark */}
-                    <text
-                      x="60" y="37"
-                      fill="#0068B5"
-                      fontFamily="'Arial', Helvetica, sans-serif"
-                      fontSize="22"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                      letterSpacing="-0.5"
-                    >intel</text>
-                    {/* dot on the 'i' — part of the wordmark */}
-                    <rect x="17.5" y="19" width="5" height="5" fill="#0068B5" rx="0.5"/>
-                  </svg>
-                )
-              },
+             
               {
                 name: 'Intel',
                 svg: (

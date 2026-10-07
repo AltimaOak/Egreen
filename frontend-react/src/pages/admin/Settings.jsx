@@ -148,7 +148,7 @@ const Settings = () => {
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: 2 }}>Visitors will see a maintenance page</div>
                   </div>
                   <label className="admin-toggle-switch">
-                    <input type="checkbox" checked={maintenanceMode} onChange={e => setMaintenanceMode(e.target.checked)} />
+                    <input type="checkbox" id="settings_maintenance_mode" name="maintenance_mode" checked={maintenanceMode} onChange={e => setMaintenanceMode(e.target.checked)} />
                     <span className="admin-toggle-slider" />
                   </label>
                 </div>
@@ -161,7 +161,7 @@ const Settings = () => {
       {/* Appearance */}
       {activeTab === 'Appearance' && (
         <Card title="Appearance Overrides" subtitle="Banner and media configuration">
-          <Input label="Header Banner Image URL" defaultValue="/assets/hero_mini_pcs.png" />
+          <Input id="settings_header_banner" name="header_banner" label="Header Banner Image URL" defaultValue="/assets/hero_mini_pcs.png" />
           <div style={{ marginTop: 8 }}>
             <Button variant="primary" size="sm" icon={<Save size={14} />} onClick={handleSave}>Save Changes</Button>
           </div>
@@ -171,7 +171,7 @@ const Settings = () => {
       {/* Site Info */}
       {activeTab === 'Site Info' && (
         <Card title="Site Information" subtitle="SEO and compliance details">
-          <Textarea label="Footer / SEO Description" value={footerText} onChange={e => setFooterText(e.target.value)} rows={5} />
+          <Textarea id="settings_footer_seo" name="footer_seo" label="Footer / SEO Description" value={footerText} onChange={e => setFooterText(e.target.value)} rows={5} />
           <div style={{ marginTop: 8 }}>
             <Button variant="primary" size="sm" icon={<Save size={14} />} onClick={handleSave}>Save Changes</Button>
           </div>
@@ -186,11 +186,13 @@ const Settings = () => {
               <Shield size={18} color="var(--color-primary)" />
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text)' }}>Security Settings</h3>
             </div>
-            <Input label="Admin Username" value={adminUsername} onChange={e => setAdminUsername(e.target.value)} required />
+            <Input id="settings_admin_username" name="admin_username" label="Admin Username" value={adminUsername} onChange={e => setAdminUsername(e.target.value)} required />
             <div className="admin-form-group">
-              <label className="admin-form-label">New Password <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
+              <label htmlFor="settings_new_password" className="admin-form-label">New Password <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>(optional)</span></label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="settings_new_password"
+                  name="new_password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter new password"
                   value={newPassword}
@@ -222,7 +224,7 @@ const Settings = () => {
               { id: 'notif-reviews',  label: 'Send review notifications',         def: false },
             ].map(n => (
               <label key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                <input type="checkbox" id={n.id} defaultChecked={n.def} style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }} />
+                <input type="checkbox" id={n.id} name={n.id} defaultChecked={n.def} style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }} />
                 {n.label}
               </label>
             ))}

@@ -210,18 +210,24 @@ const ProductVariants = () => {
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>
               <Input
+                id="variant_ram"
+                name="variant_ram"
                 label="RAM (e.g. 8GB, 16GB)"
                 value={formState.ram}
                 onChange={(e) => setFormState({ ...formState, ram: e.target.value })}
                 placeholder="8GB"
               />
               <Input
+                id="variant_storage"
+                name="variant_storage"
                 label="Storage (e.g. 256GB SSD)"
                 value={formState.storage}
                 onChange={(e) => setFormState({ ...formState, storage: e.target.value })}
                 placeholder="256GB SSD"
               />
               <Input
+                id="variant_price"
+                name="variant_price"
                 label="Price (₹)"
                 type="number"
                 value={formState.price}
@@ -230,6 +236,8 @@ const ProductVariants = () => {
                 min="0"
               />
               <Input
+                id="variant_offer_price"
+                name="variant_offer_price"
                 label="Offer Price (₹)"
                 type="number"
                 value={formState.offerPrice}
@@ -238,6 +246,8 @@ const ProductVariants = () => {
                 min="0"
               />
               <Input
+                id="variant_stock"
+                name="variant_stock"
                 label="Stock"
                 type="number"
                 value={formState.stock}
@@ -246,6 +256,8 @@ const ProductVariants = () => {
                 min="0"
               />
               <Input
+                id="variant_sku"
+                name="variant_sku"
                 label="SKU"
                 value={formState.sku}
                 onChange={(e) => setFormState({ ...formState, sku: e.target.value })}
@@ -257,6 +269,8 @@ const ProductVariants = () => {
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, color: 'var(--color-text)' }}>
                 <input
                   type="checkbox"
+                  id="variant_is_default"
+                  name="is_default"
                   checked={formState.isDefault}
                   onChange={(e) => setFormState({ ...formState, isDefault: e.target.checked })}
                   style={{ width: 16, height: 16, cursor: 'pointer' }}

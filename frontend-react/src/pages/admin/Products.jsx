@@ -628,6 +628,8 @@ const Products = () => {
         <div style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 260, flex: 1, maxWidth: 400 }}>
             <Input
+              id="admin_product_search"
+              name="admin_product_search"
               placeholder="Search by name, SKU, or brand..."
               value={searchTerm}
               onChange={(e) => {
@@ -640,6 +642,8 @@ const Products = () => {
 
           <div style={{ width: 180 }}>
             <Select
+              id="admin_product_sort"
+              name="admin_product_sort"
               options={[
                 { value: 'name', label: 'Sort by Name' },
                 { value: 'price', label: 'Sort by Price' },
@@ -674,7 +678,7 @@ const Products = () => {
                   <thead>
                     <tr>
                       <th style={{ width: '40px' }}>
-                        <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
+                        <input type="checkbox" id="select_all_products" name="select_all_products" aria-label="Select all products" className="admin-checkbox" style={{ margin: 0 }} />
                       </th>
                       <th style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
                         Product {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -697,7 +701,7 @@ const Products = () => {
                       return (
                         <tr key={p.id}>
                           <td>
-                            <input type="checkbox" className="admin-checkbox" style={{ margin: 0 }} />
+                            <input type="checkbox" id={`select_product_${p.id}`} name={`select_product_${p.id}`} aria-label={`Select ${p.name}`} className="admin-checkbox" style={{ margin: 0 }} />
                           </td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -910,6 +914,8 @@ const Products = () => {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <Input
+                  id="product_name"
+                  name="product_name"
                   label="Product Name"
                   placeholder="e.g. HP 400G6 SSF ProDesk"
                   value={formData.name}
@@ -918,6 +924,8 @@ const Products = () => {
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <Select
+                    id="product_brand"
+                    name="product_brand"
                     label="Brand"
                     options={brandOptions}
                     value={formData.brand}
@@ -925,6 +933,8 @@ const Products = () => {
                     required
                   />
                   <Select
+                    id="product_category"
+                    name="product_category"
                     label="Category"
                     options={categoryOptions}
                     value={formData.category}
@@ -933,6 +943,8 @@ const Products = () => {
                   />
                 </div>
                 <Textarea
+                  id="product_description"
+                  name="product_description"
                   label="Product Description"
                   placeholder="Enter a brief summary of the product features, condition, and specs..."
                   value={formData.description}
@@ -953,6 +965,8 @@ const Products = () => {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <Input
+                  id="product_warranty"
+                  name="product_warranty"
                   label="Warranty Terms / Duration"
                   placeholder="e.g. 3 Years, 2 Years, 1 Year Enterprise Warranty"
                   value={formData.warranty}
@@ -1013,6 +1027,8 @@ const Products = () => {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: 10, marginBottom: 10 }}>
                     <Input
+                      id="tier_1_name"
+                      name="tier_1_name"
                       label="Spec Option Label"
                       placeholder="e.g. 8GB RAM / 256GB SSD"
                       value={formData.pricingTiers?.[0]?.name || ''}
@@ -1020,6 +1036,8 @@ const Products = () => {
                       required
                     />
                     <Input
+                      id="tier_1_specs"
+                      name="tier_1_specs"
                       label="Specification Summary"
                       placeholder="e.g. Core i3, 8GB DDR4 RAM, 256GB SSD, Win 11"
                       value={formData.pricingTiers?.[0]?.specs || ''}
@@ -1029,6 +1047,8 @@ const Products = () => {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <Input
+                      id="tier_1_price"
+                      name="tier_1_price"
                       label="Selling Price (₹)"
                       type="number"
                       placeholder="e.g. 23500"
@@ -1037,6 +1057,8 @@ const Products = () => {
                       required
                     />
                     <Input
+                      id="tier_1_offerPrice"
+                      name="tier_1_offerPrice"
                       label="MRP / Original Strikethrough (₹) (Optional)"
                       type="number"
                       placeholder="e.g. 27730"
@@ -1058,12 +1080,16 @@ const Products = () => {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: 10, marginBottom: 10 }}>
                     <Input
+                      id="tier_2_name"
+                      name="tier_2_name"
                       label="Spec Option Label"
                       placeholder="e.g. 16GB RAM / 512GB SSD"
                       value={formData.pricingTiers?.[1]?.name || ''}
                       onChange={(e) => handlePricingTierChange(1, 'name', e.target.value)}
                     />
                     <Input
+                      id="tier_2_specs"
+                      name="tier_2_specs"
                       label="Specification Summary"
                       placeholder="e.g. Core i3, 16GB DDR4 RAM, 512GB SSD, Win 11"
                       value={formData.pricingTiers?.[1]?.specs || ''}
@@ -1073,6 +1099,8 @@ const Products = () => {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <Input
+                      id="tier_2_price"
+                      name="tier_2_price"
                       label="Selling Price (₹)"
                       type="number"
                       placeholder="e.g. 28500"
@@ -1080,6 +1108,8 @@ const Products = () => {
                       onChange={(e) => handlePricingTierChange(1, 'price', e.target.value)}
                     />
                     <Input
+                      id="tier_2_offerPrice"
+                      name="tier_2_offerPrice"
                       label="MRP / Original Strikethrough (₹) (Optional)"
                       type="number"
                       placeholder="e.g. 33000"
@@ -1094,6 +1124,8 @@ const Products = () => {
               {/* Stock, Status & SKU Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
                 <Input
+                  id="product_stock"
+                  name="product_stock"
                   label="Stock Quantity"
                   type="number"
                   placeholder="e.g. 10"
@@ -1102,6 +1134,8 @@ const Products = () => {
                   required
                 />
                 <Select
+                  id="product_status"
+                  name="product_status"
                   label="Status"
                   options={[
                     { value: 'Active', label: 'Active (Visible on website)' },
@@ -1111,6 +1145,8 @@ const Products = () => {
                   onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
                 />
                 <Input
+                  id="product_sku"
+                  name="product_sku"
                   label="SKU Identifier"
                   placeholder="e.g. EG-HP-400G6"
                   value={formData.SKU}
@@ -1235,6 +1271,8 @@ const Products = () => {
                   )}
                   <input
                     type="file"
+                    id="product_images_upload"
+                    name="product_images_upload"
                     accept="image/*"
                     multiple
                     hidden
@@ -1290,6 +1328,8 @@ const Products = () => {
                 <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   <input
                     type="text"
+                    id={`spec_key_${idx}`}
+                    name={`spec_key_${idx}`}
                     className="admin-input"
                     style={{ flex: 1 }}
                     placeholder="Feature (e.g. Processor)"
@@ -1298,6 +1338,8 @@ const Products = () => {
                   />
                   <input
                     type="text"
+                    id={`spec_val_${idx}`}
+                    name={`spec_val_${idx}`}
                     className="admin-input"
                     style={{ flex: 2 }}
                     placeholder="Value (e.g. Intel Core i3)"
@@ -1351,6 +1393,8 @@ const Products = () => {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
                     <input
                       type="text"
+                      id={`variant_group_${gIdx}_label`}
+                      name={`variant_group_${gIdx}_label`}
                       className="admin-input"
                       style={{ flex: 1 }}
                       placeholder="Group Label (e.g. RAM / Memory)"
@@ -1382,6 +1426,8 @@ const Products = () => {
                     <div key={oIdx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 2fr auto', gap: 6, marginBottom: 6, alignItems: 'center' }}>
                       <input
                         type="text"
+                        id={`variant_${gIdx}_opt_${oIdx}_val`}
+                        name={`variant_${gIdx}_opt_${oIdx}_val`}
                         className="admin-input"
                         placeholder="Option (e.g. 8 GB)"
                         value={opt.value}
@@ -1393,6 +1439,8 @@ const Products = () => {
                       />
                       <input
                         type="number"
+                        id={`variant_${gIdx}_opt_${oIdx}_price`}
+                        name={`variant_${gIdx}_opt_${oIdx}_price`}
                         className="admin-input"
                         placeholder="Price ₹ (optional)"
                         value={opt.priceOverride}
@@ -1404,6 +1452,8 @@ const Products = () => {
                       />
                       <input
                         type="text"
+                        id={`variant_${gIdx}_opt_${oIdx}_specs`}
+                        name={`variant_${gIdx}_opt_${oIdx}_specs`}
                         className="admin-input"
                         placeholder="Spec change (e.g. RAM: 8GB DDR4)"
                         value={opt.specsOverride}

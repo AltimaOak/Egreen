@@ -149,8 +149,13 @@ export const Input = React.forwardRef(({
   icon, rightIcon, onRightIconClick, type = 'text', error, required, disabled,
   className = '', id, name, min, step, autoComplete, style,
 }, ref) => {
-  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
-  const fieldName = name || fieldId;
+  const autoId = React.useId ? React.useId() : '';
+  const cleanAutoId = autoId.replace(/[^a-zA-Z0-9_-]/g, '');
+  const defaultBase = label
+    ? label.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    : (placeholder ? placeholder.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'field');
+  const fieldId = id || (name ? name : (cleanAutoId ? `${defaultBase}_${cleanAutoId}` : defaultBase));
+  const fieldName = name || id || defaultBase;
   return (
     <div style={{ marginBottom: error ? 0 : 16 }} className={className}>
       {label && (
@@ -226,8 +231,13 @@ export const Select = ({
   label, value, onChange, options = [],
   placeholder, error, required, disabled, className = '', id, name,
 }) => {
-  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
-  const fieldName = name || fieldId;
+  const autoId = React.useId ? React.useId() : '';
+  const cleanAutoId = autoId.replace(/[^a-zA-Z0-9_-]/g, '');
+  const defaultBase = label
+    ? label.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    : (placeholder ? placeholder.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'select');
+  const fieldId = id || (name ? name : (cleanAutoId ? `${defaultBase}_${cleanAutoId}` : defaultBase));
+  const fieldName = name || id || defaultBase;
   return (
     <div style={{ marginBottom: 16 }} className={className}>
       {label && (
@@ -271,8 +281,13 @@ export const Textarea = ({
   error, required, disabled, className = '',
   id, name, rows = 4, minHeight = '100px', style = {},
 }) => {
-  const fieldId = id || name || (label ? label.toLowerCase().replace(/[^a-z0-9]/g, '_') : undefined);
-  const fieldName = name || fieldId;
+  const autoId = React.useId ? React.useId() : '';
+  const cleanAutoId = autoId.replace(/[^a-zA-Z0-9_-]/g, '');
+  const defaultBase = label
+    ? label.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    : (placeholder ? placeholder.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'textarea');
+  const fieldId = id || (name ? name : (cleanAutoId ? `${defaultBase}_${cleanAutoId}` : defaultBase));
+  const fieldName = name || id || defaultBase;
   return (
     <div style={{ marginBottom: 16 }} className={className}>
       {label && (
