@@ -1,7 +1,20 @@
+
 import React from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from 'react-router-dom';
+
 import { AuthProvider } from './context/AuthContext';
+import { AdminProvider } from './contexts/AdminContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+
 import Layout from './components/Layout';
+import ProtectedRoute from './components/admin/ProtectedRoute';
+import AdminLayout from './components/admin/AdminLayout';
+
+// Public pages
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
@@ -13,13 +26,7 @@ import Refund from './pages/legal/Refund';
 import Shipping from './pages/legal/Shipping';
 import Warranty from './pages/legal/Warranty';
 
-// Admin Components
-import { AdminProvider } from './contexts/AdminContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import ProtectedRoute from './components/admin/ProtectedRoute';
-import AdminLayout from './components/admin/AdminLayout';
-
-// Admin Pages
+// Admin pages
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
@@ -31,31 +38,33 @@ import Categories from './pages/admin/Categories';
 import Customers from './pages/admin/Customers';
 import Analytics from './pages/admin/Analytics';
 
-const router = createBrowserRouter([
-  // Public client website routes
+const hostname = window.location.hostname.toLowerCase();
+
+const isAdminHost =
+  hostname === 'admin.egreentechnology.co.in';
+
+const publicRoutes = [
   {
-    path: "/",
+    path: '/',
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      { path: "about", element: <About /> },
-      { path: "services", element: <Services /> },
-      { path: "products", element: <Products /> },
-      { path: "contact", element: <Contact /> },
-      { path: "terms", element: <Terms /> },
-      { path: "privacy", element: <Privacy /> },
-      { path: "refund", element: <Refund /> },
-      { path: "shipping", element: <Shipping /> },
-      { path: "warranty", element: <Warranty /> },
-    ]
+      { path: 'about', element: <About /> },
+      { path: 'services', element: <Services /> },
+      { path: 'products', element: <Products /> },
+      { path: 'contact', element: <Contact /> },
+      { path: 'terms', element: <Terms /> },
+      { path: 'privacy', element: <Privacy /> },
+      { path: 'refund', element: <Refund /> },
+      { path: 'shipping', element: <Shipping /> },
+      { path: 'warranty', element: <Warranty /> },
+    ],
   },
 
-  // Admin login (public)
-  { path: "/admin/login", element: <AdminLogin /> },
+  { path: '/admin/login', element: <AdminLogin /> },
 
-  // Protected Admin routes
   {
-    path: "/admin",
+    path: '/admin',
     element: (
       <ProtectedRoute>
         <AdminLayout />
@@ -63,23 +72,56 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "products", element: <AdminProducts /> },
-      { path: "products/:id/variants", element: <ProductVariants /> },
-      { path: "orders", element: <Orders /> },
-      { path: "categories", element: <Categories /> },
-      { path: "customers", element: <Customers /> },
-      { path: "analytics", element: <Analytics /> },
-      { path: "settings", element: <Settings /> },
-      { path: "*", element: <NotFound /> }
-    ]
+      { path: 'products', element: <AdminProducts /> },
+      { path: 'products/:id/variants', element: <ProductVariants /> },
+      { path: 'orders', element: <Orders /> },
+      { path: 'categories', element: <Categories /> },
+      { path: 'customers', element: <Customers /> },
+      { path: 'analytics', element: <Analytics /> },
+      { path: 'settings', element: <Settings /> },
+      { path: '*', element: <NotFound /> },
+    ],
   },
 
-  // Fallback 404
+  { path: '*', element: <NotFound /> },
+];
+
+const adminRoutes = [
+  // Opening the subdomain root sends visitors to the admin dashboard.
+  // ProtectedRoute should redirect unauthenticated users to the login page.
   {
-    path: "*",
-    element: <NotFound />
-  }
-]);
+    path: '/',
+    element: <Navigate to="/admin" replace />,
+  },
+
+  { path: '/admin/login', element: <AdminLogin /> },
+
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: 'products', element: <AdminProducts /> },
+      { path: 'products/:id/variants', element: <ProductVariants /> },
+      { path: 'orders', element: <Orders /> },
+      { path: 'categories', element: <Categories /> },
+      { path: 'customers', element: <Customers /> },
+      { path: 'analytics', element: <Analytics /> },
+      { path: 'settings', element: <Settings /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+
+  { path: '*', element: <Navigate to="/admin" replace /> },
+];
+
+const router = createBrowserRouter(
+  isAdminHost ? adminRoutes : publicRoutes
+);
 
 function App() {
   return (
