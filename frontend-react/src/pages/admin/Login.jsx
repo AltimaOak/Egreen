@@ -119,11 +119,10 @@ const Login = () => {
           </div>
         </form>
 
-        <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.75rem', color: 'var(--color-muted)', borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
-          Demo credentials: <code style={{ fontWeight: 700, color: 'var(--color-text)' }}>admin@egreen.com</code>
+  
         </div>
       </div>
-    </div>
+   
   );
 };
 
