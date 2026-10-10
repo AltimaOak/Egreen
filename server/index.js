@@ -43,6 +43,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'https://egreen-technology.vercel.app',
+  'https://admin.egreentechnology.co.in',
   'https://www.egreentechnology.co.in',
   'https://egreentechnology.co.in',
 ].filter(Boolean);
