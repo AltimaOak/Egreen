@@ -5,18 +5,26 @@ import TopNav from './TopNav';
 import Toast from './Toast';
 
 const AdminLayout = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
-    const handleResize = () => setSidebarCollapsed(window.innerWidth <= 768);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // Auto-collapse when shrinking to mobile
+      if (mobile) setSidebarCollapsed(true);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const showBackdrop = isMobile && !sidebarCollapsed;
+
   return (
     <div className="admin-container-root">
       <div className="admin-layout">
-        {!sidebarCollapsed && window.innerWidth <= 768 && (
+        {showBackdrop && (
           <div
             className="admin-sidebar-backdrop"
             onClick={() => setSidebarCollapsed(true)}

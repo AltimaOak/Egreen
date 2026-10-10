@@ -78,7 +78,7 @@ const Dashboard = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <SkeletonCard count={4} />
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+        <div className="admin-dashboard-grid">
           <div><SkeletonTable rows={5} /></div>
           <div><SkeletonTable rows={5} cols={2} /></div>
         </div>
@@ -160,7 +160,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+      <div className="admin-dashboard-grid">
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
           {/* Chart */}

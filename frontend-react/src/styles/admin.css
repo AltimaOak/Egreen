@@ -81,6 +81,7 @@
   display: flex;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background-color: var(--color-background);
 }
@@ -314,7 +315,9 @@
 @media (max-width: 768px) {
   .admin-sidebar {
     position: fixed;
-    top: 0; left: 0; bottom: 0; height: 100vh;
+    inset: 0 auto 0 0;
+    height: 100vh;
+    height: 100dvh;
     z-index: 50;
     box-shadow: var(--shadow-overlay);
   }
@@ -906,6 +909,7 @@
 /* ── Login page ──────────────────────────────────────────── */
 .admin-login-layout {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1049,3 +1053,323 @@
 .admin-pagination-btn:hover:not(:disabled) { background-color: var(--color-surface-2); }
 .admin-pagination-btn.active { background-color: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 .admin-pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Dashboard 2-column grid ────────────────────────────── */
+.admin-dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Comprehensive Mobile Responsive Overhaul
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .admin-topnav-search-input {
+    width: 160px;
+  }
+  .admin-topnav-search-input:focus {
+    width: 200px;
+  }
+}
+
+/* ── Mobile (≤ 768px) ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-topnav {
+    padding-left: calc(12px + env(safe-area-inset-left, 0px));
+    padding-right: calc(12px + env(safe-area-inset-right, 0px));
+  }
+
+  .admin-topnav-icon-btn {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .admin-nav-item {
+    min-height: 44px;
+  }
+
+  .admin-content-outlet {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* TopNav: compact for mobile */
+  .admin-topnav {
+    height: 56px;
+    min-height: 56px;
+    gap: 8px;
+  }
+
+  .admin-topnav-left {
+    gap: 10px;
+  }
+
+  .admin-topnav-title {
+    font-size: 0.9rem;
+  }
+
+  .admin-topnav-breadcrumb {
+    display: none;
+  }
+
+  /* Hide search, date, add-product on narrow screens — use menu instead */
+  .admin-topnav-search {
+    display: none;
+  }
+
+  .admin-topnav-date-badge {
+    display: none;
+  }
+
+  .admin-topnav-right .admin-btn {
+    display: none;
+  }
+
+  .admin-topnav-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  /* Page header: stack title and actions */
+  .admin-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+
+  .admin-page-title {
+    font-size: 1.2rem;
+  }
+
+  .admin-page-header .admin-btn,
+  .admin-page-header > div {
+    width: 100%;
+  }
+
+  .admin-page-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-page-header > div:last-child .admin-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  /* Card padding reduced on mobile */
+  .admin-card {
+    padding: 16px;
+  }
+
+  .admin-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Stats grid: single column on mobile */
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .admin-stat-card {
+    padding: 14px 16px;
+    gap: 8px;
+  }
+
+  .admin-stat-value {
+    font-size: 1.35rem;
+  }
+
+  /* Dashboard grid: stack on mobile */
+  .admin-dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Tables: horizontally scrollable */
+  .admin-table-container,
+  .admin-card:has(.admin-table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 600px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+  }
+
+  /* Category cards: 2-column on mobile */
+  .admin-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .admin-category-card {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .admin-category-logo-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .admin-category-card-body h3 {
+    font-size: 0.85rem;
+  }
+
+  .admin-category-card-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-category-card-actions .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Pages layout: already handled at 900px */
+
+  /* Forms */
+  .admin-form-row,
+  .admin-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* Image upload */
+  .admin-image-upload-zone {
+    padding: 24px 16px;
+  }
+
+  /* Login card */
+  .admin-login-card {
+    padding: 28px 20px;
+    max-width: 100%;
+  }
+
+  .admin-login-layout {
+    padding:
+      max(16px, env(safe-area-inset-top, 0px))
+      max(16px, env(safe-area-inset-right, 0px))
+      max(16px, env(safe-area-inset-bottom, 0px))
+      max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  /* Pagination */
+  .admin-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .admin-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Tabs: horizontally scrollable */
+  .admin-tabs {
+    gap: 0;
+    padding: 0 4px;
+  }
+
+  .admin-tab-btn {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+  }
+
+  /* Collapsible sections */
+  .admin-collapsible-header {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+  .admin-collapsible-body {
+    padding: 0 14px 14px;
+  }
+
+  /* Buttons */
+  .admin-btn {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+  }
+  .admin-btn-sm {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+
+  /* Toast */
+  .admin-toast {
+    max-width: calc(100vw - 32px);
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Small phones (≤ 480px) ─────────────────────────────── */
+@media (max-width: 480px) {
+  .admin-content-outlet {
+    padding:
+      12px
+      max(10px, env(safe-area-inset-right, 0px))
+      calc(16px + env(safe-area-inset-bottom, 0px))
+      max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  .admin-stats-grid {
+    gap: 8px;
+  }
+
+  .admin-page-title {
+    font-size: 1.05rem;
+  }
+
+  .admin-page-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .admin-categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .admin-stat-card {
+    padding: 12px 14px;
+  }
+
+  /* Empty state */
+  .admin-empty-state {
+    padding: 40px 16px;
+  }
+  .admin-empty-state-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+  .admin-empty-state-title {
+    font-size: 0.9rem;
+  }
+  .admin-empty-state-desc {
+    font-size: 0.78rem;
+  }
+}

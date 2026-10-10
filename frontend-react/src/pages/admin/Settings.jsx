@@ -102,7 +102,7 @@ const Settings = () => {
       {/* General */}
       {activeTab === 'General' && (
         <form onSubmit={handleSave}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="admin-dashboard-grid">
             {/* Store Info */}
             <Collapsible title="Store Information" icon={<SettingsIcon />} defaultOpen>
               <Input label="Store Name" value={websiteName} onChange={e => { setWebsiteName(e.target.value); setLogoText(e.target.value); }} required />

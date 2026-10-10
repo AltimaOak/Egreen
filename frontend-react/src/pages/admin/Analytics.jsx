@@ -99,7 +99,7 @@ const Analytics = () => {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20 }}>
+      <div className="admin-dashboard-grid">
         <Card title="Revenue Trend" subtitle="Daily order revenue over time">
           <div style={{ height: 250, marginTop: 12 }}>
             {data.chartPoints.length > 0 ? (
